@@ -1,63 +1,73 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-from config_utils import load_config, save_config
+import threading
+import os
+import csv
+from config_utils import (
+    load_config, save_config,
+    search_taxa_local, search_taxa_gbif,
+    get_tagger_configs_dir, get_species_csv_path
+)
 from procesamiento import FPS_EXTRACT, BUFFER_N, TOP_K, DOWNSAMPLE_MAX, JPEG_QUALITY, MASK_QUALITY
-
-# Para abrir MainApp al guardar
 from main import MainApp
 
 class SetupApp(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title("Caicat2.0 - Configuración")
-        self.geometry("900x700")
-        self.font_large = ("Arial", 12)
-        self.config_data = load_config()
+        self.title("CAICAT - Configuración del Sistema")
+        self.geometry("950x750")
+        self.font_large = ("Arial", 11)
+        
+        try:
+            self.config_data = load_config()
+        except Exception as e:
+            messagebox.showerror("Error Crítico", f"No se pudo cargar config.ini:\n{e}")
+            self.destroy()
+            return
 
+        # Notebook principal
         self.notebook = ttk.Notebook(self)
         self.notebook.pack(fill="both", expand=True, padx=5, pady=5)
 
-        # Crear tabs
         self.tabs = {}
-        self.create_gui_tagger_tab()
         self.create_general_tab()
+        self.create_gui_tagger_tab()
         self.create_main_tab()
         self.create_gui_inicial_tab()
 
-        # Botones de acción
+        # Botones de acción global
         action_frame = tk.Frame(self)
         action_frame.pack(pady=10)
-        tk.Button(action_frame, text="Guardar cambios", font=self.font_large, command=self.save_all).pack(side="left", padx=10)
-        tk.Button(action_frame, text="Reset a original", font=self.font_large, command=self.reset_all).pack(side="left", padx=10)
+        tk.Button(action_frame, text="Guardar y Salir", font=self.font_large, 
+                  command=self.save_all, bg="#4CAF50", fg="white").pack(side="left", padx=15)
+        tk.Button(action_frame, text="Cancelar", font=self.font_large, command=self.destroy).pack(side="left", padx=15)
 
     # ------------------------
-    # Tab General (Fusiona General, Procesamiento, Metadata)
+    # Tab General
     # ------------------------
     def create_general_tab(self):
         tab = ttk.Frame(self.notebook)
-        self.notebook.add(tab, text="General")
+        self.notebook.add(tab, text="General & Paths")
         self.tabs['General'] = tab
 
         gen = self.config_data.get("General", {})
         meta = self.config_data.get("MetadataSettings", {})
 
-        # --- General Paths ---
-        general_frame = tk.LabelFrame(tab, text="General Paths", font=self.font_large)
-        general_frame.pack(fill="x", padx=5, pady=5)
+        general_frame = tk.LabelFrame(tab, text="Rutas y Archivos", font=self.font_large)
+        general_frame.pack(fill="x", padx=10, pady=10)
 
-        tk.Label(general_frame, text="Output Folder:", font=self.font_large).grid(row=0, column=0, sticky="e")
+        tk.Label(general_frame, text="Carpeta de Salida (Output):", font=self.font_large).grid(row=0, column=0, sticky="e", pady=5)
         self.output_entry = tk.Entry(general_frame, width=60, font=self.font_large)
         self.output_entry.grid(row=0, column=1, padx=5, pady=5)
-        self.output_entry.insert(0, gen.get("output_folder",""))
+        self.output_entry.insert(0, gen.get("output_folder", ""))
 
-        tk.Label(general_frame, text="JSON File:", font=self.font_large).grid(row=1, column=0, sticky="e")
+        tk.Label(general_frame, text="Archivo JSON Principal:", font=self.font_large).grid(row=1, column=0, sticky="e", pady=5)
         self.json_entry = tk.Entry(general_frame, width=60, font=self.font_large)
         self.json_entry.grid(row=1, column=1, padx=5, pady=5)
-        self.json_entry.insert(0, gen.get("json_file",""))
+        self.json_entry.insert(0, gen.get("json_file", ""))
 
-        # --- Procesamiento ---
-        proc_frame = tk.LabelFrame(tab, text="Procesamiento", font=self.font_large)
-        proc_frame.pack(fill="x", padx=5, pady=5)
+        proc_frame = tk.LabelFrame(tab, text="Parámetros de Procesamiento", font=self.font_large)
+        proc_frame.pack(fill="x", padx=10, pady=10)
 
         vars_proc = {
             "FPS_EXTRACT": FPS_EXTRACT,
@@ -69,29 +79,23 @@ class SetupApp(tk.Tk):
         }
 
         self.proc_entries = {}
-        for i,(k,v) in enumerate(vars_proc.items()):
-            tk.Label(proc_frame, text=k+":", font=self.font_large).grid(row=i, column=0, sticky="e")
+        for i, (k, v) in enumerate(vars_proc.items()):
+            tk.Label(proc_frame, text=f"{k}:", font=self.font_large).grid(row=i, column=0, sticky="e", pady=2)
             e = tk.Entry(proc_frame, width=10, font=self.font_large)
             e.grid(row=i, column=1, padx=5, pady=2)
-            e.insert(0,str(v))
+            e.insert(0, str(v))
             self.proc_entries[k] = e
 
-        # --- Metadata ---
-        meta_frame = tk.LabelFrame(tab, text="Metadata", font=self.font_large)
-        meta_frame.pack(fill="x", padx=5, pady=5)
+        meta_frame = tk.LabelFrame(tab, text="Configuración de Metadatos", font=self.font_large)
+        meta_frame.pack(fill="x", padx=10, pady=10)
 
-        tk.Label(meta_frame, text="Fields to Embed (comma separated):", font=self.font_large).grid(row=0,column=0, sticky="ne")
-        self.fields_embed_text = tk.Text(meta_frame, width=60, height=4, font=self.font_large)
-        self.fields_embed_text.grid(row=0,column=1, padx=5,pady=2)
-        self.fields_embed_text.insert("1.0", ",".join(meta.get("fields_to_embed",[])))
-
-        tk.Label(meta_frame, text="Excel Default Fields (comma separated):", font=self.font_large).grid(row=1,column=0, sticky="ne")
-        self.excel_fields_text = tk.Text(meta_frame, width=60, height=4, font=self.font_large)
-        self.excel_fields_text.grid(row=1,column=1, padx=5,pady=2)
-        self.excel_fields_text.insert("1.0", ",".join(meta.get("ExcelFieldsDefault",[])))
+        tk.Label(meta_frame, text="Campos para Embed (separados por coma):", font=self.font_large).grid(row=0, column=0, sticky="ne", pady=5)
+        self.fields_embed_text = tk.Text(meta_frame, width=60, height=3, font=self.font_large)
+        self.fields_embed_text.grid(row=0, column=1, padx=5, pady=2)
+        self.fields_embed_text.insert("1.0", ", ".join(meta.get("fields_to_embed", [])))
 
     # ------------------------
-    # Tab GUI Tagger (primero)
+    # Tab GUI Tagger
     # ------------------------
     def create_gui_tagger_tab(self):
         tab = ttk.Frame(self.notebook)
@@ -100,75 +104,190 @@ class SetupApp(tk.Tk):
 
         gui_tag = self.config_data.get("GUI_Tagger", {})
 
-        tk.Label(tab, text="Title:", font=self.font_large).grid(row=0, column=0, sticky="e")
-        self.gui_tag_title = tk.Entry(tab, width=40, font=self.font_large)
-        self.gui_tag_title.grid(row=0, column=1, padx=5, pady=2)
-        self.gui_tag_title.insert(0, gui_tag.get("title",""))
+        # Scroll container
+        canvas = tk.Canvas(tab)
+        scrollbar = ttk.Scrollbar(tab, orient="vertical", command=canvas.yview)
+        scroll_frame = tk.Frame(canvas)
+        scroll_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+        canvas.create_window((0, 0), window=scroll_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
 
-        tk.Label(tab, text="Geometry:", font=self.font_large).grid(row=1, column=0, sticky="e")
-        self.gui_tag_geom = tk.Entry(tab, width=40, font=self.font_large)
-        self.gui_tag_geom.grid(row=1, column=1, padx=5, pady=2)
-        self.gui_tag_geom.insert(0, gui_tag.get("geometry",""))
+        # --- Campos básicos ---
+        tk.Label(scroll_frame, text="Título de la Ventana:", font=self.font_large).grid(row=0, column=0, sticky="e", padx=5, pady=5)
+        self.gui_tag_title = tk.Entry(scroll_frame, width=40, font=self.font_large)
+        self.gui_tag_title.grid(row=0, column=1, padx=5, pady=5)
+        self.gui_tag_title.insert(0, gui_tag.get("title", ""))
 
-        tk.Label(tab, text="Species Tags (comma separated):", font=self.font_large).grid(row=2, column=0, sticky="ne")
-        self.species_tags_text = tk.Text(tab, width=40, height=4, font=self.font_large)
-        self.species_tags_text.grid(row=2, column=1, padx=5, pady=2)
-        self.species_tags_text.insert("1.0", ",".join(gui_tag.get("species_tags",[])))
+        tk.Label(scroll_frame, text="Geometría (AnchoxAlto):", font=self.font_large).grid(row=1, column=0, sticky="e", padx=5, pady=5)
+        self.gui_tag_geom = tk.Entry(scroll_frame, width=40, font=self.font_large)
+        self.gui_tag_geom.grid(row=1, column=1, padx=5, pady=5)
+        self.gui_tag_geom.insert(0, gui_tag.get("geometry", ""))
 
-        tk.Label(tab, text="Secondary Tags (comma separated):", font=self.font_large).grid(row=3, column=0, sticky="ne")
-        self.secondary_tags_text = tk.Text(tab, width=40, height=4, font=self.font_large)
-        self.secondary_tags_text.grid(row=3, column=1, padx=5, pady=2)
-        self.secondary_tags_text.insert("1.0", ",".join(gui_tag.get("secondary_tags",[])))
+        tk.Label(scroll_frame, text="Tags de Especies (principal):", font=self.font_large).grid(row=2, column=0, sticky="ne", padx=5, pady=5)
+        self.species_tags_text = tk.Text(scroll_frame, width=40, height=3, font=self.font_large)
+        self.species_tags_text.grid(row=2, column=1, padx=5, pady=5)
+        self.species_tags_text.insert("1.0", ", ".join(gui_tag.get("species_tags", [])))
 
-        tk.Label(tab, text="Behavior Tags (comma separated):", font=self.font_large).grid(row=4, column=0, sticky="ne")
-        self.behavior_tags_text = tk.Text(tab, width=40, height=4, font=self.font_large)
-        self.behavior_tags_text.grid(row=4, column=1, padx=5, pady=2)
-        self.behavior_tags_text.insert("1.0", ",".join(gui_tag.get("behavior_tags",[])))
+        tk.Label(scroll_frame, text="Tags Secundarios:", font=self.font_large).grid(row=3, column=0, sticky="ne", padx=5, pady=5)
+        self.secondary_tags_text = tk.Text(scroll_frame, width=40, height=3, font=self.font_large)
+        self.secondary_tags_text.grid(row=3, column=1, padx=5, pady=5)
+        self.secondary_tags_text.insert("1.0", ", ".join(gui_tag.get("secondary_tags", [])))
 
-        # Checkbox para Modo Camtrap DB
-        self.camtrap_mode_var = tk.BooleanVar(value=gui_tag.get("camtrap_mode", False)) # Leer estado actual
-        self.camtrap_mode_checkbox = tk.Checkbutton(tab, text="Modo Camtrap DB", variable=self.camtrap_mode_var,
-                                                   font=self.font_large, command=self._toggle_camtrap_mode_fields)
-        self.camtrap_mode_checkbox.grid(row=5, column=0, columnspan=2, sticky="w", padx=5, pady=5)
+        tk.Label(scroll_frame, text="Tags de Comportamiento:", font=self.font_large).grid(row=4, column=0, sticky="ne", padx=5, pady=5)
+        self.behavior_tags_text = tk.Text(scroll_frame, width=40, height=3, font=self.font_large)
+        self.behavior_tags_text.grid(row=4, column=1, padx=5, pady=5)
+        self.behavior_tags_text.insert("1.0", ", ".join(gui_tag.get("behavior_tags", [])))
 
-        # Frame para campos de edición de CSV (oculto por defecto)
-        self.csv_edit_frame = tk.Frame(tab)
-        self.csv_edit_frame.grid(row=6, column=0, columnspan=2, sticky="ew", padx=5, pady=5)
-        self.csv_edit_frame.grid_remove() # Ocultar inicialmente
+        tk.Label(scroll_frame, text="Lista 'Otros' (Desplegable):", font=self.font_large).grid(row=5, column=0, sticky="ne", padx=5, pady=5)
+        self.other_tags_text = tk.Text(scroll_frame, width=40, height=3, font=self.font_large)
+        self.other_tags_text.grid(row=5, column=1, padx=5, pady=5)
+        self.other_tags_text.insert("1.0", ", ".join(gui_tag.get("other_tags_list", [])))
 
-        # Campos para agregar especie
-        tk.Label(self.csv_edit_frame, text="Agregar Especie (CSV):", font=self.font_large).grid(row=0, column=0, sticky="e")
-        self.add_species_entry = tk.Entry(self.csv_edit_frame, width=60, font=self.font_large)
-        self.add_species_entry.grid(row=0, column=1, padx=5, pady=2)
-        tk.Button(self.csv_edit_frame, text="Agregar a species_list.csv", command=self._add_species_to_csv,
-                  font=self.font_large).grid(row=0, column=2, padx=5, pady=2)
+        # --- Separador ---
+        ttk.Separator(scroll_frame, orient="horizontal").grid(row=6, column=0, columnspan=3, sticky="ew", pady=15)
 
-        # Campos para agregar sitio
-        tk.Label(self.csv_edit_frame, text="Agregar Sitio (CSV):", font=self.font_large).grid(row=1, column=0, sticky="e")
-        self.add_site_entry = tk.Entry(self.csv_edit_frame, width=60, font=self.font_large)
-        self.add_site_entry.grid(row=1, column=1, padx=5, pady=2)
-        tk.Button(self.csv_edit_frame, text="Agregar a sites_list.csv", command=self._add_site_to_csv,
-                  font=self.font_large).grid(row=1, column=2, padx=5, pady=2)
+        # --- Buscador de taxones integrado ---
+        taxon_lbl = tk.Label(scroll_frame, text="Gestión de Taxones (species_list.csv)", font=("Arial", 12, "bold"))
+        taxon_lbl.grid(row=7, column=0, columnspan=3, sticky="w", padx=5, pady=(0, 5))
 
-        # Inicializar visibilidad
-        if self.camtrap_mode_var.get():
-            self.csv_edit_frame.grid()
-     
+        self._build_taxon_searcher(scroll_frame, start_row=8)
+
+    def _build_taxon_searcher(self, parent, start_row):
+        """Buscador de taxones embebido en el tab GUI Tagger del Setup."""
+        search_frame = tk.LabelFrame(parent, text="Buscar y Agregar al CSV Local", font=("Arial", 11))
+        search_frame.grid(row=start_row, column=0, columnspan=3, sticky="ew", padx=5, pady=5)
+
+        # Fila de búsqueda
+        row0 = tk.Frame(search_frame)
+        row0.pack(fill="x", padx=5, pady=4)
+        tk.Label(row0, text="Término de búsqueda:", font=("Arial", 11)).pack(side="left")
+        self._taxon_search_var = tk.StringVar()
+        search_entry = tk.Entry(row0, textvariable=self._taxon_search_var, width=30, font=("Arial", 11))
+        search_entry.pack(side="left", padx=5)
+
+        self._taxon_status_var = tk.StringVar(value="")
+        tk.Label(search_frame, textvariable=self._taxon_status_var, fg="#555",
+                 font=("Arial", 9, "italic")).pack(anchor="w", padx=5)
+
+        # Listbox de resultados
+        res_frame = tk.Frame(search_frame)
+        res_frame.pack(fill="x", padx=5, pady=2)
+        res_scroll = tk.Scrollbar(res_frame)
+        res_scroll.pack(side="right", fill="y")
+        self._taxon_results_listbox = tk.Listbox(res_frame, height=5, yscrollcommand=res_scroll.set,
+                                                  font=("Arial", 10))
+        self._taxon_results_listbox.pack(fill="x", side="left", expand=True)
+        res_scroll.config(command=self._taxon_results_listbox.yview)
+        self._taxon_search_results = []
+
+        # Botones de búsqueda
+        btn_row = tk.Frame(search_frame) 
+        btn_row.pack(fill="x", padx=5, pady=(0, 4))
+        tk.Button(btn_row, text="Buscar Local", command=self._do_search_local, bg="#e0e0e0").pack(side="left", padx=3)
+        tk.Button(btn_row, text="Buscar GBIF (Online)", command=self._do_search_gbif, bg="#bbdefb").pack(side="left", padx=3)
+        search_entry.bind("<Return>", lambda e: self._do_search_local())
+
+        # Asignar al CSV
+        assign_frame = tk.Frame(search_frame)
+        assign_frame.pack(fill="x", padx=5, pady=3)
+        tk.Label(assign_frame, text="Acción:", font=("Arial", 10)).pack(side="left")
+        tk.Button(assign_frame, text="Agregar Seleccionado al CSV",
+                  bg="#4CAF50", fg="white",
+                  command=self._add_selected_taxon_to_csv).pack(side="left", padx=5)
+
+    def _do_search_local(self):
+        q = self._taxon_search_var.get().strip()
+        if not q: return
+        results = search_taxa_local(q)
+        self._taxon_search_results = results
+        self._taxon_results_listbox.delete(0, "end")
+        for r in results:
+            label = f"{r.get('vernacularName','')} | {r.get('scientificName','')} | ID:{r.get('taxonID','')}"
+            self._taxon_results_listbox.insert("end", label)
+        self._taxon_status_var.set(f"{len(results)} resultado(s) encontrados localmente.")
+
+    def _do_search_gbif(self):
+        q = self._taxon_search_var.get().strip()
+        if not q: return
+        self._taxon_status_var.set("Buscando en GBIF (puede tardar unos segundos)...")
+        self.update_idletasks()
+
+        def _bg():
+            try:
+                results = search_taxa_gbif(q)
+                self.after(0, lambda: self._show_gbif_results(results))
+            except Exception as e:
+                self.after(0, lambda: self._taxon_status_var.set(f"Error en GBIF: {e}"))
+
+        threading.Thread(target=_bg, daemon=True).start()
+
+    def _show_gbif_results(self, results):
+        self._taxon_search_results = results
+        self._taxon_results_listbox.delete(0, "end")
+        for r in results:
+            label = f"{r.get('vernacularName','')} | {r.get('scientificName','')} | ID:{r.get('taxonID','')}"
+            self._taxon_results_listbox.insert("end", label)
+        self._taxon_status_var.set(f"{len(results)} resultado(s) de GBIF.")
+
+    def _add_selected_taxon_to_csv(self):
+        sel = self._taxon_results_listbox.curselection()
+        if not sel:
+            messagebox.showwarning("Atención", "Seleccione un resultado de la lista primero.")
+            return
+        
+        result = self._taxon_search_results[sel[0]]
+        csv_path = get_species_csv_path()
+        os.makedirs(os.path.dirname(csv_path), exist_ok=True) 
+
+        # Verificar duplicado por taxonID
+        try:
+            if os.path.exists(csv_path):
+                with open(csv_path, "r", encoding="utf-8") as f:
+                    reader = csv.DictReader(f)
+                    for row in reader:
+                        if row.get("taxonID", "").strip() == str(result.get("taxonID", "")).strip():
+                            messagebox.showwarning("Atención", f"El taxonID {result['taxonID']} ya existe en el CSV.")
+                            return
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo leer el CSV:\n{e}")
+            return
+
+        try:
+            file_exists = os.path.isfile(csv_path)
+            with open(csv_path, "a", newline="", encoding="utf-8") as f:
+                fieldnames = ["taxonID", "scientificName", "vernacularName", "taxonRank", "kingdom", "family"]
+                writer = csv.DictWriter(f, fieldnames=fieldnames)
+                if not file_exists:
+                    writer.writeheader()
+                writer.writerow({
+                    "taxonID": result.get("taxonID", ""),
+                    "scientificName": result.get("scientificName", ""),
+                    "vernacularName": result.get("vernacularName", ""),
+                    "taxonRank": result.get("taxonRank", ""),
+                    "kingdom": result.get("kingdom", ""),
+                    "family": result.get("family", "")
+                })
+            messagebox.showinfo("Éxito", f"'{result.get('scientificName','')}' agregado correctamente al CSV.")
+            self._taxon_search_var.set("") # Limpiar búsqueda
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo escribir en el CSV:\n{e}")
 
     # ------------------------
     # Tab Main Buttons
     # ------------------------
     def create_main_tab(self):
         tab = ttk.Frame(self.notebook)
-        self.notebook.add(tab, text="Main Buttons")
+        self.notebook.add(tab, text="Menú Principal")
         self.tabs['Main'] = tab
 
         labels = self.config_data.get("Labels", {})
         self.main_entries = {}
         for i, (key, val) in enumerate(labels.items()):
-            tk.Label(tab, text=f"{key}:", font=self.font_large).grid(row=i, column=0, sticky="e")
+            tk.Label(tab, text=f"Texto Botón '{key}':", font=self.font_large).grid(row=i, column=0, sticky="e", pady=5)
             e = tk.Entry(tab, width=40, font=self.font_large)
-            e.grid(row=i, column=1, padx=5, pady=2)
+            e.grid(row=i, column=1, padx=5, pady=5)
             e.insert(0, val)
             self.main_entries[key] = e
 
@@ -177,30 +296,30 @@ class SetupApp(tk.Tk):
     # ------------------------
     def create_gui_inicial_tab(self):
         tab = ttk.Frame(self.notebook)
-        self.notebook.add(tab, text="GUI Inicial")
+        self.notebook.add(tab, text="Pantalla Inicial")
         self.tabs['GUI_Inicial'] = tab
 
         gui_ini = self.config_data.get("GUI_Inicial", {})
-        tk.Label(tab, text="Title:", font=self.font_large).grid(row=0, column=0, sticky="e")
+        tk.Label(tab, text="Título:", font=self.font_large).grid(row=0, column=0, sticky="e", pady=5)
         self.gui_ini_title = tk.Entry(tab, width=40, font=self.font_large)
-        self.gui_ini_title.grid(row=0, column=1, padx=5, pady=2)
-        self.gui_ini_title.insert(0, gui_ini.get("title",""))
+        self.gui_ini_title.grid(row=0, column=1, padx=5, pady=5)
+        self.gui_ini_title.insert(0, gui_ini.get("title", ""))
 
-        tk.Label(tab, text="Geometry:", font=self.font_large).grid(row=1, column=0, sticky="e")
+        tk.Label(tab, text="Geometría:", font=self.font_large).grid(row=1, column=0, sticky="e", pady=5)
         self.gui_ini_geom = tk.Entry(tab, width=40, font=self.font_large)
-        self.gui_ini_geom.grid(row=1, column=1, padx=5, pady=2)
-        self.gui_ini_geom.insert(0, gui_ini.get("geometry",""))
+        self.gui_ini_geom.grid(row=1, column=1, padx=5, pady=5)
+        self.gui_ini_geom.insert(0, gui_ini.get("geometry", ""))
 
-        tk.Label(tab, text="Labels (comma separated):", font=self.font_large).grid(row=2, column=0, sticky="ne")
+        tk.Label(tab, text="Etiquetas de Campos (key,value):", font=self.font_large).grid(row=2, column=0, sticky="ne", pady=5)
         self.gui_ini_labels = tk.Text(tab, width=40, height=6, font=self.font_large)
-        self.gui_ini_labels.grid(row=2, column=1, padx=5, pady=2)
-        labels_text = "\n".join([f"{k},{v}" for k,v in gui_ini.get("labels",{}).items()])
+        self.gui_ini_labels.grid(row=2, column=1, padx=5, pady=5)
+        labels_text = "\n".join([f"{k},{v}" for k, v in gui_ini.get("labels", {}).items()])
         self.gui_ini_labels.insert("1.0", labels_text)
 
-        tk.Label(tab, text="Buttons (comma separated):", font=self.font_large).grid(row=3, column=0, sticky="ne")
+        tk.Label(tab, text="Etiquetas de Botones (key,value):", font=self.font_large).grid(row=3, column=0, sticky="ne", pady=5)
         self.gui_ini_buttons = tk.Text(tab, width=40, height=4, font=self.font_large)
-        self.gui_ini_buttons.grid(row=3, column=1, padx=5, pady=2)
-        buttons_text = "\n".join([f"{k},{v}" for k,v in gui_ini.get("buttons",{}).items()])
+        self.gui_ini_buttons.grid(row=3, column=1, padx=5, pady=5)
+        buttons_text = "\n".join([f"{k},{v}" for k, v in gui_ini.get("buttons", {}).items()])
         self.gui_ini_buttons.insert("1.0", buttons_text)
 
     # ------------------------
@@ -208,249 +327,74 @@ class SetupApp(tk.Tk):
     # ------------------------
     def save_all(self):
         try:
-            # General
+            # 1. General
             self.config_data["General"]["output_folder"] = self.output_entry.get()
             self.config_data["General"]["json_file"] = self.json_entry.get()
 
-            # Main buttons
+            # 2. Labels Main
             for key, entry in self.main_entries.items():
                 self.config_data["Labels"][key] = entry.get()
 
-            # GUI Inicial
+            # 3. GUI Inicial
             gui_ini = self.config_data["GUI_Inicial"]
             gui_ini["title"] = self.gui_ini_title.get()
             gui_ini["geometry"] = self.gui_ini_geom.get()
+            
+            # Parsear labels y buttons de GUI Inicial
             gui_ini_labels = {}
-            for line in self.gui_ini_labels.get("1.0","end").splitlines():
+            for line in self.gui_ini_labels.get("1.0", "end").splitlines():
                 if "," in line:
-                    k,v = line.split(",",1)
+                    k, v = line.split(",", 1)
                     gui_ini_labels[k.strip()] = v.strip()
             gui_ini["labels"] = gui_ini_labels
+            
             gui_ini_buttons = {}
-            for line in self.gui_ini_buttons.get("1.0","end").splitlines():
+            for line in self.gui_ini_buttons.get("1.0", "end").splitlines():
                 if "," in line:
-                    k,v = line.split(",",1)
+                    k, v = line.split(",", 1)
                     gui_ini_buttons[k.strip()] = v.strip()
             gui_ini["buttons"] = gui_ini_buttons
 
-            # GUI Tagger
-            gui_tag = self.config_data["GUI_Tagger"]
+            # 4. GUI Tagger (Preservando claves internas como taxon_map y last_configs)
+            gui_tag = self.config_data.get("GUI_Tagger", {})
             gui_tag["title"] = self.gui_tag_title.get()
             gui_tag["geometry"] = self.gui_tag_geom.get()
-            # --- MODIFICAR ESTA PARTE ---
-            # Leer tags de los campos de texto
-            species_tags = [x.strip() for x in self.species_tags_text.get("1.0","end").split(",") if x.strip()]
-            secondary_tags = [x.strip() for x in self.secondary_tags_text.get("1.0","end").split(",") if x.strip()]
-            behavior_tags = [x.strip() for x in self.behavior_tags_text.get("1.0","end").split(",") if x.strip()]
+            
+            # Parsear listas de tags
+            gui_tag["species_tags"] = [x.strip() for x in self.species_tags_text.get("1.0", "end").split(",") if x.strip()]
+            gui_tag["secondary_tags"] = [x.strip() for x in self.secondary_tags_text.get("1.0", "end").split(",") if x.strip()]
+            gui_tag["behavior_tags"] = [x.strip() for x in self.behavior_tags_text.get("1.0", "end").split(",") if x.strip()]
+            gui_tag["other_tags_list"] = [x.strip() for x in self.other_tags_text.get("1.0", "end").split(",") if x.strip()]
+            
+            self.config_data["GUI_Tagger"] = gui_tag
 
-            # Validar si está en modo Camtrap DB
-            if self.camtrap_mode_var.get():
-                # Cargar especies válidas desde el CSV
-                import os
-                import csv
-                species_csv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config", "species_list.csv")
-                valid_species = set()
-                try:
-                    with open(species_csv_path, 'r', encoding='utf-8') as f:
-                        reader = csv.DictReader(f)
-                        for row in reader:
-                            valid_species.add(row.get('scientificName', '').strip())
-                            valid_species.add(row.get('vernacularName', '').strip())
-                except FileNotFoundError:
-                    messagebox.showerror("Error", f"Archivo no encontrado: {species_csv_path}")
-                    return # No guardar si no se puede validar
-                except Exception as e:
-                    messagebox.showerror("Error", f"Error leyendo {species_csv_path}: {e}")
-                    return
+            # 5. Metadata Settings
+            meta = self.config_data.get("MetadataSettings", {})
+            meta["fields_to_embed"] = [x.strip() for x in self.fields_embed_text.get("1.0", "end").split(",") if x.strip()]
+            self.config_data["MetadataSettings"] = meta
 
-                # Validar cada tag contra el conjunto de especies válidas
-                invalid_species = []
-                for tag in species_tags:
-                    if tag not in valid_species:
-                        invalid_species.append(tag)
-
-                if invalid_species:
-                    messagebox.showerror("Error", f"Los siguientes tags no están en species_list.csv: {', '.join(invalid_species)}")
-                    return # No guardar si hay tags inválidos
-
-                # Si la validación pasa, guardar y activar el flag
-                gui_tag["species_tags"] = species_tags
-                gui_tag["secondary_tags"] = secondary_tags
-                gui_tag["behavior_tags"] = behavior_tags
-                gui_tag["camtrap_mode"] = True
-
-            else: # Modo estándar
-                # Guardar tags como siempre y desactivar el flag
-                gui_tag["species_tags"] = species_tags
-                gui_tag["secondary_tags"] = secondary_tags
-                gui_tag["behavior_tags"] = behavior_tags
-                gui_tag["camtrap_mode"] = False
-
-            # --- FIN MODIFICACIÓN ---
-
-            # Metadata
-            meta = self.config_data.get("MetadataSettings",{})
-            meta["fields_to_embed"] = [x.strip() for x in self.fields_embed_text.get("1.0","end").split(",") if x.strip()]
-            meta["ExcelFieldsDefault"] = [x.strip() for x in self.excel_fields_text.get("1.0","end").split(",") if x.strip()]
-
-            # Procesamiento
+            # 6. Processing
+            proc = self.config_data.get("Processing", {})
             for k, entry in self.proc_entries.items():
                 try:
                     val = int(entry.get())
                 except ValueError:
-                    val = entry.get()
-                globals()[k] = val
+                    try:
+                        val = float(entry.get())
+                    except ValueError:
+                        val = entry.get()
+                proc[k] = val
+            self.config_data["Processing"] = proc
 
+            # Guardar archivo
             save_config(self.config_data)
-            messagebox.showinfo("Info", "Configuración guardada correctamente.")
-
-            # Abrir MainApp
+            messagebox.showinfo("Guardado", "Configuración guardada correctamente.\nSe aplicará al reiniciar la aplicación.")
             self.destroy()
+            # Volver al menú principal
             MainApp().mainloop()
 
         except Exception as e:
-            messagebox.showerror("Error", f"No se pudo guardar la configuración: {e}")
-    # ------------------------
-    # Reset global
-    # ------------------------
-    def reset_all(self):
-        try:
-            self.config_data = load_config()  # recarga desde disco (original)
-            self.destroy()
-            SetupApp().mainloop()
-        except Exception as e:
-            messagebox.showerror("Error", f"No se pudo resetear:\n{e}")
-
-    # ------------------------
-    # Funciones auxiliares para Modo Camtrap DB
-    # ------------------------
-    def _toggle_camtrap_mode_fields(self):
-        """Muestra u oculta los campos de edición de CSV según el estado del checkbox."""
-        if self.camtrap_mode_var.get():
-            self.csv_edit_frame.grid()
-        else:
-            self.csv_edit_frame.grid_remove()
-
-    def _add_species_to_csv(self):
-        """Agrega una nueva especie al archivo species_list.csv."""
-        import os
-        import csv
-        species_csv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config", "species_list.csv")
-        csv_dir = os.path.dirname(species_csv_path)
-        os.makedirs(csv_dir, exist_ok=True) # Crear carpeta si no existe
-
-        entry_text = self.add_species_entry.get().strip()
-        if not entry_text:
-            messagebox.showwarning("Advertencia", "Ingrese datos para agregar.")
-            return
-
-        # Asumimos que el formato es: scientificName,vernacularName,taxonID (puede estar vacío)
-        parts = entry_text.split(',')
-        if len(parts) < 2:
-             messagebox.showerror("Error", "Formato inválido. Use: scientificName,vernacularName[,taxonID]")
-             return
-
-        new_row = {
-            'scientificName': parts[0].strip(),
-            'vernacularName': parts[1].strip(),
-            'taxonID': parts[2].strip() if len(parts) > 2 else ''
-        }
-
-        # Verificar si ya existe
-        exists = False
-        try:
-            with open(species_csv_path, 'r', encoding='utf-8') as f:
-                reader = csv.DictReader(f)
-                for row in reader:
-                    if (row.get('scientificName', '').strip() == new_row['scientificName'] or
-                        row.get('vernacularName', '').strip() == new_row['vernacularName']):
-                        exists = True
-                        break
-        except FileNotFoundError:
-            # Archivo no existe, se creará
-            pass
-        except Exception as e:
-            messagebox.showerror("Error", f"Error leyendo {species_csv_path}: {e}")
-            return
-
-        if exists:
-            messagebox.showwarning("Advertencia", f"La especie '{new_row['scientificName']}' o '{new_row['vernacularName']}' ya existe en el archivo.")
-            return
-
-        # Escribir nueva fila
-        try:
-            file_exists = os.path.isfile(species_csv_path)
-            with open(species_csv_path, 'a', newline='', encoding='utf-8') as f:
-                fieldnames = ['scientificName', 'vernacularName', 'taxonID']
-                writer = csv.DictWriter(f, fieldnames=fieldnames)
-                if not file_exists:
-                    writer.writeheader()
-                writer.writerow(new_row)
-            messagebox.showinfo("Info", f"Especie '{new_row['scientificName']}' agregada a {species_csv_path}")
-            self.add_species_entry.delete(0, tk.END) # Limpiar campo
-        except Exception as e:
-            messagebox.showerror("Error", f"No se pudo escribir en {species_csv_path}: {e}")
-
-    def _add_site_to_csv(self):
-        """Agrega un nuevo sitio al archivo sites_list.csv."""
-        import os
-        import csv
-        sites_csv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config", "sites_list.csv")
-        csv_dir = os.path.dirname(sites_csv_path)
-        os.makedirs(csv_dir, exist_ok=True) # Crear carpeta si no existe
-
-        entry_text = self.add_site_entry.get().strip()
-        if not entry_text:
-            messagebox.showwarning("Advertencia", "Ingrese datos para agregar.")
-            return
-
-        # Asumimos que el formato es: siteID,latitude,longitude
-        parts = entry_text.split(',')
-        if len(parts) < 3:
-             messagebox.showerror("Error", "Formato inválido. Use: siteID,latitude,longitude")
-             return
-
-        new_row = {
-            'siteID': parts[0].strip(),
-            'decimalLatitude': parts[1].strip(),
-            'decimalLongitude': parts[2].strip()
-        }
-
-        # Verificar si ya existe
-        try:
-            with open(sites_csv_path, 'r', encoding='utf-8') as f:
-                reader = csv.DictReader(f)
-                for row in reader:
-                    if row.get('siteID', '').strip() == new_row['siteID']:
-                        exists = True
-                        break
-        except FileNotFoundError:
-            # Archivo no existe, se creará
-            pass
-        except Exception as e:
-            messagebox.showerror("Error", f"Error leyendo {sites_csv_path}: {e}")
-            return
-
-        if exists:
-            messagebox.showwarning("Advertencia", f"El sitio '{new_row['siteID']}' ya existe en el archivo.")
-            return
-
-        # Escribir nueva fila
-        try:
-            file_exists = os.path.isfile(sites_csv_path)
-            with open(sites_csv_path, 'a', newline='', encoding='utf-8') as f:
-                fieldnames = ['siteID', 'decimalLatitude', 'decimalLongitude']
-                writer = csv.DictWriter(f, fieldnames=fieldnames)
-                if not file_exists:
-                    writer.writeheader()
-                writer.writerow(new_row)
-            messagebox.showinfo("Info", f"Sitio '{new_row['siteID']}' agregado a {sites_csv_path}")
-            self.add_site_entry.delete(0, tk.END) # Limpiar campo
-        except Exception as e:
-            messagebox.showerror("Error", f"No se pudo escribir en {sites_csv_path}: {e}")
-
-
-
+            messagebox.showerror("Error", f"No se pudo guardar la configuración:\n{e}")
 
 if __name__ == "__main__":
     app = SetupApp()

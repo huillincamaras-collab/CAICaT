@@ -11,8 +11,29 @@ import cv2
 from datetime import datetime
 import threading
 import hashlib
-from utils import metadata_lock
+from config_utils import metadata_lock
 from config_utils import load_config
+import exifread
+
+# --- Configuración ---
+def get_processing_params():
+    config = load_config()
+    proc = config.get("Processing", {})
+    general = config.get("General", {})
+
+    return {
+        "FPS_EXTRACT": proc.get("FPS_EXTRACT", 1),
+        "BUFFER_N": proc.get("BUFFER_N", 15),
+        "TOP_K": proc.get("TOP_K", 6),
+        "DOWNSAMPLE_MAX": proc.get("DOWNSAMPLE_MAX", 320),
+        "JPEG_QUALITY": proc.get("JPEG_QUALITY", 85),
+        "MASK_QUALITY": proc.get("MASK_QUALITY", 70),
+        "MASK_OFFSET": proc.get("MASK_OFFSET", 50),
+        "MASK_SATURATED": proc.get("MASK_SATURATED", 0.01),
+        "PHOTOS_PER_VIDEO": general.get("photos_per_video", 1)
+    }
+
+
 
 def compute_video_hash(filepath, sample_size=1024*1024, length=16):
     """Calcula un hash único basado en el contenido del video y lo trunca a 'length' caracteres."""
@@ -39,20 +60,6 @@ def compute_video_hash(filepath, sample_size=1024*1024, length=16):
         stat = os.stat(filepath)
         fallback = f"fallback_{stat.st_size}_{int(stat.st_mtime)}"
         return fallback[:length] if len(fallback) > length else fallback
-# --- Configuración ---
-config = load_config()
-PHOTOS_PER_VIDEO = config.get("General", {}).get("photos_per_video", 1)  # por defecto: 1
-
-# --- Parámetros de procesamiento ---
-FPS_EXTRACT = 1
-BUFFER_N = 15
-TOP_K = 6
-DOWNSAMPLE_MAX = 320
-JPEG_QUALITY = 85
-MASK_QUALITY = 70
-MASK_OFFSET = 50
-MASK_SATURATED = 0.01
-
 
 def obtener_fecha_video(video_path):
     try:
@@ -95,7 +102,9 @@ def leer_frames_ffmpeg(video_path, fps=1):
         return None, 0, 0, 0
 
 
-def calcular_metrica_mov(frame, avg, downsample_max=DOWNSAMPLE_MAX):
+def calcular_metrica_mov(frame, avg, downsample_max=None):
+    if downsample_max is None:
+        downsample_max = get_processing_params()["DOWNSAMPLE_MAX"]
     if downsample_max is not None:
         h, w = frame.shape
         scale = downsample_max / max(h, w)
@@ -123,23 +132,37 @@ def calcular_mov_local(frame, avg, grid=(4, 4)):
     return max_local_diff
 
 
-def mapear_mask_gris(diff, offset=MASK_OFFSET, saturado=MASK_SATURATED):
+def mapear_mask_gris(diff, offset, saturado):
+    """
+    Ahora recibe explícitamente el offset y el nivel de saturación.
+    """
     diff = np.abs(diff)
     diff = diff - offset
     diff[diff < 0] = 0
     flat = diff.flatten()
     if len(flat) == 0:
         return diff.astype(np.uint8)
+    
+    # Evitar división por cero si la imagen está vacía
     umbral = np.percentile(flat, 100 * (1 - saturado))
     diff = np.clip(diff * 255 / max(umbral, 1), 0, 255)
     return diff.astype(np.uint8)
 
 
 def procesar_video(video_meta, output_root):
+    params = get_processing_params()
+
+    FPS_EXTRACT = params["FPS_EXTRACT"]
+    BUFFER_N = params["BUFFER_N"]
+    TOP_K = params["TOP_K"]
+    DOWNSAMPLE_MAX = params["DOWNSAMPLE_MAX"]
+    JPEG_QUALITY = params["JPEG_QUALITY"]
+    MASK_QUALITY = params["MASK_QUALITY"]
+    MASK_OFFSET = params["MASK_OFFSET"]
+    MASK_SATURATED = params["MASK_SATURATED"]
     video_path = video_meta["video_path"]
     v_hash = video_meta["video_hash"]
     fecha_prefix = video_meta["fecha_prefix"]
-
     frames_root = os.path.join(output_root, "frames")
     output_folder = os.path.join(frames_root, v_hash)
     os.makedirs(output_folder, exist_ok=True)
@@ -217,22 +240,27 @@ def procesar_video(video_meta, output_root):
             best_frame = f.astype(np.float32)
 
     diff = best_frame - avg_final
-    mask_gray = mapear_mask_gris(diff)
+    mask_gray = mapear_mask_gris(diff, MASK_OFFSET, MASK_SATURATED)
     mask_small = cv2.resize(mask_gray, (width // 4, height // 4), interpolation=cv2.INTER_AREA)
     mask_path = os.path.join(output_folder, f"{fecha_prefix}_mask.jpg")
     cv2.imwrite(mask_path, mask_small, [int(cv2.IMWRITE_JPEG_QUALITY), MASK_QUALITY])
 
     t1 = time.time()
     video_meta.update({
-        "promedio": promedio_path,
-        "mask": mask_path,
-        "tops": top_paths,
-        "status": "done",
-        "frames": total_frames,
-        "time_sec": round(t1 - t0, 2),
-        "tags": [],
-        "behaviors": []
-    })
+            "promedio": promedio_path,
+            "mask": mask_path,
+            "tops": top_paths,
+            "status": "done",
+            "frames": total_frames,
+            "time_sec": round(t1 - t0, 2),
+            "classification": {"species": [], "counts": {}, "behaviors": []},
+            "metadata": {"site": "", "subsite": "", "camera": "", "operator": "", "recorded_at": video_meta.get("recorded_at", ""), "notes": ""},
+            "ui": {"is_favorite": False, "is_excluded": False, "embed_metadata": False, "xlsx": False},
+            "session": {"session_id": "", "camtrap_db_session": False}
+        })
+        # Limpiar claves del modelo viejo si existen
+    for old_key in ("tags", "behaviors", "species_counts"):
+        video_meta.pop(old_key, None)
     return video_meta
 
 def wrapper(args):
@@ -250,6 +278,9 @@ def escanear_videos(input_folder, output_root):
     y reutiliza procesamiento previo si ya existe.
     Devuelve solo la lista de metadatos (sin guardar archivo temporal).
     """
+    params = get_processing_params()
+    PHOTOS_PER_VIDEO = params["PHOTOS_PER_VIDEO"]
+    TOP_K = params["TOP_K"]
     video_exts = ("*.AVI", "*.avi", "*.MP4", "*.mp4", "*.MOV", "*.mov", "*.MKV", "*.mkv")
     img_exts = ("*.JPG", "*.jpg", "*.JPEG", "*.jpeg", "*.PNG", "*.png")
 
@@ -383,15 +414,6 @@ def escanear_videos(input_folder, output_root):
 # === FUNCIONES PARA MANEJO DE FOTOS PURAS (sin videos) ==============
 # ===================================================================
 
-import exifread
-from datetime import datetime
-import shutil
-import numpy as np
-import cv2
-import os
-import hashlib
-
-
 def obtener_fotos_con_timestamp(input_folder):
     """
     Escanea una carpeta y devuelve una lista de dicts ordenada por timestamp:
@@ -488,22 +510,26 @@ def procesar_todas_las_rafagas(photo_groups, output_root):
 
 def procesar_grupo_de_fotos(grupo, output_root):
     """
-    Procesa una ráfaga de fotos (1 o más) como si fuera un video.
-    Genera: promedio.jpg, mask.jpg, top_01.jpg, ..., original_01.jpg, etc.
+    Procesa una ráfaga de fotos. Se agregaron las variables de configuración faltantes.
     """
-    # 1. Hash único basado en la primera foto del grupo
+    # 1. Cargar parámetros (Esto faltaba y hacía fallar el código)
+    params = get_processing_params()
+    JPEG_QUALITY = params["JPEG_QUALITY"]
+    TOP_K = params["TOP_K"]
+    MASK_OFFSET = params["MASK_OFFSET"]
+    MASK_SATURATED = params["MASK_SATURATED"]
+    MASK_QUALITY = params["MASK_QUALITY"]
+
+    # 2. Hash único basado en la primera foto del grupo
     grupo_hash = compute_file_hash(grupo[0]["path"])
     frames_folder = os.path.join(output_root, "frames", grupo_hash)
     os.makedirs(frames_folder, exist_ok=True)
     
-
-    # 2. Usar rutas originales directamente (sin copiar)
+    # 3. Usar rutas originales
     copied_paths = [foto["path"] for foto in grupo]
 
-    
-    # 3. Cargar imágenes en escala de grises (solo una vez)
     imgs_gray = []
-    imgs_color = []  # para guardar tops a color
+    imgs_color = []
     for p in copied_paths:
         img_color = cv2.imread(p)
         if img_color is not None:
@@ -511,11 +537,8 @@ def procesar_grupo_de_fotos(grupo, output_root):
             imgs_gray.append(img_gray)
             imgs_color.append(img_color)
         else:
-            # Imagen de respaldo si falla la lectura
-            if imgs_gray:
-                h, w = imgs_gray[-1].shape
-            else:
-                h, w = 480, 640
+            # Fallback por si una imagen está corrupta
+            h, w = (480, 640) if not imgs_gray else imgs_gray[-1].shape
             imgs_gray.append(np.zeros((h, w), dtype=np.uint8))
             imgs_color.append(np.zeros((h, w, 3), dtype=np.uint8))
     
@@ -525,13 +548,12 @@ def procesar_grupo_de_fotos(grupo, output_root):
     promedio_path = os.path.join(frames_folder, f"{fecha_prefix}_promedio.jpg")
     cv2.imwrite(promedio_path, avg, [int(cv2.IMWRITE_JPEG_QUALITY), JPEG_QUALITY])
     
-    # 5. Calcular scores de movimiento
+    # 5. Calcular scores y seleccionar TOP_K
     scores = []
     for img in imgs_gray:
-        diff = np.abs(img.astype(np.float32) - avg.astype(np.float32))
-        scores.append(diff.mean())
+        diff_val = np.abs(img.astype(np.float32) - avg.astype(np.float32))
+        scores.append(diff_val.mean())
     
-    # 6. Seleccionar TOP_K
     top_indices = np.argsort(scores)[-TOP_K:][::-1]
     top_paths = []
     for rank, idx in enumerate(top_indices, 1):
@@ -539,46 +561,35 @@ def procesar_grupo_de_fotos(grupo, output_root):
         cv2.imwrite(fname, imgs_color[idx], [int(cv2.IMWRITE_JPEG_QUALITY), JPEG_QUALITY])
         top_paths.append(fname)
     
-    # 7. Generar máscara (usando la mejor imagen)
+    # 6. Generar máscara (Usando la función corregida arriba para ser consistentes)
     best_idx = top_indices[0]
-    best_img = imgs_gray[best_idx].astype(np.float32)
-    diff = np.abs(best_img - avg.astype(np.float32))
-    diff = diff - MASK_OFFSET
-    diff[diff < 0] = 0
-    if diff.size > 0:
-        umbral = np.percentile(diff.flatten(), 100 * (1 - MASK_SATURATED))
-        diff = np.clip(diff * 255 / max(umbral, 1), 0, 255)
-    mask_gray = diff.astype(np.uint8)
+    diff_for_mask = imgs_gray[best_idx].astype(np.float32) - avg.astype(np.float32)
+    mask_gray = mapear_mask_gris(diff_for_mask, MASK_OFFSET, MASK_SATURATED)
+    
     mask_small = cv2.resize(mask_gray, (mask_gray.shape[1] // 4, mask_gray.shape[0] // 4))
     mask_path = os.path.join(frames_folder, f"{fecha_prefix}_mask.jpg")
     cv2.imwrite(mask_path, mask_small, [int(cv2.IMWRITE_JPEG_QUALITY), MASK_QUALITY])
     
-    # 8. Metadatos (misma estructura que videos)
+    # 7. Retorno de metadatos
     try:
         recorded_at = datetime.fromtimestamp(grupo[0]["ts"]).strftime("%Y-%m-%d %H:%M:%S")
     except:
         recorded_at = ""
     
     return {
-        "video_path": grupo[0]["path"],      # identificador único
-        "video_hash": grupo_hash,
-        "frames_folder": grupo_hash,
-        "fecha_prefix": fecha_prefix,
-        "original_photos": copied_paths,     # igual que en modo híbrido
-        "promedio": promedio_path,
-        "mask": mask_path,
-        "tops": top_paths,
-        "status": "done",
-        "tags": [],
-        "behaviors": [],
-        "notes": "",
-        "recorded_at": recorded_at,
-        "site": "",
-        "subsite": "",
-        "camera": "",
-        "operator": "",
-        "session_id": "",
-        "is_photo": True,                    # campo adicional (opcional para Tagger)
-        "is_burst": len(grupo) > 1
-    }
-# →→→ FIN NUEVA FUNCIÓN
+            "video_path": grupo[0]["path"],
+            "video_hash": grupo_hash,
+            "frames_folder": grupo_hash,
+            "fecha_prefix": fecha_prefix,
+            "original_photos": copied_paths,
+            "promedio": promedio_path,
+            "mask": mask_path,
+            "tops": top_paths,
+            "status": "done",
+            "is_photo": True,
+            "is_burst": len(grupo) > 1,
+            "classification": {"species": [], "counts": {}, "behaviors": []},
+            "metadata": {"site": "", "subsite": "", "camera": "", "operator": "", "recorded_at": recorded_at, "notes": ""},
+            "ui": {"is_favorite": False, "is_excluded": False, "embed_metadata": False, "xlsx": False},
+            "session": {"session_id": "", "camtrap_db_session": False}
+        }

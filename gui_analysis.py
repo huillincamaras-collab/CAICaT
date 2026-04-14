@@ -119,13 +119,37 @@ class AnalysisGUI(tk.Tk):
     def _build_dataframe(self, raw_list):
         if not raw_list:
             return pd.DataFrame()
-        df = pd.DataFrame(raw_list)
-        df["tags_list"] = df.get("tags", pd.Series([[]]*len(df))).apply(extract_species_list)
-        df["recorded_at_dt"] = df.get("recorded_at", pd.Series([None]*len(df))).apply(parse_recorded_at)
+
+        # Extraer campos anidados de forma segura
+        rows = []
+        for entry in raw_list:
+            cls = entry.get("classification", {})
+            meta = entry.get("metadata", {})
+            sess = entry.get("session", {})
+            ui = entry.get("ui", {})
+
+            species = cls.get("species", [])
+            if not species:
+                species = ["_BLANK_"]  # Marcar disparos en blanco para análisis limpio
+
+            rows.append({
+                "session_id": sess.get("session_id", ""),
+                "site": meta.get("site", ""),
+                "camera": meta.get("camera", ""),
+                "recorded_at": meta.get("recorded_at", ""),
+                "species": species,  # Lista para explode
+                "is_excluded": ui.get("is_excluded", False)
+            })
+
+        df = pd.DataFrame(rows)
+
+        # Parsear fechas
+        df["recorded_at_dt"] = pd.to_datetime(df["recorded_at"], errors="coerce")
         df["recorded_date"] = df["recorded_at_dt"].dt.date
         df["recorded_hour"] = df["recorded_at_dt"].dt.hour
-        df_exploded = df.explode("tags_list")
-        df_exploded.rename(columns={"tags_list": "species"}, inplace=True)
+
+        # Explotar especies: cada especie ocupa una fila (necesario para time-series y pie)
+        df_exploded = df.explode("species")
         return df_exploded
 
     # ---------------------------
@@ -209,37 +233,46 @@ class AnalysisGUI(tk.Tk):
         if self.data_source.get() == 'ultima':
             last_session_id = self.config_data.get("LastSession", {}).get("session_id")
             if last_session_id:
-                df = self.df_original[self.df_original.get('session_id') == last_session_id].copy()
+                df = self.df_original[self.df_original['session_id'] == last_session_id].copy()
             else:
                 df = self.df_original.copy()
         else:
             df = self.df_original.copy()
+
+        # Opcional: excluir videos marcados como excluidos en análisis
+        # df = df[df['is_excluded'] == False]
+        
         self.df = df
         self._populate_filters()
         self.update_plots()
 
     def _populate_filters(self):
-        sites = sorted([s for s in self.df.get('site', pd.Series()) if s and not pd.isna(s)])
-        unique_sites = sorted(list(dict.fromkeys(sites)))
-        self.site_listbox.delete(0, tk.END)
-        for s in unique_sites:
-            self.site_listbox.insert(tk.END, s)
+        # Sitios
+        if 'site' in self.df.columns:
+            unique_sites = sorted([s for s in self.df['site'].dropna().unique() if s])
+            self.site_listbox.delete(0, tk.END)
+            for s in unique_sites:
+                self.site_listbox.insert(tk.END, s)
 
-        species = sorted([s for s in self.df.get('species', pd.Series()) if s and not pd.isna(s)])
-        unique_species = sorted(list(dict.fromkeys(species)))
-        self.species_listbox.delete(0, tk.END)
-        for sp in unique_species:
-            self.species_listbox.insert(tk.END, sp)
+        # Especies (excluyendo _BLANK_)
+        if 'species' in self.df.columns:
+            unique_species = sorted([s for s in self.df['species'].dropna().unique() if s and s != "_BLANK_"])
+            self.species_listbox.delete(0, tk.END)
+            for sp in unique_species:
+                self.species_listbox.insert(tk.END, sp)
 
-        dates = sorted([d for d in self.df.get('recorded_date').dropna().unique()])
+        # Fechas
+        dates_col = self.df.get('recorded_date', pd.Series())
+        dates = sorted([d for d in dates_col.dropna().unique()])
         if not dates:
             self.unique_dates = []
             self.scale_min.configure(from_=0, to=0)
             self.scale_max.configure(from_=0, to=0)
             self.date_label.config(text="YYYY-MM-DD → YYYY-MM-DD")
             return
-        self.unique_dates = [d if isinstance(d,date) else pd.to_datetime(d).date() for d in dates]
-        n = len(self.unique_dates)-1
+
+        self.unique_dates = [d if isinstance(d, date) else pd.to_datetime(d).date() for d in dates]
+        n = len(self.unique_dates) - 1
         self.scale_min.configure(from_=0, to=n)
         self.scale_max.configure(from_=0, to=n)
         self.scale_min.set(0)

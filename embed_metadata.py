@@ -1,4 +1,3 @@
-# gui_embed_metadata.py
 import tkinter as tk
 from tkinter import ttk, messagebox
 import os
@@ -16,12 +15,11 @@ class EmbedMetadataGUI(tk.Tk):
         super().__init__()
         self.title("Incrustar Metadatos en Videos")
         self.geometry("700x600")
-
+        
         self.config = load_config()
         self.consolidated_path = os.path.join(
             self.config["General"]["output_folder"],
-            "consolidated",
-            "all_sessions_metadata.json"
+            "consolidated", "all_sessions_metadata.json"
         )
         
         if not os.path.exists(self.consolidated_path):
@@ -36,10 +34,10 @@ class EmbedMetadataGUI(tk.Tk):
         with open(self.consolidated_path, "r", encoding="utf-8") as f:
             self.all_metadata = json.load(f)
 
-        # Campos predeterminados desde config.ini
+        # Campos predeterminados optimizados para el modelo nuevo
         self.default_fields = self.config.get("MetadataSettings", {}).get(
             "fields_to_embed",
-            ["session_id", "site", "camera", "operator", "tags"]
+            ["session_id", "site", "camera", "operator", "species", "recorded_at"]
         )
 
         self.selected_filters = {}
@@ -50,21 +48,22 @@ class EmbedMetadataGUI(tk.Tk):
         main_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
         # --- Filtros avanzados ---
-        tk.Button(main_frame, text="Filtros avanzados...", 
+        tk.Button(main_frame, text="Filtros avanzados... ", 
                   command=self.open_advanced_filters).pack(anchor="w", pady=(0, 10))
 
         # --- Selección de campos a incrustar ---
-        tk.Label(main_frame, text="Metadatos a incrustar:", 
+        tk.Label(main_frame, text="Metadatos a incrustar: ", 
                  font=("Arial", 12, "bold")).pack(anchor="w", pady=(10, 5))
         
         fields_frame = tk.Frame(main_frame)
         fields_frame.pack(fill="x", pady=5)
         
         self.field_vars = {}
-        all_possible_fields = set()
-        for entry in self.all_metadata:
-            all_possible_fields.update(entry.keys())
-        all_fields = sorted([f for f in all_possible_fields if f != "video_path"])
+        # Lista curada y compatible con el modelo anidado
+        all_fields = [
+            "session_id", "site", "subsite", "camera", "operator",
+            "recorded_at", "species", "behaviors", "status", "time_sec", "notes"
+        ]
 
         for i, field in enumerate(all_fields):
             var = tk.BooleanVar(value=(field in self.default_fields))
@@ -90,7 +89,7 @@ class EmbedMetadataGUI(tk.Tk):
                   command=self.embed_metadata, bg="#607d8b", fg="white", width=18).pack(side="left", padx=5)
 
     # -------------------------
-    # Filtros avanzados (reutiliza lógica de Excel Export)
+    # Filtros avanzados
     # -------------------------
     def open_advanced_filters(self):
         if hasattr(self, '_filter_window') and tk.Toplevel.winfo_exists(self._filter_window):
@@ -103,7 +102,7 @@ class EmbedMetadataGUI(tk.Tk):
         self._filter_window = win
 
         # Sesión
-        tk.Label(win, text="Sesión:", font=("Arial", 10, "bold")).pack(anchor="w", padx=10, pady=(10, 0))
+        tk.Label(win, text="Sesión: ", font=("Arial", 10, "bold")).pack(anchor="w", padx=10, pady=(10, 0))
         session_frame = tk.Frame(win)
         session_frame.pack(fill="x", padx=10, pady=2)
         self.session_var = tk.StringVar(value=self.selected_filters.get("session_filter", "all"))
@@ -116,10 +115,10 @@ class EmbedMetadataGUI(tk.Tk):
             self.session_entry.insert(0, spec_id)
             self.session_var.set("specific")
 
-        # Tags
+        # Tags / Especies
         tags = get_unique_tags(self.all_metadata)
         if tags:
-            tk.Label(win, text="Especies:", font=("Arial", 10, "bold")).pack(anchor="w", padx=10, pady=(10, 0))
+            tk.Label(win, text="Especies: ", font=("Arial", 10, "bold")).pack(anchor="w", padx=10, pady=(10, 0))
             tag_frame = tk.Frame(win)
             tag_frame.pack(fill="x", padx=10, pady=2)
             self.tag_vars = {}
@@ -132,7 +131,7 @@ class EmbedMetadataGUI(tk.Tk):
         # Operadores
         operators = get_unique_values(self.all_metadata, "operator")
         if operators:
-            tk.Label(win, text="Operadores:", font=("Arial", 10, "bold")).pack(anchor="w", padx=10, pady=(10, 0))
+            tk.Label(win, text="Operadores: ", font=("Arial", 10, "bold")).pack(anchor="w", padx=10, pady=(10, 0))
             op_frame = tk.Frame(win)
             op_frame.pack(fill="x", padx=10, pady=2)
             self.op_vars = {}
@@ -173,6 +172,26 @@ class EmbedMetadataGUI(tk.Tk):
         self.selected_filters = filters
 
     # -------------------------
+    # Helper: Extraer valor del modelo unificado
+    # -------------------------
+    def _extract_field_value(self, entry, field):
+        """Navega la estructura anidada y retorna el valor como string."""
+        mapping = {
+            "session_id": entry.get("session", {}).get("session_id", entry.get("session_id", "")),
+            "site": entry.get("metadata", {}).get("site", ""),
+            "subsite": entry.get("metadata", {}).get("subsite", ""),
+            "camera": entry.get("metadata", {}).get("camera", ""),
+            "operator": entry.get("metadata", {}).get("operator", ""),
+            "recorded_at": entry.get("metadata", {}).get("recorded_at", ""),
+            "notes": entry.get("metadata", {}).get("notes", ""),
+            "species": ", ".join(entry.get("classification", {}).get("species", [])),
+            "behaviors": ", ".join(entry.get("classification", {}).get("behaviors", [])),
+            "status": entry.get("processing", {}).get("status", ""),
+            "time_sec": entry.get("processing", {}).get("time_sec", ""),
+        }
+        return str(mapping.get(field, entry.get(field, "")))
+
+    # -------------------------
     # Incrustar metadatos
     # -------------------------
     def embed_metadata(self):
@@ -180,35 +199,34 @@ class EmbedMetadataGUI(tk.Tk):
             # 1. Filtrar videos
             filtered_data = filter_videos(self.all_metadata, **self.selected_filters)
             
-            # 2. Aplicar filtro adicional: solo si "embed_metadata" está marcado
+            # 2. Aplicar filtro adicional: solo si "embed_metadata" está marcado en UI
             if self.only_embed_marked.get():
-                filtered_data = [v for v in filtered_data if v.get("embed_metadata", False)]
+                # 🔹 CORREGIDO para modelo nuevo
+                filtered_data = [v for v in filtered_data if v.get("ui", {}).get("embed_metadata", False)]
             
-            if not filtered_
+            if not filtered_data:
                 messagebox.showwarning("Advertencia", "No hay videos que coincidan con los filtros.")
                 return
 
             # 3. Obtener campos seleccionados
             selected_fields = [f for f, var in self.field_vars.items() if var.get()]
-            if not selected_
-                messagebox.showerror("Error", "Seleccione al menos un campo para incrustar.")
+            if not selected_fields:
+                 messagebox.showerror("Error", "Seleccione al menos un campo para incrustar.")
                 return
 
             # 4. Procesar cada video
             success_count = 0
-            for video_meta in filtered_
-                video_path = video_meta.get("video_path")
+            for video_meta in filtered_data:
+                video_path = video_meta.get("file", {}).get("video_path") or video_meta.get("video_path")
                 if not video_path or not os.path.exists(video_path):
                     continue
 
                 # Construir diccionario de metadatos
                 metadata_dict = {}
-                for field in selected_:
-                    value = video_meta.get(field, "")
-                    if isinstance(value, list):
-                        value = ", ".join(str(v) for v in value)
-                    if value:
-                        metadata_dict[field] = str(value)
+                for field in selected_fields:
+                    value = self._extract_field_value(video_meta, field)
+                    if value and value != "":
+                        metadata_dict[field] = value
 
                 if metadata_dict:
                     if self._embed_with_ffmpeg(video_path, metadata_dict):
@@ -250,3 +268,7 @@ class EmbedMetadataGUI(tk.Tk):
             if os.path.exists(video_path + ".tmp.mp4"):
                 os.remove(video_path + ".tmp.mp4")
             return False
+
+if __name__ == "__main__":
+    app = EmbedMetadataGUI()
+    app.mainloop()

@@ -1,15 +1,20 @@
-# gui_tagger.py
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox
 from PIL import Image, ImageTk, ImageEnhance, ImageFilter
 import cv2, os, glob, subprocess, threading, json
 import numpy as np
 import uuid
-from config_utils import load_config
+from datetime import datetime
+from config_utils import (
+    load_config, save_config,
+    list_tagger_configs, load_tagger_config, save_tagger_config,
+    apply_tagger_config, set_last_tagger_config, get_last_tagger_config,
+    get_template_tagger_config, get_tagger_configs_dir,
+    search_taxa_local, search_taxa_gbif
+)
 
 metadata_lock = threading.Lock()
 
-# Valores por defecto para ajustes de imagen
 DEFAULT_ADJUSTMENTS = {
     "brightness": 1.0,
     "contrast": 1.0,
@@ -19,7 +24,6 @@ DEFAULT_ADJUSTMENTS = {
     "flatfield": 0.0
 }
 
-
 def open_video_default(video_path):
     if os.name == "nt":
         os.startfile(video_path)
@@ -28,1125 +32,1210 @@ def open_video_default(video_path):
     else:
         subprocess.Popen(["xdg-open", video_path])
 
-
 class DynamicTagger(tk.Tk):
-    def __init__(self, metadata_path=None, session_id=None):
+    def __init__(self, metadata_path=None, session_id=None, scientific_mode=False):
         super().__init__()
-        # --- Cargar configuración ---
+        self.scientific_mode = scientific_mode  # 🔹 NUEVO: guarda el flag
         self.config_data = load_config()
         gui_cfg = self.config_data.get("GUI_Tagger", {})
+        
+        # 🔹 Cargar última config según el modo
+        mode_key = "last_scientific_config" if scientific_mode else "last_standard_config"
+        gui_cfg.setdefault(mode_key, "")
+        last_config_path = gui_cfg[mode_key]
+
+        if last_config_path and os.path.exists(last_config_path):
+            try:
+                tagger_cfg_data = load_tagger_config(last_config_path)
+                apply_tagger_config(tagger_cfg_data, self.config_data)
+                gui_cfg = self.config_data.get("GUI_Tagger", {})
+                self.active_tagger_config_path = last_config_path
+                self.active_tagger_config_name = tagger_cfg_data.get("_metadata", {}).get("name", "")
+            except Exception:
+                self.active_tagger_config_path = ""
+                self.active_tagger_config_name = ""
+        else:
+            self.active_tagger_config_path = ""
+            self.active_tagger_config_name = ""
+
         self.species_tags = gui_cfg.get("species_tags", [])
         self.secondary_tags = gui_cfg.get("secondary_tags", [])
         self.behavior_tags = gui_cfg.get("behavior_tags", [])
         colors = gui_cfg.get("colors", {})
         labels_cfg = gui_cfg.get("labels", {})
         buttons_cfg = gui_cfg.get("buttons", {})
-        # Lista de tags "otros" leída desde config.ini
+        
         self.other_tags_list = gui_cfg.get("other_tags_list", [
             "Zorro", "Puma", "Tapir", "Gato montés", "Venado",
             "Ñandú", "Coipo", "Jaguar", "Carpincho", "Humano"
         ])
-        self.title(gui_cfg.get("title", "Dynamic Video Tagger"))
+        self.taxon_map = gui_cfg.get("taxon_map", {})
+
+        mode_suffix = " [Modo Científico]" if scientific_mode else ""
+        self.title(f"{gui_cfg.get('title', 'Dynamic Video Tagger')}{mode_suffix}")
         self.geometry(gui_cfg.get("geometry", "1300x750"))
-        # --- Leer output_folder desde config.ini ---
+        
         self.output_folder = self.config_data["General"]["output_folder"]
         if metadata_path is None:
             metadata_path = os.path.join(self.output_folder, "videos_metadata.json")
         self.metadata_path = metadata_path
+        
         self.video_dirs = []
         self.session_id = session_id if session_id else str(uuid.uuid4())
+        
         self.load_metadata(self.metadata_path)
         for v in self.video_dirs:
-            if "session_id" not in v:
-                v["session_id"] = self.session_id
+            if "session_id" not in v: v["session_id"] = self.session_id
+                
         self.current_video_index = 0
         self.current_frame_index = 0
-        # <-- AÑADIR ESTA LÍNEA -->
-        # Detectar si la sesión actual es en modo Camtrap DB
-        # Esto se basa en la bandera guardada en la metadata de la sesión por gui_inicial.py
-        first_video_meta = self.video_dirs[0] if self.video_dirs else {}
-        self.camtrap_db_session = first_video_meta.get("camtrap_db_session", False)
-        # <-- FIN AÑADIDO -->
-        self.show_mask = True
-        self.blink_mode = True
+        
+        self.mask_mode = 1  # 0: Oculta | 1: Constante | 2: Titilante
+        self.mask_colors = [
+            (255, 0, 0),    # Rojo
+            (255, 0, 255),  # Magenta
+            (0, 255, 255),  # Cyan
+            (255, 255, 0),  # Amarillo
+            (0, 255, 0)     # Verde
+        ]
+        self.mask_color_index = 0
         self.blink_state = True
         self.blink_interval = 500
+        
         self.tk_imgs = {}
         self.count_var = tk.IntVar(value=1)
         self.embed_metadata_var = tk.BooleanVar(value=False)
         self.xlsx_var = tk.BooleanVar(value=False)
         self.metadata_vars = {
-            "Temp": tk.StringVar(),
-            "Fase Lunar": tk.StringVar(),
-            "Clima": tk.StringVar(),
-            "Corrección Horaria": tk.StringVar(),
-            "Deployment": tk.StringVar(),
-            "Altura": tk.StringVar()
+            "Temp": tk.StringVar(), "Fase Lunar": tk.StringVar(), "Clima": tk.StringVar(),
+            "Corrección Horaria": tk.StringVar(), "Deployment": tk.StringVar(), "Altura": tk.StringVar()
         }
-        # Atributos para ajustes de imagen
+        
         self.image_adjustments = DEFAULT_ADJUSTMENTS.copy()
         self.adjust_window = None
-        self.adjust_sliders = {}  # Referencia a los sliders
-        self.clipboard_data = None  # ←←← ya la añadiste antes, pero asegúrate
+        self.adjust_sliders = {}
+        self.clipboard_data = None
+        
         self.main_buttons = []
         self.left_buttons = []
         self.behaviors = {}
-        self.species_buttons = {}  # ←←← NUEVO: para gestionar estado visual de tags de especie
-        self.dropdown_window = None  # referencia al popup de lista desplegable
+        self.species_buttons = {}
+        self.dropdown_window = None
+        
         self.labels_cfg = labels_cfg
         self.colors_cfg = colors
-        # ←←← NUEVO: colores unificados para botones de tags →→→
         self.tag_active_bg = self.colors_cfg.get("tag_active", "#90ee90")
         self.tag_inactive_bg = self.colors_cfg.get("tag_inactive", "#f0f0f0")
-        # (Opcional) Si prefieres colores separados, también los defines aquí:
         self.species_active_bg = self.colors_cfg.get("species_active", "#90ee90")
         self.species_inactive_bg = self.colors_cfg.get("species_inactive", "#f0f0f0")
         self.behavior_active_bg = self.colors_cfg.get("behavior_active", "#ffff99")
         self.behavior_inactive_bg = self.colors_cfg.get("behavior_inactive", "#f0f0f0")
-        # →→→ FIN NUEVO ←←←
         self.buttons_cfg = buttons_cfg
+        
         self.build_layout()
-        # --- Bind teclas ---
-        self.bind("<space>", self.toggle_mask)
-        self.bind("<Shift-space>", self.toggle_blink_mode)
+        
+        self.bind("<space>", self.handle_mask_key)
+        self.bind("<Shift-space>", self.handle_mask_key)
         self.bind("<Left>", lambda e: self.prev_frame())
         self.bind("<Right>", lambda e: self.next_frame())
         self.bind("<Down>", lambda e: self.prev_video())
         self.bind("<Up>", lambda e: self.next_video())
         self.bind("<Control-c>", self._handle_copy)
         self.bind("<Control-v>", self._handle_paste)
+        
         self.after(100, self.show_frame)
         self.after(self.blink_interval, self.blink_mask)
-    # -------------------------------
-    def load_metadata(self, metadata_path):
-        if not os.path.exists(metadata_path):
-            self.video_dirs = []
-            return
-        with open(metadata_path, "r") as f:
-            self.video_dirs = json.load(f)
-        
-        # ←←← NUEVO: Sincronizar todos los videos con el estado en disco →→→
-        self.sync_all_videos_with_disk()
-        for entry in self.video_dirs:
-            entry.setdefault("tags", [])
-            entry.setdefault("species_counts", {})
-            entry.setdefault("behaviors", [])
-            entry.setdefault("notes", "")
-            entry.setdefault("embed_metadata", False)
-            entry.setdefault("xlsx", False)
-            entry.setdefault("is_favorite", False)
-            if "session_id" not in entry:
-                entry["session_id"] = self.session_id
-            # Asegurar que la bandera camtrap_db_session exista en cada entrada (por si acaso)
-            entry.setdefault("camtrap_db_session", False)
-            
-    def sync_all_videos_with_disk(self):
-        """Sincroniza el estado de todos los videos con lo que hay en disco."""
-        if not self.video_dirs:
-            return
-        for entry in self.video_dirs:
-            if entry.get("status") != "pending":
-                continue
-            frames_folder = os.path.join(self.output_folder, "frames", entry.get("frames_folder", ""))
-            if not os.path.exists(frames_folder):
-                continue
-            # ←←← NUEVO: Buscar archivos sin depender de fecha_prefix →→→
-            files_in_folder = os.listdir(frames_folder)
-            # Buscar promedio (cualquier archivo que contenga "promedio")
-            promedio_files = [f for f in files_in_folder if "promedio" in f.lower()]
-            top_files = sorted([f for f in files_in_folder if "top_" in f.lower()])
+    # -----------------------------------------------------------------
+    # LAYOUT DE 4 COLUMNAS
+    # -----------------------------------------------------------------
+    def handle_mask_key(self, event=None):
+        """Espacio: cambia modo | Shift+Espacio: cambia color"""
+        is_shift = False
+        if event:
+            # 0x1 es la máscara de tecla Shift en Tkinter
+            is_shift = bool(event.state & 0x1)
 
-            if promedio_files and top_files:
-                entry["status"] = "done"
-                # Rellenar promedio
-                if not entry.get("promedio"):
-                    entry["promedio"] = os.path.join(frames_folder, promedio_files[0])
-                # Rellenar tops
-                if not entry.get("tops"):
-                    entry["tops"] = [os.path.join(frames_folder, f) for f in top_files]
+        if is_shift:
+            # 🔹 Cambiar color (Shift + Espacio)
+            self.mask_color_index = (self.mask_color_index + 1) % len(self.mask_colors)
+            color_names = ["Rojo", "Magenta", "Cyan", "Amarillo", "Verde"]
+            print(f"🎨 Color máscara: {color_names[self.mask_color_index]}")
+        else:
+            # 🔹 Cambiar modo (Espacio solo)
+            self.mask_mode = (self.mask_mode + 1) % 3
+            mode_names = ["Ocultar", "Constante", "Titilante"]
+            print(f"👁️ Máscara: {mode_names[self.mask_mode]}")
 
-                # <-- NUEVO: Calcular y asignar la ruta de la máscara -->
-                # Asumimos que la máscara siempre existe si existen promedio y tops,
-                # y que su nombre se deriva del promedio.
-                if entry.get("promedio"):
-                    # Ejemplo: promedio_path = ".../230926_131616_promedio.jpg"
-                    promedio_path = entry["promedio"]
-                    promedio_filename = os.path.basename(promedio_path) # "230926_131616_promedio.jpg"
-                    # Reemplazar "_promedio" por "_mask"
-                    mask_filename = promedio_filename.replace("_promedio", "_mask") # "230926_131616_mask.jpg"
-                    mask_path = os.path.join(frames_folder, mask_filename) # Ruta completa
-                    # Asignar la ruta calculada al entry
-                    entry["mask"] = mask_path
+        self.show_frame()
 
-                # Actualizar fecha_prefix si es necesario
-                if not entry.get("fecha_prefix") and promedio_files[0]:
-                    # Extraer del nombre del archivo: "251025_143022_promedio.jpg" → "251025_143022"
-                    name = os.path.splitext(promedio_files[0])[0]
-                    if "_promedio" in name:
-                        entry["fecha_prefix"] = name.replace("_promedio", "")
-
-    def reload_current_video_from_disk(self):
-        """Recarga el video actual desde disco (archivos + JSON)."""
-        try:
-            if not (0 <= self.current_video_index < len(self.video_dirs)):
-                return
-            entry = self.video_dirs[self.current_video_index]
-            if entry.get("status") != "pending":
-                return  # Solo procesar si está pendiente
-            frames_folder = os.path.join(self.output_folder, "frames", entry.get("frames_folder", ""))
-            if not os.path.exists(frames_folder):
-                return
-            files_in_folder = os.listdir(frames_folder)
-            promedio_files = [f for f in files_in_folder if "promedio" in f.lower()]
-            top_files = sorted([f for f in files_in_folder if "top_" in f.lower()])
-
-            if promedio_files and top_files:
-                entry["status"] = "done"
-                if not entry.get("promedio"):
-                    entry["promedio"] = os.path.join(frames_folder, promedio_files[0])
-                if not entry.get("tops"):
-                    entry["tops"] = [os.path.join(frames_folder, f) for f in top_files]
-
-                # <-- NUEVO: Calcular y asignar la ruta de la máscara -->
-                # Similar a sync_all, se hace dentro del bloque de "done".
-                if entry.get("promedio"):
-                    promedio_path = entry["promedio"]
-                    promedio_filename = os.path.basename(promedio_path)
-                    mask_filename = promedio_filename.replace("_promedio", "_mask")
-                    mask_path = os.path.join(frames_folder, mask_filename)
-                    entry["mask"] = mask_path
-
-                # Guardar inmediatamente en el archivo de sesión
-                self.save_metadata()
-        except Exception as e:
-            pass  # Silencioso, como antes
-    # -------------------------------
     def build_layout(self):
         main_frame = tk.Frame(self)
-        main_frame.pack(fill="both", expand=True)
+        main_frame.pack(fill="both", expand=True, padx=5, pady=5)
 
-        # --- Columna central ---
-        center_frame = tk.Frame(main_frame)
-        center_frame.pack(side="left", padx=5, pady=5)
+        # ================= COLUMNA 1: HERRAMIENTAS =================
+        col1 = tk.Frame(main_frame, bd=1, relief="sunken", width=130)
+        col1.pack(side="left", fill="y", padx=(0, 5))
+        col1.pack_propagate(False)
 
-        # Checkboxes embed metadata / .xlsx
-        check_frame = tk.Frame(center_frame)
-        check_frame.pack(fill="x", pady=(0, 5))
-        tk.Checkbutton(check_frame, text="Embed metadata", variable=self.embed_metadata_var,
-                       command=self.update_checkbox).pack(side="left", padx=5)
-        tk.Checkbutton(check_frame, text=".xlsx", variable=self.xlsx_var,
-                       command=self.update_checkbox).pack(side="left", padx=5)
+        tk.Checkbutton(col1, text="Embed metadata", variable=self.embed_metadata_var,
+                       command=self.update_checkbox).pack(pady=2, padx=5, anchor="w")
+        tk.Checkbutton(col1, text=".xlsx", variable=self.xlsx_var,
+                       command=self.update_checkbox).pack(pady=2, padx=5, anchor="w")
+        tk.Frame(col1, height=10).pack()
 
-        # Label de video + contadores + favorito
-        top_frame = tk.Frame(center_frame)
-        top_frame.pack(fill="x")
-        
-        # Botón de favorito
-        self.favorite_button = tk.Button(
-            top_frame, 
-            text="☆", 
-            width=2, 
-            height=1,
-            font=("Arial", 16),
-            command=self.toggle_favorite,
-            bg=self.colors_cfg.get("favorite_button_bg", "#ffffff"),
-            fg=self.colors_cfg.get("favorite_button_fg", "#ffd700")
-        )
-        self.favorite_button.pack(side="left", padx=(0, 5))
+        self.config_btn = tk.Button(col1, text="Config", command=self.open_config_selector)
+        self.config_btn.pack(fill="x", pady=2, padx=5)
+        self.adjust_btn = tk.Button(col1, text="Ajustes", command=self.open_adjust_window)
+        self.adjust_btn.pack(fill="x", pady=2, padx=5)
 
-        # Botón de exclusión
-        self.exclude_button = tk.Button(
-            top_frame, 
-            text="🚫", # Puedes cambiar este texto por otro símbolo o texto si prefieres
-            width=2, 
-            height=1,
-            font=("Arial", 16),
-            command=self.toggle_exclude,
-            bg=self.colors_cfg.get("exclude_button_bg", "#ffffff"), # Puedes definir este color en config.ini
-            fg=self.colors_cfg.get("exclude_button_fg", "#ff0000")   # Puedes definir este color en config.ini
-        )
-        self.exclude_button.pack(side="left", padx=(0, 5))        
-        
-        self.video_label = tk.Label(top_frame, text="", font=("Arial", 14), anchor="w")
-        self.video_label.pack(side="left", fill="x", expand=True)
-        self.counter_label = tk.Label(top_frame, text="", font=("Arial", 14))
-        self.counter_label.pack(side="right")
+        tk.Frame(col1, height=5).pack()
+
+        self.meta_preview = tk.Text(col1, height=10, width=16, wrap="word",
+                                    state="disabled", bd=1, relief="sunken",
+                                    bg="#e8e8e8", font=("Arial", 9))
+        self.meta_preview.pack(fill="x", padx=5, pady=2)
+
+        self.meta_btn = tk.Button(col1, text="Metadatos", command=self.open_metadata_editor)
+        self.meta_btn.pack(fill="x", pady=2, padx=5)
+
+        # ================= COLUMNA 2: CANVAS + CONTROLES =================
+        col2 = tk.Frame(main_frame)
+        col2.pack(side="left", fill="both", expand=True, padx=5)
+
+        # 🔹 BARRA SUPERIOR CON NAVEGACIÓN
+        top_info = tk.Frame(col2)
+        top_info.pack(fill="x", pady=(0, 2))
+
+        # Favorito y Exclusión (izquierda extrema)
+        self.favorite_button = tk.Button(top_info, text="☆", command=self.toggle_favorite)
+        self.favorite_button.pack(side="left", padx=2)
+        self.exclude_button = tk.Button(top_info, text="☐", command=self.toggle_exclude)
+        self.exclude_button.pack(side="left", padx=2)
+
+        # Nombre del video (ocupa espacio disponible)
+        self.video_label = tk.Label(top_info, text="", anchor="w", font=("Arial", 10))
+        self.video_label.pack(side="left", fill="x", expand=True, padx=5)
+
+        # Navegación Videos (▲ / ▼)
+        self.prev_video_btn = tk.Button(top_info, text="▲", width=2, command=self.next_video)
+        self.prev_video_btn.pack(side="left", padx=1)
+        self.next_video_btn = tk.Button(top_info, text="▼", width=2, command=self.prev_video)
+        self.next_video_btn.pack(side="left", padx=1)
+
+        # Contador de Videos
+        self.video_counter_label = tk.Label(top_info, text="Video 0/0", anchor="w", font=("Arial", 9))
+        self.video_counter_label.pack(side="left", padx=5)
+
+        # Separador visual
+        tk.Frame(top_info, width=15).pack(side="left")
+
+        # Navegación Frames (◀ / ▶)
+        self.prev_frame_btn = tk.Button(top_info, text="◀", width=2, command=self.prev_frame)
+        self.prev_frame_btn.pack(side="left", padx=1)
+        self.next_frame_btn = tk.Button(top_info, text="▶", width=2, command=self.next_frame)
+        self.next_frame_btn.pack(side="left", padx=1)
+
+        # Contador de Frames
+        self.frame_counter_label = tk.Label(top_info, text="Frame 0/0", anchor="e", font=("Arial", 9))
+        self.frame_counter_label.pack(side="left", padx=5)
 
         # Canvas
-        self.canvas = tk.Canvas(center_frame, width=912, height=513, bg="black")
-        self.canvas.pack()
+        self.canvas_frame = tk.Frame(col2)
+        self.canvas_frame.pack(fill="both", expand=True, pady=2)
+        self.canvas = tk.Canvas(self.canvas_frame, width=912, height=513, bg="black")
+        self.canvas.pack(fill="both", expand=True)
         self.canvas.bind("<Double-Button-1>", self.play_video)
 
-        # Botones principales
-        control_frame = tk.Frame(center_frame)
-        control_frame.pack(pady=5)
+        # Controles inferiores (Limpiar, Contador, Botones Especie)
+        control_frame = tk.Frame(col2)
+        control_frame.pack(fill="x", pady=(5, 0))
+
+        self.clear_btn = tk.Button(control_frame, text="Limpiar", width=10, height=2,
+                                   bg=self.colors_cfg.get("clear_button_bg", "#ff9999"))
+        self.clear_btn.bind("<Button-1>", lambda e: self.clear_current_video())
+        self.clear_btn.bind("<Button-3>", lambda e: self.clear_all_videos_ask())
+        self.clear_btn.pack(side="left", padx=5)
+
+        tk.Label(control_frame, text=self.labels_cfg.get("count", "Cantidad: ")).pack(side="left", padx=(10, 0))
+        self.count_dropdown = ttk.Combobox(control_frame, textvariable=self.count_var, width=3, state="readonly")
+        self.count_dropdown['values'] = list(range(1, 10))
+        self.count_dropdown.current(0)
+        self.count_dropdown.pack(side="left", padx=3)
+
         self.tag_frame_bottom = tk.Frame(control_frame)
-        self.tag_frame_bottom.pack(side="left", padx=10)
+        self.tag_frame_bottom.pack(side="left", padx=15)
 
-        # --- MODIFICACIÓN AQUÍ ---
-        # Colores específicos para los botones principales (vistosos, diferentes y NO VERDE/ROSA por defecto)
-        main_button_1_inactive_bg = self.colors_cfg.get("main_button_1_inactive", "#FFD700") # Dorado (puedes cambiarlo)
-        main_button_2_inactive_bg = self.colors_cfg.get("main_button_2_inactive", "#87CEEB") # Azul cielo (puedes cambiarlo)
-        main_button_active_bg = self.tag_active_bg # Reutiliza el color de activo general
-
-        for i, tag in enumerate(self.species_tags[:2]): # Solo los dos primeros
-            # Ajustar el ancho aquí (por ejemplo, width=23, que es un 53% más que 15)
-            # Asignar color inactivo específico según el índice
-            if i == 0:
-                color_inactivo = main_button_1_inactive_bg
-            else: # i == 1
-                color_inactivo = main_button_2_inactive_bg
-
-            b = tk.Button(self.tag_frame_bottom, text=tag, width=23, height=2, bg=color_inactivo) # Ancho aumentado a 23
-            b.pack(side="left", padx=5)
+        self.main_buttons = []
+        self.species_buttons = {}
+        c1 = self.colors_cfg.get("main_button_1_inactive", "#FFD700")
+        c2 = self.colors_cfg.get("main_button_2_inactive", "#87CEEB")
+        for i, tag in enumerate(self.species_tags[:2]):
+            bg = c1 if i == 0 else c2
+            b = tk.Button(self.tag_frame_bottom, text=tag, width=28, height=3, bg=bg, font=("Arial", 11, "bold"))
+            b.pack(side="left", padx=4)
             b.bind("<Button-1>", lambda e, t=tag: self.species_click(t, left=True, event=e))
             b.bind("<Button-3>", lambda e, t=tag: self.species_click(t, left=False, event=e))
             self.main_buttons.append(b)
-            self.species_buttons[tag] = b # Registrar también en el diccionario general
-        # --- FIN MODIFICACIÓN ---
-            
+            self.species_buttons[tag] = b
 
-        tk.Label(self.tag_frame_bottom, text=self.labels_cfg.get("count", "Cantidad:")).pack(side="left",
-                                                                                            padx=(10, 0))
-        self.count_dropdown = ttk.Combobox(self.tag_frame_bottom, textvariable=self.count_var, width=3,
-                                           state="readonly")
-        self.count_dropdown['values'] = list(range(1, 10))
-        self.count_dropdown.current(0)
-        self.count_dropdown.pack(side="left", padx=(0, 10))
+        # ================= COLUMNA 3: COMPORTAMIENTO + SECUNDARIOS =================
+        self.col3 = tk.Frame(main_frame, bd=1, relief="sunken", width=140)
+        self.col3.pack(side="left", fill="y", padx=5)
+        self.col3.pack_propagate(False)
 
-        # Botón Limpiar
-        clear_btn = tk.Button(control_frame, text="Limpiar", width=8, height=2,
-                            bg=self.colors_cfg.get("clear_button_bg", "#ff9999"),
-                            fg=self.colors_cfg.get("clear_button_fg", "black"))
-        clear_btn.pack(side="left", padx=10)
-        clear_btn.bind("<Button-1>", lambda e: self.clear_current_video())
-        clear_btn.bind("<Button-3>", lambda e: self.clear_all_videos_ask())
+        tk.Label(self.col3, text="Comportamiento", font=("Arial", 9, "bold")).pack(pady=(5, 2))
+        self.behaviors = {}
+        for tag in self.behavior_tags:
+            b = tk.Button(self.col3, text=tag, width=12, bg=self.behavior_inactive_bg)
+            b.pack(fill="x", pady=2, padx=5)
+            b.bind("<Button-1>", lambda e, t=tag: self.behavior_click(t))
+            self.behaviors[tag] = b
 
-        # ←←← NUEVO: Botón para mostrar/ocultar metadatos →→→
-        self.toggle_meta_btn = tk.Button(
-            control_frame, 
-            text="Metadatos", 
-            width=8, 
-            height=2,
-            command=self.toggle_metadata_fields,
-            bg=self.colors_cfg.get("metadata_button_bg", "#d0d0d0"),
-            fg=self.colors_cfg.get("metadata_button_fg", "black")
-        )
-        self.toggle_meta_btn.pack(side="left", padx=10)
+        tk.Frame(self.col3, height=2, bd=1, relief="groove").pack(fill="x", padx=5, pady=5)
 
-
-         # Label info tags
-        self.label_frame = tk.Label(center_frame, text="", font=("Arial", 12), justify="left", anchor="w")
-        # Cuadro de texto para anotaciones
-        self.notes_label = tk.Label(center_frame, text="Notas:")
-        self.notes_text = tk.Text(center_frame, height=4, width=100)
-
-        # Frame para metadatos (oculto por defecto)
-        self.meta_frame = tk.Frame(center_frame)
-        for i, (label, var) in enumerate(self.metadata_vars.items()):
-            tk.Label(self.meta_frame, text=label).grid(row=0, column=2 * i, padx=2, sticky="e")
-            entry = tk.Entry(self.meta_frame, textvariable=var, width=8)
-            entry.grid(row=0, column=2 * i + 1, padx=2, sticky="w")
-            entry.bind("<FocusOut>", lambda e: self.save_metadata())
-
-        # Empaquetar en orden correcto
-        self.label_frame.pack(pady=5, fill="x")
-        self.notes_label.pack(anchor="w")
-        self.notes_text.pack(fill="x", pady=(0, 5))
-
-        # Ocultar metadatos al inicio (sin empaquetar aún)
-        # → se mostrará con `pack(before=self.label_frame)`
-
-        # --- Botones secundarios y comportamiento (alineados al borde inferior del canvas) ---
-        btn_frame_height = 513  # altura del canvas
-        # Botones secundarios izquierda
-        self.tag_frame_left = tk.Frame(main_frame)
-        pady_left = max(0, btn_frame_height - len(self.secondary_tags) * 32)
-        self.tag_frame_left.pack(side="left", padx=5, pady=(pady_left, 60))
-
+        tk.Label(self.col3, text="Secundarios", font=("Arial", 9, "bold")).pack(pady=(2, 2))
+        self.left_buttons = []
         for i, tag in enumerate(self.secondary_tags):
-            b = tk.Button(self.tag_frame_left, text=tag, width=6, bg=self.tag_inactive_bg)           
-            b.pack(pady=2)
+            b = tk.Button(self.col3, text=tag, width=12, bg=self.tag_inactive_bg)
+            b.pack(fill="x", pady=2, padx=5)
             if i == 0:
                 b.bind("<Button-1>", self.show_secondary_dropdown)
             else:
                 b.bind("<Button-1>", lambda e, t=tag: self.species_click(t, left=True, event=e))
                 b.bind("<Button-3>", lambda e, t=tag: self.species_click(t, left=False, event=e))
-                self.species_buttons[tag] = b  # ←←← REGISTRAR (solo si no es el desplegable)
+                self.species_buttons[tag] = b
             self.left_buttons.append(b)
 
-        # Botones comportamiento derecha
-        self.tag_frame_right = tk.Frame(main_frame)
-        pady_right = max(0, btn_frame_height - len(self.behavior_tags) * 32)
-        self.tag_frame_right.pack(side="left", padx=5, pady=(pady_right, 60))
-        for tag in self.behavior_tags:
-            b = tk.Button(self.tag_frame_right, text=tag, width=6, bg=self.tag_inactive_bg)     
-            b.pack(pady=2)
-            b.bind("<Button-1>", lambda e, t=tag: self.behavior_click(t))
-            self.behaviors[tag] = b
+        # ================= COLUMNA 4: ETIQUETAS (Arriba 50%) + NOTAS (Abajo 50%) =================
+        col4 = tk.Frame(main_frame, bd=1, relief="sunken", width=300)
+        col4.pack(side="left", fill="y", padx=(5, 0))
+        col4.pack_propagate(False)
 
-        # Botón flotante "Ajustes" (hijo de la ventana raíz, siempre al frente)
-        self.adjust_btn = tk.Button(self, text="Ajustes", width=8, command=self.open_adjust_window)
-        # Posicionar relativo al canvas: necesitamos coordenadas absolutas
-        self.after(100, self._place_adjust_button)  # Esperar a que el layout se termine de dibujar
+        col4_top = tk.Frame(col4)
+        col4_top.pack(side="top", fill="both", expand=True, pady=(5, 0))
+        tk.Label(col4_top, text="Clasificación", font=("Arial", 10, "bold")).pack(anchor="w", padx=5)
+        self.label_frame = tk.Text(col4_top, height=10, width=28, wrap="word", bd=1, relief="sunken", state="disabled")
+        self.label_frame.pack(fill="both", expand=True, padx=5, pady=2)
+        self.label_frame.bind("<Key>", lambda e: "break")
 
-    # -------------------------------
-    # Lista desplegable (popup) para el primer botón secundario
-    # -------------------------------
-    def show_secondary_dropdown(self, event):
-        # Cerrar si ya está abierta
-        if getattr(self, "dropdown_window", None) and tk.Toplevel.winfo_exists(self.dropdown_window):
+        tk.Frame(col4, height=1, bg="#b0b0b0").pack(fill="x", padx=5, pady=3)
+
+        col4_bottom = tk.Frame(col4)
+        col4_bottom.pack(side="top", fill="both", expand=True)
+        self.notes_label = tk.Label(col4_bottom, text="Notas", font=("Arial", 10, "bold"))
+        self.notes_label.pack(anchor="w", padx=5)
+        self.notes_preview = tk.Text(col4_bottom, height=8, width=28, wrap="word",
+                                     state="disabled", bd=1, relief="sunken", bg="#e8e8e8")
+        self.notes_preview.pack(fill="both", expand=True, padx=5, pady=2)
+        self.open_notes_btn = tk.Button(col4_bottom, text="Notas", font=("Arial", 10, "bold"),
+                                        command=self.open_note_editor, bg="#d0d0d0")
+        self.open_notes_btn.pack(fill="x", padx=5, pady=(0, 5))
+
+    # -----------------------------------------------------------------
+    # RESTO DE MÉTODOS (Adaptados al nuevo layout y completos)
+    # -----------------------------------------------------------------
+    def _search_local_csv(self, query):
+        """Busca taxones en config/species_list.csv"""
+        import csv
+        results = []
+        
+        # Rutas posibles (relativa al script y relativa al CWD)
+        csv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config", "species_list.csv")
+        if not os.path.exists(csv_path):
+            csv_path = os.path.join("config", "species_list.csv")
+        if not os.path.exists(csv_path):
+            return []
+
+        query_lower = query.lower()
+        try:
+            with open(csv_path, 'r', encoding='utf-8') as f:
+                # Detectar formato automáticamente
+                dialect = csv.Sniffer().sniff(f.read(1024))
+                f.seek(0)
+                reader = csv.DictReader(f, dialect=dialect)
+                
+                headers = reader.fieldnames
+                if not headers: return []
+
+                # Heurística para encontrar columnas clave
+                name_col = next((h for h in headers if 'name' in h.lower()), headers[0])
+                id_col = next((h for h in headers if 'id' in h.lower()), headers[1] if len(headers)>1 else None)
+                vern_col = next((h for h in headers if 'verna' in h.lower() or 'comun' in h.lower()), None)
+
+                for row in reader:
+                    name = row.get(name_col, "")
+                    if name and query_lower in name.lower():
+                        results.append({
+                            "scientificName": name,
+                            "taxonID": row.get(id_col, ""),
+                            "vernacularName": row.get(vern_col, "") if vern_col else ""
+                        })
+                        if len(results) >= 50: break # Límite para rendimiento
+        except Exception as e:
+            print(f"⚠️ Error leyendo species_list.csv: {e}")
+        return results
+    
+    def _is_ctrl_pressed(self, event):
+        """Detecta Ctrl (Win/Linux) o Cmd/Ctrl (macOS) de forma segura."""
+        if event is None: return False
+        return bool(event.state & 0x4) or bool(event.state & 0x10000)
+
+    def open_button_config_dialog(self, tag, tag_type=None):
+        if tag_type is None:
+            if tag in self.species_tags: tag_type = "species"
+            elif tag in self.secondary_tags: tag_type = "secondary"
+            elif tag in self.behavior_tags: tag_type = "behavior"
+            else: return
+
+        win = tk.Toplevel(self)
+        win.title(f"Configurar botón: {tag}")
+        win.geometry("420x360")
+        win.transient(self)
+
+        tk.Label(win, text=f"Propiedades ({tag_type.upper()})", font=("Arial", 11, "bold")).pack(pady=8)
+
+        current_taxon = self.taxon_map.get(tag, {}).get("taxonID", "")
+        current_color = self.colors_cfg.get(f"{tag_type}_bg", "#f0f0f0")
+
+        f1 = tk.Frame(win)
+        f1.pack(fill="x", padx=15, pady=4)
+        tk.Label(f1, text="Etiqueta:").pack(side="left")
+        lbl_var = tk.StringVar(value=tag)
+        tk.Entry(f1, textvariable=lbl_var, width=30).pack(side="left", padx=5)
+
+        f2 = tk.Frame(win)
+        f2.pack(fill="x", padx=15, pady=4)
+        tk.Label(f2, text="TaxonID:").pack(side="left")
+        taxon_var = tk.StringVar(value=current_taxon)
+        tk.Entry(f2, textvariable=taxon_var, width=20).pack(side="left", padx=5)
+        tk.Button(f2, text="Buscar", command=lambda: self._search_taxon_dialog(taxon_var, win)).pack(side="left")
+
+        f3 = tk.Frame(win)
+        f3.pack(fill="x", padx=15, pady=4)
+        tk.Label(f3, text="Color:").pack(side="left")
+        color_var = tk.StringVar(value=current_color)
+        tk.Entry(f3, textvariable=color_var, width=10).pack(side="left", padx=5)
+        tk.Button(f3, text="Elegir", command=lambda: self._pick_color(color_var)).pack(side="left")
+
+        def save():
+            new_tag = lbl_var.get().strip()
+            new_taxon = taxon_var.get().strip()
+            new_color = color_var.get().strip()
+            if not new_tag:
+                messagebox.showwarning("Atención", "La etiqueta no puede estar vacía.", parent=win)
+                return
+
+            cfg = self.config_data
+            gui_cfg = cfg.setdefault("GUI_Tagger", {})
+            tag_list = gui_cfg.get(f"{tag_type}_tags", [])
+            if tag in tag_list: tag_list[tag_list.index(tag)] = new_tag
+
+            taxon_map = gui_cfg.setdefault("taxon_map", {})
+            if new_taxon:
+                taxon_map[new_tag] = {"taxonID": new_taxon}
+                taxon_map.pop(tag, None)
+            elif tag in taxon_map:
+                del taxon_map[tag]
+
+            self.colors_cfg[f"{tag_type}_bg"] = new_color
+
             try:
-                self.dropdown_window.destroy()
-            except:
-                pass
-            self.dropdown_window = None
+                from config_utils import save_config
+                save_config(cfg)
+                self.species_tags = gui_cfg.get("species_tags", [])
+                self.secondary_tags = gui_cfg.get("secondary_tags", [])
+                self.behavior_tags = gui_cfg.get("behavior_tags", [])
+                self.taxon_map = gui_cfg.get("taxon_map", {})
+                self._rebuild_tag_buttons()
+                self.show_frame()
+                win.destroy()
+            except Exception as e:
+                messagebox.showerror("Error", f"No se pudo guardar:\n{e}", parent=win)
+
+        tk.Button(win, text="Guardar Cambios", command=save, bg="#4CAF50", fg="white").pack(pady=15)
+        tk.Button(win, text="Cancelar", command=win.destroy).pack()
+
+        # FIX CRÍTICO: Visibilidad antes de grab (evita TclError en Linux/Wayland)
+        win.update_idletasks()
+        win.wait_visibility()
+        try:
+            win.grab_set()
+        except tk.TclError:
+            pass
+
+    def _get_tag_type(self, tag):
+        """Determina a qué categoría pertenece un tag."""
+        if tag in self.species_tags: return "species"
+        if tag in self.secondary_tags: return "secondary"
+        if tag in self.behavior_tags: return "behavior"
+        return "unknown"
+
+    def _pick_color(self, var):
+        import tkinter.colorchooser as cc
+        color = cc.askcolor()[1]
+        if color: var.set(color)
+
+    def _search_taxon_dialog(self, target_var, parent_win):
+        win = tk.Toplevel(self)
+        win.title("Buscar TaxonID")
+        win.geometry("400x350")
+        win.transient(self)
+        win.grab_set()
+
+        tk.Label(win, text="Buscar (GBIF o Local):").pack(pady=5)
+        q_var = tk.StringVar()
+        tk.Entry(win, textvariable=q_var, width=30).pack(pady=2)
+
+        status_lbl = tk.Label(win, text="", fg="gray", font=("Arial", 8))
+        status_lbl.pack()
+
+        lst = tk.Listbox(win, width=45)
+        lst.pack(fill="both", expand=True, padx=10, pady=5)
+
+        def _fill_listbox(results):
+            lst.delete(0, "end")
+            for r in results:
+                lst.insert("end", f"{r.get('scientificName','')} | ID:{r.get('taxonID','')}")
+
+        def do_search():
+            q = q_var.get().strip()
+            if not q: return
+            status_lbl.config(text="Buscando...")
+            win.update_idletasks()
+
+            def search_thread():
+                try:
+                    from config_utils import search_taxa_gbif
+                    res = search_taxa_gbif(q)
+                    if res:
+                        parent_win.after(0, lambda: [status_lbl.config(text=f"GBIF: {len(res)} resultados"), _fill_listbox(res)])
+                        return
+                except Exception: pass
+                
+                res = self._search_local_csv(q)
+                parent_win.after(0, lambda: [status_lbl.config(text=f"Local: {len(res)} resultados"), _fill_listbox(res)])
+
+            threading.Thread(target=search_thread, daemon=True).start()
+
+        tk.Button(win, text="Buscar", command=do_search).pack(pady=3)
+        win.bind("<Return>", lambda e: do_search())
+
+        def select():
+            sel = lst.curselection()
+            if sel:
+                line = lst.get(sel[0])
+                tid = line.split("ID:")[1] if "ID:" in line else ""
+                target_var.set(tid)
+                win.destroy()
+
+        tk.Button(win, text="Seleccionar", command=select, bg="#2196F3", fg="white").pack(pady=5)
+        
+
+    def _update_meta_preview(self, metadata):
+        """Actualiza el cuadro de vista previa de metadatos en la columna 1."""
+        self.meta_preview.config(state="normal")
+        self.meta_preview.delete("1.0", "end")
+        lines = [f"{k}: {v}" for k, v in metadata.items() if v]
+        self.meta_preview.insert("1.0", "\n".join(lines) if lines else "Sin metadatos")
+        self.meta_preview.config(state="disabled")
+
+    def open_metadata_editor(self):
+        """Abre ventana independiente para editar metadatos del video actual."""
+        if not self.video_dirs or not (0 <= self.current_video_index < len(self.video_dirs)):
+            return
+        if hasattr(self, '_meta_editor') and self._meta_editor and tk.Toplevel.winfo_exists(self._meta_editor):
+            self._meta_editor.lift()
             return
 
-        tags_extra = self.other_tags_list
+        video_meta = self.video_dirs[self.current_video_index]
+        metadata = video_meta.get("metadata", {})
 
+        win = tk.Toplevel(self)
+        win.title(f"Metadatos - {os.path.basename(video_meta.get('video_path', ''))}")
+        win.geometry("420x480")
+        win.transient(self)
+        win.grab_set()
+
+        tk.Label(win, text="Editar metadatos (se guarda automáticamente al cerrar)",
+                 font=("Arial", 9, "italic"), fg="#555").pack(pady=(5, 0))
+
+        canvas = tk.Canvas(win)
+        scrollbar = ttk.Scrollbar(win, orient="vertical", command=canvas.yview)
+        scrollable_frame = tk.Frame(canvas)
+        scrollable_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+        canvas.pack(side="left", fill="both", expand=True, padx=5, pady=5)
+        scrollbar.pack(side="right", fill="y")
+
+        entry_widgets = {}
+        for i, key in enumerate(self.metadata_vars.keys()):
+            tk.Label(scrollable_frame, text=f"{key}:", font=("Arial", 10)).grid(row=i, column=0, sticky="e", padx=5, pady=4)
+            entry = tk.Entry(scrollable_frame, width=30, font=("Arial", 10))
+            entry.grid(row=i, column=1, sticky="w", padx=5, pady=4)
+            entry.insert(0, str(metadata.get(key, "")))
+            entry_widgets[key] = entry
+
+        def save_and_close():
+            for key, entry in entry_widgets.items():
+                metadata[key] = entry.get().strip()
+            video_meta["metadata"] = metadata
+            self.save_metadata()
+            self._update_meta_preview(metadata)
+            win.destroy()
+
+        btn_frame = tk.Frame(win)
+        btn_frame.pack(fill="x", padx=10, pady=5)
+        tk.Button(btn_frame, text="Guardar y Cerrar", bg="#4CAF50", fg="white", command=save_and_close).pack(side="right", padx=5)
+        tk.Button(btn_frame, text="Cancelar", command=win.destroy).pack(side="right", padx=5)
+
+        win.protocol("WM_DELETE_WINDOW", save_and_close)
+        self._meta_editor = win
+
+    def open_note_editor(self):
+        if not self.video_dirs or not (0 <= self.current_video_index < len(self.video_dirs)):
+            return
+
+        # Evitar múltiples ventanas
+        if hasattr(self, '_note_editor') and self._note_editor and tk.Toplevel.winfo_exists(self._note_editor):
+            self._note_editor.lift()
+            return
+
+        video_meta = self.video_dirs[self.current_video_index]
+        win = tk.Toplevel(self)
+        win.title(f"Notas - {os.path.basename(video_meta.get('video_path', ''))}")
+        win.geometry("450x350")
+        win.transient(self)
+        win.grab_set()
+
+        tk.Label(win, text="Editor de notas (se guarda automáticamente al cerrar)", font=("Arial", 9, "italic"), fg="#555").pack(pady=(5, 0))
+
+        text_frame = tk.Frame(win)
+        text_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+        note_text = tk.Text(text_frame, wrap="word", font=("Arial", 11))
+        note_text.pack(fill="both", expand=True)
+
+        # Cargar notas actuales
+        current_notes = video_meta.get("metadata", {}).get("notes", "")
+        note_text.insert("1.0", current_notes)
+        note_text.focus_set()
+
+        def save_notes():
+            notes = note_text.get("1.0", "end-1c")
+            video_meta["metadata"]["notes"] = notes
+            self.save_metadata()
+            
+            # Actualizar preview en ventana principal
+            self.notes_preview.config(state="normal")
+            self.notes_preview.delete("1.0", "end")
+            self.notes_preview.insert("1.0", notes)
+            self.notes_preview.config(state="disabled")
+            win.destroy()
+
+        btn_frame = tk.Frame(win)
+        btn_frame.pack(fill="x", padx=10, pady=5)
+        tk.Button(btn_frame, text="Guardar y Cerrar", bg="#4CAF50", fg="white", command=save_notes).pack(side="right", padx=5)
+        tk.Button(btn_frame, text="Cancelar", command=win.destroy).pack(side="right", padx=5)
+
+        # Guardar también si cierra con la X
+        win.protocol("WM_DELETE_WINDOW", save_notes)
+        self._note_editor = win
+
+    def update_checkbox(self):
+        if self.video_dirs:
+            video_meta = self.video_dirs[self.current_video_index]
+            video_meta["ui"]["embed_metadata"] = self.embed_metadata_var.get()
+            video_meta["ui"]["xlsx"] = self.xlsx_var.get()
+            self.save_metadata()
+
+    def show_secondary_dropdown(self, event):
+        if getattr(self, "dropdown_window", None) and tk.Toplevel.winfo_exists(self.dropdown_window):
+            try: self.dropdown_window.destroy()
+            except: pass
+            self.dropdown_window = None
+            return
+            
+        tags_extra = self.other_tags_list
         menu = tk.Toplevel(self)
         menu.wm_overrideredirect(True)
         menu.configure(bg="white", bd=1, relief="solid")
-
         widget = event.widget
         x = widget.winfo_rootx()
         y = widget.winfo_rooty() + widget.winfo_height()
         menu.geometry(f"+{x}+{y}")
-
-        active_bg = "#cce6ff"
-        normal_bg = "white"
-
+        active_bg, normal_bg = "#cce6ff", "white"
+        
         for tag in tags_extra:
             lbl = tk.Label(menu, text=tag, bg=normal_bg, width=18, anchor="w", padx=6, pady=3)
             lbl.pack(fill="x")
             lbl.bind("<Enter>", lambda e, w=lbl: w.config(bg=active_bg))
             lbl.bind("<Leave>", lambda e, w=lbl: w.config(bg=normal_bg))
-            lbl.bind("<Button-1>", lambda e, t=tag: self._select_extra_tag(t, left=True))
-            lbl.bind("<Button-3>", lambda e, t=tag: self._select_extra_tag(t, left=False))
-
-        # Temporizador para cierre automático
+            
+            # 🔹 INTERCEPTAR "OTRO" / "OTROS" PARA DIÁLOGO PERSONALIZADO
+            if tag.strip().lower() in ["otro", "otros"]:
+                lbl.bind("<Button-1>", lambda e: self._open_custom_tag_dialog(left=True))
+                lbl.bind("<Button-3>", lambda e: self._open_custom_tag_dialog(left=False))
+            else:
+                lbl.bind("<Button-1>", lambda e, t=tag: self._select_extra_tag(t, left=True))
+                lbl.bind("<Button-3>", lambda e, t=tag: self._select_extra_tag(t, left=False))
+                
         self._dropdown_close_timer = None
-
         def schedule_close():
-            if self._dropdown_close_timer:
-                self._dropdown_close_timer = None
             self._dropdown_close_timer = self.after(300, lambda: self._close_dropdown(menu))
-
         def cancel_close():
             if self._dropdown_close_timer:
                 self.after_cancel(self._dropdown_close_timer)
                 self._dropdown_close_timer = None
-
-        # Vincular eventos de mouse a la ventana completa
         menu.bind("<Enter>", lambda e: cancel_close())
         menu.bind("<Leave>", lambda e: schedule_close())
+        menu.bind("<FocusOut>", lambda ev: self._close_dropdown(menu))
+        try: menu.focus_force()
+        except: pass
+        self.dropdown_window = menu
+        
+    def _open_custom_tag_dialog(self, left=True):
+        """Abre un cuadro de diálogo para ingresar una etiqueta personalizada y la aplica como especie."""
+        self._close_dropdown(self.dropdown_window)
 
-        # También cerrar si se hace clic fuera (FocusOut sigue siendo útil)
-        def on_focus_out(ev):
-            self._close_dropdown(menu)
+        win = tk.Toplevel(self)
+        win.title("Etiqueta personalizada")
+        win.geometry("320x130")
+        win.transient(self)
 
-        menu.bind("<FocusOut>", on_focus_out)
+        tk.Label(win, text="Escriba el nombre de la etiqueta:", font=("Arial", 10)).pack(pady=(10, 0))
+        
+        var = tk.StringVar()
+        entry = tk.Entry(win, textvariable=var, width=30, font=("Arial", 11))
+        entry.pack(pady=5, padx=10)
+        entry.focus_set()
+
+        def on_accept():
+            custom_tag = var.get().strip()
+            if not custom_tag:
+                win.destroy()
+                return
+
+            # --- APLICAR LA ETIQUETA PERSONALIZADA COMO ESPECIE ---
+            if not self.video_dirs or not (0 <= self.current_video_index < len(self.video_dirs)):
+                win.destroy()
+                return
+
+            video_meta = self.video_dirs[self.current_video_index]
+            video_meta.setdefault("classification", {})
+            species_list = video_meta["classification"].setdefault("species", [])
+            counts_dict = video_meta["classification"].setdefault("counts", {})
+
+            # Toggle: si ya existe, la quitamos; si no, la agregamos con count=1
+            if custom_tag in species_list:
+                species_list.remove(custom_tag)
+                counts_dict.pop(custom_tag, None)
+            else:
+                species_list.append(custom_tag)
+                counts_dict[custom_tag] = 1  # Siempre 1 para etiquetas personalizadas
+
+            # Guardar y refrescar
+            self.save_metadata()
+            self.show_frame()
+            win.destroy()
+
+        entry.bind("<Return>", lambda e: on_accept())
+        btn_frame = tk.Frame(win)
+        btn_frame.pack(pady=5)
+        tk.Button(btn_frame, text="Aceptar", command=on_accept, bg="#4CAF50", fg="white").pack(side="left", padx=10)
+        tk.Button(btn_frame, text="Cancelar", command=win.destroy).pack(side="left", padx=10)
+
+        win.update_idletasks()
+        win.wait_visibility()
         try:
-            menu.focus_force()
-        except:
+            win.grab_set()
+        except tk.TclError:
             pass
 
-        self.dropdown_window = menu
-
     def _close_dropdown(self, menu):
-        """Cierra la lista desplegable de forma segura."""
         if getattr(self, "dropdown_window", None) is menu and tk.Toplevel.winfo_exists(menu):
-            try:
-                menu.destroy()
-            except:
-                pass
+            try: menu.destroy()
+            except: pass
         self.dropdown_window = None
         if hasattr(self, '_dropdown_close_timer') and self._dropdown_close_timer:
-            try:
-                self.after_cancel(self._dropdown_close_timer)
-            except:
-                pass
+            try: self.after_cancel(self._dropdown_close_timer)
+            except: pass
             self._dropdown_close_timer = None
 
     def _select_extra_tag(self, tag, left=True):
         if getattr(self, "dropdown_window", None) and tk.Toplevel.winfo_exists(self.dropdown_window):
-            try:
-                self.dropdown_window.destroy()
-            except:
-                pass
+            try: self.dropdown_window.destroy()
+            except: pass
             self.dropdown_window = None
-        # No hay evento real en el menú desplegable → event=None (Alt no aplicable aquí)
         self.species_click(tag, left=left, event=None)
 
-    def _place_adjust_button(self):
-        """Posiciona el botón 'Ajustes' en la esquina superior derecha del canvas."""
-        if not self.canvas.winfo_viewable():
-            # Si aún no está visible, reintentar
-            self.after(50, self._place_adjust_button)
-            return
-
-        # Obtener la posición absoluta del canvas en la pantalla
-        canvas_x = self.canvas.winfo_rootx()
-        canvas_y = self.canvas.winfo_rooty()
-
-        # Posición relativa dentro de la ventana raíz
-        rel_x = canvas_x - self.winfo_rootx() + 950  # 870px desde la izquierda del canvas
-        rel_y = canvas_y - self.winfo_rooty() + 4    # 5px desde arriba
-
-        # Asegurar que no se salga del canvas
-        if rel_x < 0:
-            rel_x = 10
-        if rel_y < 0:
-            rel_y = 10
-
-        self.adjust_btn.place(x=rel_x, y=rel_y)
-        self.adjust_btn.lift()
-
-    # -------------------------------
-    # Ventana secundaria de ajustes
-    # -------------------------------
-    def open_adjust_window(self):
-        if self.adjust_window and tk.Toplevel.winfo_exists(self.adjust_window):
-            self.adjust_window.lift()
-            return
-
-        win = tk.Toplevel(self)
-        win.title("Ajustes de imagen")
-        win_width = 360
-        win_height = 500
-
-        # Ocultar temporalmente para evitar parpadeo
-        win.withdraw()
-
-        # Calcular posición a la derecha de la ventana principal
-        self.update_idletasks()
-        main_x = self.winfo_x()
-        main_y = self.winfo_y()
-        main_width = self.winfo_width()
-        screen_width = self.winfo_screenwidth()
-
-        win_x = main_x + main_width + 10
-        win_y = main_y
-
-        # Asegurar que no se salga de la pantalla
-        if win_x + win_width > screen_width:
-            win_x = screen_width - win_width - 10
-        if win_y + win_height > self.winfo_screenheight():
-            win_y = self.winfo_screenheight() - win_height - 50
-
-        win.geometry(f"{win_width}x{win_height}+{win_x}+{win_y}")
-
-        # Mostrar la ventana ya posicionada
-        win.deiconify()
-
-        self.adjust_window = win
-
-        controls = [
-            ("Brillo", "brightness", 0.0, 2.0, 0.1),
-            ("Contraste", "contrast", 0.0, 2.0, 0.1),
-            ("Nitidez", "sharpness", 0.0, 3.0, 0.1),
-            ("Suavidad", "smoothness", 0.0, 5.0, 0.1),
-            ("Reducción Ruido", "denoise", 0.0, 20.0, 1.0),
-            ("Flatfield", "flatfield", 0.0, 1.0, 0.05)
-        ]
-
-        self.adjust_sliders = {}
-        for i, (label_text, key, min_val, max_val, step) in enumerate(controls):
-            tk.Label(win, text=label_text).pack(anchor="w", padx=10)
-            s = tk.Scale(win, from_=min_val, to=max_val, resolution=step, orient="horizontal",
-                         length=300,
-                         command=lambda val, k=key: self.update_adjustment(k, float(val)))
-            s.set(self.image_adjustments[key])
-            s.pack(pady=5)
-            self.adjust_sliders[key] = s
-
-        btn_frame = tk.Frame(win)
-        btn_frame.pack(pady=10)
-
-        tk.Button(btn_frame, text="Auto-mejorar", command=self.auto_adjust).pack(side="left", padx=3)
-        tk.Button(btn_frame, text="Reset", command=self.reset_adjustments).pack(side="left", padx=3)
-        tk.Button(btn_frame, text="Guardar", command=self.save_adjusted_image).pack(side="left", padx=3)
-        tk.Button(btn_frame, text="Cancelar", command=win.destroy).pack(side="left", padx=3)
-
-    def update_adjustment(self, key, value):
-        self.image_adjustments[key] = value
-        self.show_frame()
-
-    def auto_adjust(self):
-        # Valores automáticos sugeridos
-        self.image_adjustments.update({
-            "brightness": 1.2,
-            "contrast": 1.2,
-            "sharpness": 1.5,
-            "smoothness": 0.5,
-            "denoise": 5.0,
-            "flatfield": 0.1
-        })
-        # Actualizar sliders si la ventana está abierta
-        if self.adjust_window and tk.Toplevel.winfo_exists(self.adjust_window):
-            for key, slider in self.adjust_sliders.items():
-                slider.set(self.image_adjustments[key])
-        self.show_frame()
-
-    def reset_adjustments(self):
-        """Restablece los ajustes a los valores por defecto."""
-        self.image_adjustments.update(DEFAULT_ADJUSTMENTS)
-        if self.adjust_window and tk.Toplevel.winfo_exists(self.adjust_window):
-            for key, slider in self.adjust_sliders.items():
-                slider.set(self.image_adjustments[key])
-        self.show_frame()
-
-    def save_adjusted_image(self):
-        """Guarda la imagen ajustada con sufijo '_adjusted'."""
-        frames = self.get_current_frames()
-        if not frames or self.current_frame_index >= len(frames):
-            return
-
-        frame_path = frames[self.current_frame_index]
-        img = cv2.imread(frame_path)
-        if img is None:
-            return
-
-        pil_img = self.apply_adjustments(img)
-        base, ext = os.path.splitext(frame_path)
-        adjusted_path = f"{base}_adjusted{ext}"
-        pil_img.save(adjusted_path)
-
-        # Opcional: notificación en consola
-        print(f"Imagen ajustada guardada: {adjusted_path}")
-
-        # Cerrar ventana tras guardar
-        if self.adjust_window and tk.Toplevel.winfo_exists(self.adjust_window):
-            self.adjust_window.destroy()
-
-    def apply_adjustments(self, img):
-        pil_img = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
-
-        # Brillo
-        pil_img = ImageEnhance.Brightness(pil_img).enhance(self.image_adjustments["brightness"])
-        # Contraste
-        pil_img = ImageEnhance.Contrast(pil_img).enhance(self.image_adjustments["contrast"])
-        # Nitidez
-        pil_img = ImageEnhance.Sharpness(pil_img).enhance(self.image_adjustments["sharpness"])
-        # Suavidad
-        if self.image_adjustments["smoothness"] > 0:
-            pil_img = pil_img.filter(ImageFilter.GaussianBlur(radius=self.image_adjustments["smoothness"]))
-        # Flatfield
-        if self.image_adjustments["flatfield"] > 0:
-            arr = np.array(pil_img).astype(np.float32)
-            arr = arr * (1 - self.image_adjustments["flatfield"]) + np.mean(arr) * self.image_adjustments["flatfield"]
-            arr = np.clip(arr, 0, 255).astype(np.uint8)
-            pil_img = Image.fromarray(arr)
-        # Reducción de ruido
-        if self.image_adjustments["denoise"] > 0:
-            arr = np.array(pil_img)
-            arr = cv2.fastNlMeansDenoisingColored(arr, None,
-                                                  h=self.image_adjustments["denoise"],
-                                                  hColor=self.image_adjustments["denoise"],
-                                                  templateWindowSize=7,
-                                                  searchWindowSize=21)
-            pil_img = Image.fromarray(arr)
-
-        return pil_img
-
-    def toggle_metadata_fields(self):
-        if self.meta_frame.winfo_viewable():
-            self.meta_frame.pack_forget()
-            self.toggle_meta_btn.config(text="Metadatos")
-        else:
-            # Insertar justo antes del label de tags
-            self.meta_frame.pack(before=self.label_frame, fill="x", pady=5)
-            self.toggle_meta_btn.config(text="Ocultar")
-
-    def update_checkbox(self):
-        video_meta = self.video_dirs[self.current_video_index]
-        video_meta["embed_metadata"] = self.embed_metadata_var.get()
-        video_meta["xlsx"] = self.xlsx_var.get()
-        self.save_metadata()
-
     def species_click(self, tag, left=True, event=None):
-        is_alt = event and (event.state & 0x20000)  # Alt key (Windows/Linux)
-        indices = range(len(self.video_dirs)) if is_alt else [self.current_video_index]
-        was_added_to_current = False  # solo para navegación en modo individual
-
-        # Leer el conteo actual solo si se va a agregar (toggle ON)
-        current_count = self.count_var.get()
-        if current_count < 1: # Validación básica
-            print("Advertencia: El conteo debe ser al menos 1.")
+        # 🔹 INTERCEPTAR CTRL+CLICK PARA CONFIGURACIÓN
+        if self._is_ctrl_pressed(event):
+            tag_type = "species" if left else "secondary"
+            self.open_button_config_dialog(tag, tag_type)
             return
+
+        # Lógica original de etiquetado
+        is_alt = event and (event.state & 0x20000)
+        indices = range(len(self.video_dirs)) if is_alt else [self.current_video_index]
+        was_added_to_current = False
+        current_count = self.count_var.get()
+        if current_count < 1: return
 
         for idx in indices:
-            if not (0 <= idx < len(self.video_dirs)):
-                continue
+            if not (0 <= idx < len(self.video_dirs)): continue
             video_meta = self.video_dirs[idx]
-            tags_list = video_meta["tags"]
-            species_counts = video_meta["species_counts"] # Accedemos al diccionario
-
-            if tag in tags_list:
-                # --- Modo: Quitar especie ---
-                tags_list.remove(tag)
-                species_counts.pop(tag, None) # Eliminar entrada de conteo si existe
+            if "classification" not in video_meta:
+                video_meta["classification"] = {"species": [], "counts": {}, "behaviors": []}
+            species_list = video_meta["classification"]["species"]
+            species_counts = video_meta["classification"]["counts"]
+            if tag in species_list:
+                species_list.remove(tag)
+                species_counts.pop(tag, None)
             else:
-                # --- Modo: Agregar especie ---
-                tags_list.append(tag)
-                species_counts[tag] = current_count # Guardar conteo para esta especie
-                if not is_alt and idx == self.current_video_index:
-                    was_added_to_current = True
+                species_list.append(tag)
+                species_counts[tag] = current_count
+                if not is_alt and idx == self.current_video_index: was_added_to_current = True
 
-        # Resetear el contador solo si se agregó una especie en modo individual
-        # (Esto se mantiene para el flujo de navegación automática)
-        if not is_alt and left and was_added_to_current:
+        if not is_alt:
             self.count_var.set(1)
-
-        # --- AÑADIDO: Resetear el contador y quitar foco tras cualquier clic en botón de especie ---
-        # Esto evita que el foco permanezca en el Spinbox
-        if not is_alt: # Solo en modo individual
-            self.count_var.set(1) # Siempre resetear a 1 tras clic en botón (izq o der)
-            # Opcional: forzar foco en el canvas para que las flechas naveguen videos
             self.canvas.focus_set()
-
         self.save_metadata()
 
-        # --- Navegación: solo si se agregó con clic izquierdo en modo individual ---
         if not is_alt and left and was_added_to_current:
-            all_tagged = all(len(v.get("tags", [])) > 0 for v in self.video_dirs)
-            if all_tagged:
-                self._show_completion_dialog()
+            all_tagged = all(len(v.get("classification", {}).get("species", [])) > 0 for v in self.video_dirs)
+            if all_tagged: self._show_completion_dialog()
             elif self.current_video_index < len(self.video_dirs) - 1:
                 self.current_video_index += 1
                 self.current_frame_index = 0
-                # El reset ya se hizo arriba, no aquí
-        # --- Actualizar UI ---
-        if not is_alt:
-            self.show_frame()
-        else:
-            print(f"Toggle '{tag}' aplicado a {len(indices)} videos.")
+        self.show_frame()
+
+    def behavior_click(self, tag, event=None):
+        # 🔹 INTERCEPTAR CTRL+CLICK PARA CONFIGURACIÓN
+        if self._is_ctrl_pressed(event):
+            self.open_button_config_dialog(tag, "behavior")
+            return
+
+        # Lógica original
+        if not self.video_dirs: return
+        video_meta = self.video_dirs[self.current_video_index]
+        behaviors = video_meta["classification"]["behaviors"]
+        if tag in behaviors: behaviors.remove(tag)
+        else: behaviors.append(tag)
+        self.save_metadata()
+        self.show_frame()
 
     def _handle_copy(self, event=None):
-        """Copia tags, behaviors e is_favorite del video actual al portapapeles interno."""
-        if not self.video_dirs or self.current_video_index < 0:
+        """Copia clasificación, conteos y favorito del video actual al portapapeles interno."""
+        if not self.video_dirs or not (0 <= self.current_video_index < len(self.video_dirs)):
             return
-        
+
         current = self.video_dirs[self.current_video_index]
+        classif = current.get("classification", {})
+
         self.clipboard_data = {
-            "tags": current.get("tags", []).copy(),
-            "behaviors": current.get("behaviors", []).copy(),
-            "is_favorite": current.get("is_favorite", False)
+            "species": classif.get("species", []).copy(),
+            "behaviors": classif.get("behaviors", []).copy(),
+            "counts": classif.get("counts", {}).copy(),
+            "is_favorite": current.get("ui", {}).get("is_favorite", False)
         }
-        print("✓ Metadatos de etiquetado copiados.")
+        print("✓ Metadatos copiados al portapapeles interno.")
 
     def _handle_paste(self, event=None):
-        """Pega los datos del portapapeles interno en el video actual o en todos (si Alt está presionado)."""
+        """Pega los datos en el video actual o en todos (si se mantiene Alt/Ctrl presionado)."""
         if self.clipboard_data is None:
             print("⚠️ Portapapeles vacío.")
             return
 
-        is_alt = event and (event.state & 0x20000)  # Alt key
+        is_alt = event and (event.state & 0x20000)
         indices = range(len(self.video_dirs)) if is_alt else [self.current_video_index]
 
         for idx in indices:
             if not (0 <= idx < len(self.video_dirs)):
                 continue
             target = self.video_dirs[idx]
-            target["tags"] = self.clipboard_data["tags"].copy()
-            target["behaviors"] = self.clipboard_data["behaviors"].copy()
-            target["is_favorite"] = self.clipboard_data["is_favorite"]
-
-        self.save_metadata()
-
-        if not is_alt:
-            self.show_frame()  # Actualizar UI del actual
-            print("✓ Metadatos pegados en el video actual.")
-        else:
-            print(f"✓ Metadatos pegados en {len(indices)} videos.")
-    
-    def clear_current_video(self):
-        """Elimina todas las etiquetas, comportamientos y notas del video actual."""
-        if not self.video_dirs:
-            return
+            target.setdefault("classification", {})
+            target["classification"]["species"] = self.clipboard_data["species"].copy()
+            target["classification"]["behaviors"] = self.clipboard_data["behaviors"].copy()
+            target["classification"]["counts"] = self.clipboard_data["counts"].copy()
             
-        video_meta = self.video_dirs[self.current_video_index]
-        
-        # Limpiar todos los campos editables
-        video_meta["tags"] = []
-        video_meta["behaviors"] = []
-        video_meta["notes"] = ""
-        video_meta["embed_metadata"] = False
-        video_meta["xlsx"] = False
-        video_meta["is_favorite"] = False  # También quitar favorito si lo deseas
-        
-        # Guardar inmediatamente
+            target.setdefault("ui", {})
+            target["ui"]["is_favorite"] = self.clipboard_data["is_favorite"]
+
         self.save_metadata()
-        
-        # Actualizar la interfaz
+        if not is_alt:
+            self.show_frame()
+
+    def clear_current_video(self):
+        if not self.video_dirs: return
+        video_meta = self.video_dirs[self.current_video_index]
+        if "classification" in video_meta:
+            video_meta["classification"]["species"] = []
+            video_meta["classification"]["behaviors"] = []
+            video_meta["classification"]["counts"] = {}
+        video_meta["metadata"]["notes"] = ""
+        video_meta["ui"]["is_favorite"] = False
+        self.save_metadata()
         self.show_frame()
-        
-        # Restablecer controles
         self.count_var.set(1)
-        self.embed_metadata_var.set(False)
-        self.xlsx_var.set(False)
 
     def clear_all_videos_ask(self):
-        """Muestra un diálogo de confirmación antes de limpiar toda la sesión."""
-        from tkinter import messagebox
-        
         if not self.video_dirs:
             return
-            
         total = len(self.video_dirs)
-        msg = f"¿Está seguro de que desea eliminar TODOS los tags, comportamientos y favoritos de los {total} videos de esta sesión?\n\nEsta acción no se puede deshacer."
-        
+        msg = f"¿Está seguro de que desea eliminar TODAS las etiquetas, comportamientos, notas y favoritos de los {total} videos de esta sesión?\n\nEsta acción no se puede deshacer."
         if messagebox.askyesno("Confirmar limpieza masiva", msg):
             self.clear_all_videos()
 
     def clear_all_videos(self):
-        """Elimina tags, behaviors e is_favorite de todos los videos."""
+        """Elimina tags, comportamientos, notas y favoritos de TODOS los videos de la sesión."""
         for video_meta in self.video_dirs:
-            video_meta["tags"] = []
-            video_meta["behaviors"] = []
-            video_meta["is_favorite"] = False
+            # Asegurar que existan las claves (por si algún video es nuevo o está corrupto)
+            video_meta.setdefault("classification", {})
+            video_meta.setdefault("metadata", {})
+            video_meta.setdefault("ui", {})
+
+            # Limpiar clasificación (estructura actual)
+            video_meta["classification"]["species"] = []
+            video_meta["classification"]["behaviors"] = []
+            video_meta["classification"]["counts"] = {}
+
+            # Limpiar notas y favoritos
+            video_meta["metadata"]["notes"] = ""
+            video_meta["ui"]["is_favorite"] = False
+
+        # Persistir cambios en disco y refrescar UI
         self.save_metadata()
-        self.show_frame()  # Actualiza la UI del video actual
-        print(f"✓ Todos los tags de la sesión han sido eliminados.")
-    
+        self.show_frame()
+
     def _show_completion_dialog(self):
-        """Muestra diálogo de finalización con dos opciones."""
-        from tkinter import Toplevel, Button, Label
-        
-        dialog = Toplevel(self)
+        dialog = tk.Toplevel(self)
         dialog.title("Sesión completada")
         dialog.geometry("300x120")
         dialog.transient(self)
         dialog.focus_set()
-        
-        Label(dialog, text="¡Todos los videos han sido etiquetados!", pady=10).pack()
-        
+        tk.Label(dialog, text="¡Todos los videos han sido etiquetados!", pady=10).pack()
         btn_frame = tk.Frame(dialog)
         btn_frame.pack(pady=10)
-        
         def add_more_videos():
             dialog.destroy()
             self.destroy()
-            # Abrir gui_inicial en modo append
-            import os
-            import sys
-            import subprocess
             gui_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), "gui_inicial.py")
+            try: subprocess.Popen([sys.executable, gui_path, "--session_id", self.session_id])
+            except Exception as e: messagebox.showerror("Error", f"No se pudo abrir GUI Inicial:\n{e}")
             try:
-                subprocess.Popen([sys.executable, gui_path, "--session_id", self.session_id])
-            except Exception as e:
-                from tkinter import messagebox
-                messagebox.showerror("Error", f"No se pudo abrir GUI Inicial:\n{e}")
-                # Fallback: volver a main
-                try:
-                    from main import MainApp
-                    MainApp().mainloop()
-                except Exception:
-                    pass
-        
+                from main import MainApp
+                MainApp().mainloop()
+            except: pass
         def finish_session():
             dialog.destroy()
             self.destroy()
             try:
                 from main import MainApp
                 MainApp().mainloop()
-            except Exception as e:
-                from tkinter import messagebox
-                messagebox.showerror("Error", f"No se pudo volver al menú principal:\n{e}")
-        
-        Button(btn_frame, text="Agregar más videos", command=add_more_videos, bg="#4CAF50", fg="white").pack(side="left", padx=5)
-        Button(btn_frame, text="Finalizar", command=finish_session, bg="#f44336", fg="white").pack(side="left", padx=5)
-        
-        # ←←← NUEVO: Asegurar que la ventana sea visible antes de grab_set
-        dialog.update_idletasks()  # Fuerza a que la ventana se dibuje
-        dialog.grab_set()          # Ahora sí funciona
-        # →→→
-        
-    def behavior_click(self, tag):
-        video_meta = self.video_dirs[self.current_video_index]
-        if tag in video_meta["behaviors"]:
-            video_meta["behaviors"].remove(tag)
-        else:
-            video_meta["behaviors"].append(tag)
-        self.save_metadata()
-        self.show_frame()
+            except Exception as e: messagebox.showerror("Error", f"No se pudo volver al menú principal:\n{e}")
+            
+        tk.Button(btn_frame, text="Agregar más videos", command=add_more_videos, bg="#4CAF50", fg="white").pack(side="left", padx=5)
+        tk.Button(btn_frame, text="Finalizar", command=finish_session, bg="#f44336", fg="white").pack(side="left", padx=5)
+        dialog.update_idletasks()
+        dialog.grab_set()
 
     def save_metadata(self):
-        # Guardar en el archivo de sesión (actual)
         with metadata_lock:
+            if not self.video_dirs or not (0 <= self.current_video_index < len(self.video_dirs)):
+                return
+
             video_meta = self.video_dirs[self.current_video_index]
-            # Guardar notas
-            video_meta["notes"] = self.notes_text.get("1.0", "end-1c")
-            # Guardar metadatos editables (aunque el frame esté oculto)
-            for key, var in self.metadata_vars.items():
-                video_meta[key] = var.get()
-            video_meta["is_excluded"] = self.video_dirs[self.current_video_index].get("is_excluded", False)
-            # Escribir todo a disco
-            with open(self.metadata_path, "w", encoding="utf-8") as f:
-                json.dump(self.video_dirs, f, indent=4, ensure_ascii=False)
-        # Actualizar archivo consolidado global
+            video_meta.setdefault("ui", {})
+            video_meta.setdefault("classification", {})
+            video_meta.setdefault("metadata", {})
+
+            video_meta["ui"]["embed_metadata"] = self.embed_metadata_var.get()
+            video_meta["ui"]["xlsx"] = self.xlsx_var.get()
+            video_meta["ui"]["is_excluded"] = video_meta["ui"].get("is_excluded", False)
+
+            try:
+                with open(self.metadata_path, "w", encoding="utf-8") as f:
+                    json.dump(self.video_dirs, f, indent=4, ensure_ascii=False)
+            except Exception as e:
+                print(f"❌ Error crítico al guardar {self.metadata_path}: {e}")
+
         self.update_consolidated_metadata(video_meta)
-        
-    def update_consolidated_metadata(self, updated_video_meta):
-        """Actualiza el archivo consolidado global con los metadatos del video."""
-        consolidated_dir = os.path.join(self.output_folder, "consolidated")
-        os.makedirs(consolidated_dir, exist_ok=True)
-        consolidated_path = os.path.join(consolidated_dir, "all_sessions_metadata.json")
-        # Cargar consolidado existente o crear lista vacía
-        if os.path.exists(consolidated_path):
-            with open(consolidated_path, "r", encoding="utf-8") as f:
-                try:
-                    consolidated = json.load(f)
-                except json.JSONDecodeError:
-                    print(f"⚠️ Archivo consolidado corrupto, creando nuevo: {consolidated_path}")
-                    consolidated = []
-        else:
-            consolidated = []
-        # Buscar entrada por video_path (clave única)
-        video_path = updated_video_meta["video_path"]
-        found = False
-        for entry in consolidated:
-            if entry.get("video_path") == video_path:
-                # Actualizar campos editables
-                for key in [
-                    "tags", "behaviors", "notes", "embed_metadata", "xlsx",
-                    "session_id", "site", "subsite", "camera", "operator",
-                    "recorded_at", "frames_folder", "video_hash",
-                    "is_excluded" # <-- AÑADIR ESTA CLAVE AQUÍ -->
-                ]:
-                    if key in updated_video_meta:
-                        entry[key] = updated_video_meta[key]
-                found = True
-                break
-        if not found:
-            # Añadir nuevo video (poco común, pero posible)
-            # Asegurar que is_excluded también se copie si es nuevo
-            updated_video_meta.setdefault("is_excluded", False)
-            consolidated.append(updated_video_meta.copy())
-        # Guardar
-        with open(consolidated_path, "w", encoding="utf-8") as f:
-            json.dump(consolidated, f, indent=4, ensure_ascii=False)
+
+    def update_consolidated_metadata(self, video_meta):
+        try:
+            config = self.config_data
+            json_path = config.get("General", {}).get("json_file")
+            if not json_path:
+                output_folder = config.get("General", {}).get("output_folder", "output")
+                json_path = os.path.join(output_folder, "videos_metadata.json")
+            os.makedirs(os.path.dirname(json_path), exist_ok=True)
+            with metadata_lock:
+                data = {}
+                if os.path.exists(json_path):
+                    try:
+                        with open(json_path, 'r', encoding='utf-8') as f: data = json.load(f)
+                    except json.JSONDecodeError: data = {}
+                video_key = video_meta.get("video_path")
+                if video_key:
+                    data[video_key] = video_meta
+                    with open(json_path, 'w', encoding='utf-8') as f:
+                        json.dump(data, f, indent=4, ensure_ascii=False)
+        except Exception as e: print(f"CRÍTICO: No se pudo guardar en el JSON: {e}")
+
+    def load_metadata(self, metadata_path):
+        if not os.path.exists(metadata_path):
+            self.video_dirs = []
+            return
+        with open(metadata_path, "r", encoding="utf-8") as f:
+            self.video_dirs = json.load(f)
+        self.sync_all_videos_with_disk()
+        for entry in self.video_dirs:
+            entry.setdefault("classification", {})
+            entry["classification"].setdefault("species", [])
+            entry["classification"].setdefault("counts", {})
+            entry["classification"].setdefault("behaviors", [])
+            entry.setdefault("metadata", {})
+            entry["metadata"].setdefault("notes", "")
+            entry.setdefault("ui", {})
+            entry["ui"].setdefault("embed_metadata", False)
+            entry["ui"].setdefault("xlsx", False)
+            entry["ui"].setdefault("is_favorite", False)
+            entry["ui"].setdefault("is_excluded", False)
+            entry.setdefault("session_id", self.session_id)
+            entry.setdefault("camtrap_db_session", False)
+
+    def sync_all_videos_with_disk(self):
+        if not self.video_dirs: return
+        for entry in self.video_dirs:
+            if entry.get("status") != "pending": continue
+            frames_folder = os.path.join(self.output_folder, "frames", entry.get("frames_folder", ""))
+            if not os.path.exists(frames_folder): continue
+            files_in_folder = os.listdir(frames_folder)
+            promedio_files = [f for f in files_in_folder if "promedio" in f.lower()]
+            top_files = sorted([f for f in files_in_folder if "top_" in f.lower()])
+            if promedio_files and top_files:
+                entry["status"] = "done"
+                if not entry.get("promedio"): entry["promedio"] = os.path.join(frames_folder, promedio_files[0])
+                if not entry.get("tops"): entry["tops"] = [os.path.join(frames_folder, f) for f in top_files]
+                if entry.get("promedio"):
+                    promedio_path = entry["promedio"]
+                    promedio_filename = os.path.basename(promedio_path)
+                    mask_filename = promedio_filename.replace("_promedio", "_mask")
+                    entry["mask"] = os.path.join(frames_folder, mask_filename)
+                if not entry.get("fecha_prefix") and promedio_files[0]:
+                    name = os.path.splitext(promedio_files[0])[0]
+                    if "_promedio" in name: entry["fecha_prefix"] = name.replace("_promedio", "")
+
+    def reload_current_video_from_disk(self):
+        try:
+            if not (0 <= self.current_video_index < len(self.video_dirs)): return
+            entry = self.video_dirs[self.current_video_index]
+            if entry.get("status") != "pending": return
+            frames_folder = os.path.join(self.output_folder, "frames", entry.get("frames_folder", ""))
+            if not os.path.exists(frames_folder): return
+            files_in_folder = os.listdir(frames_folder)
+            promedio_files = [f for f in files_in_folder if "promedio" in f.lower()]
+            top_files = sorted([f for f in files_in_folder if "top_" in f.lower()])
+            if promedio_files and top_files:
+                entry["status"] = "done"
+                if not entry.get("promedio"): entry["promedio"] = os.path.join(frames_folder, promedio_files[0])
+                if not entry.get("tops"): entry["tops"] = [os.path.join(frames_folder, f) for f in top_files]
+                if entry.get("promedio"):
+                    promedio_path = entry["promedio"]
+                    promedio_filename = os.path.basename(promedio_path)
+                    mask_filename = promedio_filename.replace("_promedio", "_mask")
+                    entry["mask"] = os.path.join(frames_folder, mask_filename)
+                self.save_metadata()
+        except Exception: pass
 
     def get_current_frames(self):
         video_meta = self.video_dirs[self.current_video_index]
         frames = []
-        
-        # 1. Fotos originales (si existen) → máxima información, van primero
         original_photos = video_meta.get("original_photos", [])
         frames.extend([p for p in original_photos if p and os.path.exists(p)])
-        
-        # 2. Tops generados → ya ordenados: top_00.jpg es el de mayor movimiento
         tops = video_meta.get("tops", [])
         valid_tops = [p for p in tops if p and os.path.exists(p)]
-        
         if valid_tops:
-            # El mejor top (índice 0) va inmediatamente después de las originales
             frames.append(valid_tops[0])
-            # Luego el resto de tops, en orden
             frames.extend(valid_tops[1:])
-        
         return frames
-  
+
+    def _update_tag_buttons(self, current_species, current_behaviors, current_counts):
+        if hasattr(self, 'species_buttons'):
+            for tag, btn in self.species_buttons.items():
+                if btn.winfo_exists():
+                    if tag in current_species:
+                        count = current_counts.get(tag, 1)
+                        btn.config(bg=self.species_active_bg, text=f"{tag} ({count})")
+                    else:
+                        btn.config(bg=self.species_inactive_bg, text=tag)
+        if hasattr(self, 'behaviors'):
+            for tag, btn in self.behaviors.items():
+                if btn.winfo_exists():
+                    btn.config(bg=self.behavior_active_bg if tag in current_behaviors else self.tag_inactive_bg)
+
     def show_frame(self):
         try:
-            # ←←← NUEVO: refresco de metadatos con protección
-            self.reload_current_video_from_disk()
-            # →→→ FIN NUEVO
-            
-            video_meta = self.video_dirs[self.current_video_index] if self.video_dirs else {}
-            if not video_meta or "video_path" not in video_meta:
-                self._show_empty_state("Sin datos")
+            # 1. Validación básica de datos
+            if not self.video_dirs or self.current_video_index >= len(self.video_dirs):
+                self._show_empty_state("Sin datos cargados")
                 return
 
+            video_meta = self.video_dirs[self.current_video_index]
             frames = self.get_current_frames()
             if not frames:
-                status = video_meta.get("status", "pending")
-                if status == "pending":
-                    pending_before = sum(1 for v in self.video_dirs[:self.current_video_index] 
-                                        if v.get("status") == "pending")
-                    total_pending = sum(1 for v in self.video_dirs if v.get("status") == "pending")
-                    msg = f"En cola ({pending_before + 1}/{total_pending})"
-                elif status == "error":
-                    msg = "Error de procesamiento"
-                else:
-                    msg = "Procesando video..."
-                self._show_empty_state(msg)
+                self._show_empty_state("No hay frames")
                 return
 
             if self.current_frame_index >= len(frames):
-                self.current_frame_index = len(frames) - 1
+                self.current_frame_index = 0
+
+            # 2. Carga de la imagen
             frame_path = frames[self.current_frame_index]
             img = cv2.imread(frame_path)
-            if img is None:
-                self._show_empty_state("Error al cargar frame")
-                return
-            # Mostrar nombre útil según el tipo de entrada
-            if video_meta.get("is_photo"):
-                if video_meta.get("is_burst"):
-                    label_text = f"Ráfaga: {video_meta.get('fecha_prefix', 'unknown')}"
+            
+            if img is not None:
+                # Aplicar ajustes de imagen (brillo, contraste, etc.)
+                pil_img = self.apply_adjustments(img)
+                
+                # ==========================================================
+                #  SOLUCIÓN AL PROBLEMA DE TAMAÑO (ESCALADO / FIT)
+                # ==========================================================
+                # Obtener tamaño actual del canvas (con fallback a dimensiones fijas si es 1)
+                canvas_w = self.canvas.winfo_width()
+                canvas_h = self.canvas.winfo_height()
+                if canvas_w <= 1: canvas_w = 912
+                if canvas_h <= 1: canvas_h = 513
+
+                # Calcular escala para que quepa completa manteniendo relación de aspecto
+                img_w, img_h = pil_img.size
+                scale = min(canvas_w / img_w, canvas_h / img_h)
+                
+                # (Opcional) No agrandar imágenes pequeñas para evitar pixelado
+                if scale > 1.0: scale = 1.0
+                
+                new_w = int(img_w * scale)
+                new_h = int(img_h * scale)
+                
+                # Redimensionar
+                pil_img_resized = pil_img.resize((new_w, new_h), Image.Resampling.LANCZOS)
+                
+                # ==========================================================
+                #  LÓGICA DE LA MÁSCARA (Compatible con ambas versiones)
+                # ==========================================================
+                show_mask = False
+                
+                # Versión Nueva (Modo Máscara)
+                if hasattr(self, 'mask_mode'):
+                    if self.mask_mode == 1: show_mask = True
+                    elif self.mask_mode == 2: show_mask = self.blink_state
+                # Versión Antigua (Legacy)
                 else:
-                    img_path = video_meta.get("image_path") or (video_meta.get("original_photos", [None])[0])
-                    label_text = f"Foto: {os.path.basename(img_path) if img_path else 'unknown'}"
-            else:
-                folder_name = video_meta.get("frames_folder", "")
-                label_text = f"Video: {folder_name}"
+                    show_mask = self.show_mask or (self.blink_mode and self.blink_state)
 
-            self.video_label.config(text=label_text)
-            self.counter_label.config(
-                text=f"{self.current_video_index + 1}/{len(self.video_dirs)} | {self.current_frame_index + 1}/{len(frames)}")
-
-            # Aplicar ajustes de imagen antes de la máscara
-            img_pil = self.apply_adjustments(img)
-            img = np.array(img_pil)
-            img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-
-            # Máscara roja con alpha → solo para frames generados (no para fotos originales)
-            if self.show_mask and (not self.blink_mode or self.blink_state):
-                current_frame_path = frames[self.current_frame_index]
-                original_photos_set = set(video_meta.get("original_photos", []))
-                if current_frame_path not in original_photos_set:
+                if show_mask:
                     mask_path = video_meta.get("mask")
                     if mask_path and os.path.exists(mask_path):
-                        mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
-                        if mask is not None:
-                            mask_resized = cv2.resize(mask, (img.shape[1], img.shape[0]), interpolation=cv2.INTER_NEAREST)
-                            alpha = (mask_resized.astype(np.float32) / 255.0) * 0.6
-                            overlay = np.zeros_like(img, dtype=np.float32)
-                            overlay[:, :, 2] = 255
-                            img = img.astype(np.float32)
-                            img = (1 - alpha[:, :, None]) * img + alpha[:, :, None] * overlay
-                            img = img.astype(np.uint8)
+                        try:
+                            mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
+                            if mask is not None:
+                                # Redimensionar máscara para que coincida con la imagen redimensionada
+                                mask_resized = cv2.resize(mask, (new_w, new_h), interpolation=cv2.INTER_NEAREST)
+                                mask_norm = mask_resized.astype(np.float32) / 255.0
+                                
+                                img_np = np.array(pil_img_resized).astype(np.float32)
+                                overlay = np.zeros_like(img_np)
+                                
+                                # Determinar color de la máscara
+                                color = (255, 0, 0) # Rojo por defecto
+                                if hasattr(self, 'mask_colors') and hasattr(self, 'mask_color_index'):
+                                    color = self.mask_colors[self.mask_color_index]
+                                
+                                r, g, b = color
+                                overlay[:, :, 0] = r
+                                overlay[:, :, 1] = g
+                                overlay[:, :, 2] = b
 
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-            img = Image.fromarray(img)
-            img.thumbnail((912, 513))
-            tk_img = ImageTk.PhotoImage(img)
-            self.tk_imgs["current"] = tk_img
-            self.canvas.delete("all")
-            self.canvas.create_image(0, 0, anchor="nw", image=tk_img)
+                                alpha = mask_norm[:, :, None] * 0.6
+                                img_np = (1 - alpha) * img_np + alpha * overlay
+                                pil_img_final = Image.fromarray(img_np.astype(np.uint8))
+                            else: pil_img_final = pil_img_resized
+                        except Exception as e:
+                            print(f"⚠️ Error al procesar máscara: {e}")
+                            pil_img_final = pil_img_resized
+                    else: pil_img_final = pil_img_resized
+                else:
+                    pil_img_final = pil_img_resized
 
-            tags_especie = ", ".join(video_meta.get("tags", [])) or "ninguno"
-            tags_behav = ", ".join(video_meta.get("behaviors", [])) or "ninguno"
-            self.label_frame.config(
-                text=f"Tags especie: {tags_especie}\nTags comportamiento: {tags_behav}"
-            )
-
-            # ←←← ACTUALIZACIÓN UNIFICADA DE BOTONES DE TAGS →→→
-            if not self.video_dirs:
-                current_tags = set()
-                current_behaviors = set()
+                # 3. Mostrar en Canvas (Centrada)
+                tk_img = ImageTk.PhotoImage(pil_img_final)
+                self.tk_imgs["current"] = tk_img
+                self.canvas.delete("all")
+                
+                # Calcular posición central para que quede en medio del canvas
+                x = (canvas_w - new_w) // 2
+                y = (canvas_h - new_h) // 2
+                self.canvas.create_image(x, y, anchor="nw", image=tk_img)
             else:
-                current_item = self.video_dirs[self.current_video_index]
-                current_tags = set(current_item.get("tags", []))
-                current_behaviors = set(current_item.get("behaviors", []))
+                self._show_empty_state("Error al leer frame")
+                return
 
-            # --- Especies: desactivar todos, luego activar y actualizar texto los presentes ---
-            for tag, btn in self.species_buttons.items(): # Iteramos clave-valor
-                if btn.winfo_exists():
-                    # <-- MODIFICACIÓN: Usar el color inactivo general o específico para botones principales -->
-                    # Determinar color base inactivo
-                    if tag in self.species_tags[:2]: # Si es uno de los dos primeros
-                         # Usar el color inactivo definido para botones principales
-                         # Obtenemos el color específico según el tag (posición en la lista)
-                         if tag == self.species_tags[0]:
-                             base_inactive_color = self.colors_cfg.get("main_button_1_inactive", "#FFD700") # Debe coincidir con el valor en build_layout
-                         else: # tag == self.species_tags[1]
-                             base_inactive_color = self.colors_cfg.get("main_button_2_inactive", "#87CEEB") # Debe coincidir con el valor en build_layout
-                    else:
-                         # Usar el color inactivo general
-                         base_inactive_color = self.tag_inactive_bg
-                    # <-- FIN MODIFICACIÓN -->
-                    btn.config(bg=base_inactive_color, text=tag) # Resetear a nombre base y color inactivo correspondiente
-            # --- Activar los que están en los tags actuales ---
-            for tag in current_tags:
-                if tag in self.species_buttons:
-                    btn = self.species_buttons[tag]
-                    if btn.winfo_exists():
-                        # Aplicar color activo a cualquier botón de especie presente
-                        btn.config(bg=self.tag_active_bg)
-                        # ... (lógica de conteo) ...
-                        # Verificar si hay un conteo específico para esta especie
-                        current_species_counts = self.video_dirs[self.current_video_index].get("species_counts", {})
-                        count = current_species_counts.get(tag, 1) # Usar 1 como fallback si no está en species_counts
-                        btn.config(text=f"{tag} ({count})") # Actualizar texto con conteo
-            # --- Comportamientos: desactivar todos, luego activar los presentes ---
-            for btn in self.behaviors.values():
-                if btn.winfo_exists():
-                    btn.config(bg=self.tag_inactive_bg)
-            for tag in current_behaviors:
-                if tag in self.behaviors:
-                    btn = self.behaviors[tag]
-                    if btn.winfo_exists():
-                        btn.config(bg=self.tag_active_bg)
-            # →→→ FIN ←←←
-                        # Verificar si hay un conteo específico para esta especie
-                        current_species_counts = self.video_dirs[self.current_video_index].get("species_counts", {})
-                        count = current_species_counts.get(tag, 1) # Usar 1 como fallback si no está en species_counts
-                        btn.config(text=f"{tag} ({count})") # Actualizar texto con conteo
-            # --- Comportamientos: desactivar todos, luego activar los presentes ---
-            for btn in self.behaviors.values():
-                if btn.winfo_exists():
-                    btn.config(bg=self.tag_inactive_bg)
-            for tag in current_behaviors:
-                if tag in self.behaviors:
-                    btn = self.behaviors[tag]
-                    if btn.winfo_exists():
-                        btn.config(bg=self.tag_active_bg)
-            # →→→ FIN ←←←
-                        # Verificar si hay un conteo específico para esta especie
-                        current_species_counts = self.video_dirs[self.current_video_index].get("species_counts", {})
-                        count = current_species_counts.get(tag, 1) # Usar 1 como fallback si no está en species_counts
-                        btn.config(text=f"{tag} ({count})") # Actualizar texto con conteo
-            # --- Comportamientos: desactivar todos, luego activar los presentes ---
-            for btn in self.behaviors.values():
-                if btn.winfo_exists():
-                    btn.config(bg=self.tag_inactive_bg)
-            for tag in current_behaviors:
-                if tag in self.behaviors:
-                    btn = self.behaviors[tag]
-                    if btn.winfo_exists():
-                        btn.config(bg=self.tag_active_bg)
-            # →→→ FIN ←←←
-                        # Verificar si hay un conteo específico para esta especie
-                        current_species_counts = self.video_dirs[self.current_video_index].get("species_counts", {})
-                        count = current_species_counts.get(tag, 1) # Usar 1 como fallback si no está en species_counts
-                        btn.config(text=f"{tag} ({count})") # Actualizar texto con conteo
+            # 4. Actualizar Interfaz
+            video_name = os.path.basename(video_meta.get("video_path", ""))
+            self.video_label.config(text=video_name)
+            self.video_counter_label.config(text=f"Video {self.current_video_index + 1}/{len(self.video_dirs)}")
+            self.frame_counter_label.config(text=f"Frame {self.current_frame_index + 1}/{len(frames)}")
 
-            # --- Comportamientos: desactivar todos, luego activar los presentes ---
-            for btn in self.behaviors.values():
-                if btn.winfo_exists():
-                    btn.config(bg=self.tag_inactive_bg)
-            for tag in current_behaviors:
-                if tag in self.behaviors:
-                    btn = self.behaviors[tag]
-                    if btn.winfo_exists():
-                        btn.config(bg=self.tag_active_bg)
-            # →→→ FIN ←←←
+            # Botones y etiquetas
+            classif = video_meta.get("classification", {})
+            self._update_tag_buttons(classif.get("species", []), classif.get("behaviors", []), classif.get("counts", {}))
 
-            self.notes_text.delete("1.0", "end")
-            self.notes_text.insert("1.0", video_meta.get("notes", ""))
-            self.embed_metadata_var.set(video_meta.get("embed_metadata", False))
-            self.xlsx_var.set(video_meta.get("xlsx", False))
+            # Preview de clasificación
+            species_list = classif.get("species", [])
+            behavior_list = classif.get("behaviors", [])
+            species_text = ", ".join(species_list) if species_list else "Ninguna"
+            behavior_text = ", ".join(behavior_list) if behavior_list else "Ninguno"
             
-            # ←←← NUEVO: actualizar favorito con protección
-            try:
-                self.update_favorite_button()
-            except Exception:
-                pass
-            # →→→ FIN NUEVO
-            # ←←← NUEVO: actualizar exclusión con protección
-            try:
-                self.update_exclude_button()
-            except Exception:
-                pass
-            # →→→ FIN NUEVO
-                        
+            self.label_frame.config(state="normal")
+            self.label_frame.delete("1.0", "end")
+            self.label_frame.insert("1.0", f"Especies: {species_text}\nComportamientos: {behavior_text}")
+            self.label_frame.config(state="disabled")
+
+            # Notas
+            self.notes_preview.config(state="normal")
+            self.notes_preview.delete("1.0", "end")
+            self.notes_preview.insert("1.0", video_meta.get("metadata", {}).get("notes", ""))
+            self.notes_preview.config(state="disabled")
+
+            # Metadatos Preview
+            self._update_meta_preview(video_meta.get("metadata", {}))
+
+            # Favoritos / UI
+            ui_state = video_meta.get("ui", {})
+            self.favorite_button.config(text="★" if video_meta.get("is_favorite", False) else "☆")
+            self.update_exclude_button()
+            self.embed_metadata_var.set(ui_state.get("embed_metadata", False))
+            self.xlsx_var.set(ui_state.get("xlsx", False))
+
         except Exception as e:
-            print(f"Error en show_frame: {e}")
-            self._show_empty_state("Error al mostrar frame")
-      
-    # Navegación
+            print(f"❌ Error crítico en show_frame: {e}")
+            import traceback
+            traceback.print_exc()
+            self._show_empty_state("Error interno al renderizar")
+
+    def _show_empty_state(self, message):
+        self.label_frame.config(state="normal")
+        self.label_frame.delete("1.0", "end")
+        self.label_frame.insert("1.0", message)
+        self.label_frame.config(state="disabled")
+        
+        self.canvas.delete("all")
+        self.video_label.config(text="")
+        self.video_counter_label.config(text="Video 0/0")
+        self.frame_counter_label.config(text="Frame 0/0")
+
     def next_frame(self):
         frames = self.get_current_frames()
         if frames:
@@ -1163,120 +1252,650 @@ class DynamicTagger(tk.Tk):
         if self.current_video_index < len(self.video_dirs) - 1:
             self.current_video_index += 1
             self.current_frame_index = 0
-            self.count_var.set(1) # <-- Asegura reset
-            self.canvas.focus_set() # <-- Asegura pérdida de foco del Spinbox
+            self.count_var.set(1)
+            self.canvas.focus_set()
             self.show_frame()
-
     def prev_video(self):
         if self.current_video_index > 0:
             self.current_video_index -= 1
             self.current_frame_index = 0
-            self.count_var.set(1) # <-- Asegura reset
-            self.canvas.focus_set() # <-- Asegura pérdida de foco del Spinbox
+            self.count_var.set(1)
+            self.canvas.focus_set()
             self.show_frame()
 
-    # Toggle máscara
     def toggle_mask(self, event=None):
         self.show_mask = not self.show_mask
         self.show_frame()
-
     def toggle_blink_mode(self, event=None):
         self.blink_mode = not self.blink_mode
 
     def blink_mask(self):
-        if self.blink_mode:
+        if self.mask_mode == 2:
             self.blink_state = not self.blink_state
             self.show_frame()
         self._blink_after_id = self.after(self.blink_interval, self.blink_mask)
 
+    def handle_mask_key(self, event=None):
+        """Espacio: cambia modo | Shift+Espacio: cambia color"""
+        is_shift = event and (event.state & 0x1)
+        if is_shift:
+            self.mask_color_index = (self.mask_color_index + 1) % len(self.mask_colors)
+            names = ["Rojo", "Magenta", "Cyan", "Amarillo", "Verde"]
+            print(f"🎨 Color máscara: {names[self.mask_color_index]}")
+        else:
+            self.mask_mode = (self.mask_mode + 1) % 3
+            modes = ["Ocultar", "Constante", "Titilante"]
+            print(f"👁️ Máscara: {modes[self.mask_mode]}")
+        self.show_frame()
+
     def _cancel_blink_timer(self):
         if hasattr(self, '_blink_after_id'):
-            try:
-                self.after_cancel(self._blink_after_id)
-            except:
-                pass
+            try: self.after_cancel(self._blink_after_id)
+            except: pass
+
+    def _run_camtrap_export(self):
+        """Exportación automática y obligatoria en modo científico."""
+        if not self.scientific_mode:
+            return
+        if not os.path.exists(self.metadata_path):
+            print("⚠️ No existe metadata.json para exportar Camtrap DP.")
+            return
+
+        try:
+            from export_camtrap import export_camtrap
+            output_dir = os.path.join(self.output_folder, "sessions", self.session_id, "camtrap_dp")
+            os.makedirs(output_dir, exist_ok=True)
+            
+            print("🔄 [MODO CIENTÍFICO] Generando archivos Camtrap DP...")
+            export_camtrap(
+                metadata_path=self.metadata_path,
+                output_dir=output_dir,
+                deployments_csv_provided=False,
+                config=self.config_data
+            )
+            print("✅ [MODO CIENTÍFICO] Exportación completada en:", output_dir)
+        except Exception as e:
+            print(f"❌ [MODO CIENTÍFICO] Fallo al exportar Camtrap DP: {e}")
+            import traceback
+            traceback.print_exc()
 
     def destroy(self):
+        # 🔹 Exportación obligatoria si está en modo científico
+        if self.scientific_mode:
+            self._run_camtrap_export()
+            
         self._cancel_blink_timer()
         super().destroy()
 
-    # Reproducción de video completo
     def play_video(self, event=None):
         video_meta = self.video_dirs[self.current_video_index]
         video_path = video_meta.get("video_path", "")
-        if video_path and os.path.exists(video_path):
-            open_video_default(video_path)
+        if video_path and os.path.exists(video_path): open_video_default(video_path)
         else:
-            # En modo foto, abrir la imagen actual en el visor predeterminado
             frames = self.get_current_frames()
             if frames and self.current_frame_index < len(frames):
                 current_img = frames[self.current_frame_index]
-                if os.path.exists(current_img):
-                    open_video_default(current_img)  # reutiliza la misma función (funciona para imágenes)
+                if os.path.exists(current_img): open_video_default(current_img)
 
-
-    # Favoritos
     def toggle_favorite(self):
-        """Alterna el estado de favorito del video actual."""
-        if not self.video_dirs:
-            return
-            
+        if not self.video_dirs: return
         video_meta = self.video_dirs[self.current_video_index]
-        current = video_meta.get("is_favorite", False)
-        video_meta["is_favorite"] = not current
+        video_meta["is_favorite"] = not video_meta.get("is_favorite", False)
         self.save_metadata()
         self.update_favorite_button()
-
     def update_favorite_button(self):
-        """Actualiza el ícono del botón de favorito según el estado actual."""
-        if not hasattr(self, 'favorite_button') or not self.favorite_button.winfo_exists():
-            return  # El botón aún no existe o fue destruido
-            
-        if not self.video_dirs:
-            is_fav = False
-        else:
-            is_fav = self.video_dirs[self.current_video_index].get("is_favorite", False)
-        
-        text = "★" if is_fav else "☆"
-        self.favorite_button.config(text=text)
- 
+        if not hasattr(self, 'favorite_button') or not self.favorite_button.winfo_exists(): return
+        is_fav = self.video_dirs[self.current_video_index].get("is_favorite", False) if self.video_dirs else False
+        self.favorite_button.config(text="★" if is_fav else "☆")
+
     def toggle_exclude(self):
-        """Alterna el estado de exclusión del video actual."""
-        if not self.video_dirs:
-            return
+        if not self.video_dirs: return
         video_meta = self.video_dirs[self.current_video_index]
-        current = video_meta.get("is_excluded", False)
-        video_meta["is_excluded"] = not current
+        video_meta["is_excluded"] = not video_meta.get("is_excluded", False)
         self.save_metadata()
         self.update_exclude_button()
-
     def update_exclude_button(self):
-        """Actualiza el ícono del botón de exclusión según el estado actual."""
-        if not hasattr(self, 'exclude_button') or not self.exclude_button.winfo_exists():
-            return  # El botón aún no existe o fue destruido
-        if not self.video_dirs:
-            is_excl = False
-        else:
-            is_excl = self.video_dirs[self.current_video_index].get("is_excluded", False)
-        text = "🚫" if is_excl else "☐" # Puedes cambiar "☐" por otro símbolo para "no excluido"
-        # Opcional: Cambiar color del botón según estado
+        if not hasattr(self, 'exclude_button') or not self.exclude_button.winfo_exists(): return
+        is_excl = self.video_dirs[self.current_video_index].get("is_excluded", False) if self.video_dirs else False
+        text = "🚫" if is_excl else "☐"
         bg_color = self.colors_cfg.get("exclude_button_active_bg", "#ffebee") if is_excl else self.colors_cfg.get("exclude_button_bg", "#ffffff")
         fg_color = self.colors_cfg.get("exclude_button_active_fg", "#d32f2f") if is_excl else self.colors_cfg.get("exclude_button_fg", "#000000")
         self.exclude_button.config(text=text, bg=bg_color, fg=fg_color)
 
-    def _show_empty_state(self, message):
-        """Muestra un mensaje en el canvas cuando no hay frames."""
-        self.label_frame.config(text=message)
-        self.canvas.delete("all")
-        self.video_label.config(text="")
-        self.counter_label.config(text="")
+    # --- Ajustes de Imagen ---
+    def open_adjust_window(self):
+        if self.adjust_window and tk.Toplevel.winfo_exists(self.adjust_window):
+            self.adjust_window.lift()
+            return
+        win = tk.Toplevel(self)
+        win.title("Ajustes de imagen")
+        win_width, win_height = 360, 500
+        win.withdraw()
+        self.update_idletasks()
+        main_x, main_y = self.winfo_x(), self.winfo_y()
+        win_x, win_y = main_x + self.winfo_width() + 10, main_y
+        if win_x + win_width > self.winfo_screenwidth(): win_x = self.winfo_screenwidth() - win_width - 10
+        if win_y + win_height > self.winfo_screenheight(): win_y = self.winfo_screenheight() - win_height - 50
+        win.geometry(f"{win_width}x{win_height}+{win_x}+{win_y}")
+        win.deiconify()
+        self.adjust_window = win
+        controls = [
+            ("Brillo", "brightness", 0.0, 2.0, 0.1),
+            ("Contraste", "contrast", 0.0, 2.0, 0.1),
+            ("Nitidez", "sharpness", 0.0, 3.0, 0.1),
+            ("Suavidad", "smoothness", 0.0, 5.0, 0.1),
+            ("Reducción Ruido", "denoise", 0.0, 20.0, 1.0),
+            ("Flatfield", "flatfield", 0.0, 1.0, 0.05)
+        ]
+        self.adjust_sliders = {}
+        for i, (label_text, key, min_val, max_val, step) in enumerate(controls):
+            tk.Label(win, text=label_text).pack(anchor="w", padx=10)
+            s = tk.Scale(win, from_=min_val, to=max_val, resolution=step, orient="horizontal",
+                         length=300, command=lambda val, k=key: self.update_adjustment(k, float(val)))
+            s.set(self.image_adjustments[key])
+            s.pack(pady=5)
+            self.adjust_sliders[key] = s
+        btn_frame = tk.Frame(win)
+        btn_frame.pack(pady=10)
+        tk.Button(btn_frame, text="Auto-mejorar", command=self.auto_adjust).pack(side="left", padx=3)
+        tk.Button(btn_frame, text="Reset", command=self.reset_adjustments).pack(side="left", padx=3)
+        tk.Button(btn_frame, text="Guardar", command=self.save_adjusted_image).pack(side="left", padx=3)
+        tk.Button(btn_frame, text="Cancelar", command=win.destroy).pack(side="left", padx=3)
 
-# -------------------------------
+    def update_adjustment(self, key, value):
+        self.image_adjustments[key] = value
+        self.show_frame()
+    def auto_adjust(self):
+        self.image_adjustments.update({"brightness": 1.2, "contrast": 1.2, "sharpness": 1.5, "smoothness": 0.5, "denoise": 5.0, "flatfield": 0.1})
+        if self.adjust_window and tk.Toplevel.winfo_exists(self.adjust_window):
+            for key, slider in self.adjust_sliders.items(): slider.set(self.image_adjustments[key])
+        self.show_frame()
+    def reset_adjustments(self):
+        self.image_adjustments.update(DEFAULT_ADJUSTMENTS)
+        if self.adjust_window and tk.Toplevel.winfo_exists(self.adjust_window):
+            for key, slider in self.adjust_sliders.items(): slider.set(self.image_adjustments[key])
+        self.show_frame()
+    def save_adjusted_image(self):
+        frames = self.get_current_frames()
+        if not frames or self.current_frame_index >= len(frames): return
+        frame_path = frames[self.current_frame_index]
+        img = cv2.imread(frame_path)
+        if img is None: return
+        pil_img = self.apply_adjustments(img)
+        base, ext = os.path.splitext(frame_path)
+        adjusted_path = f"{base}_adjusted{ext}"
+        pil_img.save(adjusted_path)
+        print(f"Imagen ajustada guardada: {adjusted_path}")
+        if self.adjust_window and tk.Toplevel.winfo_exists(self.adjust_window): self.adjust_window.destroy()
+    def apply_adjustments(self, img):
+        pil_img = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+        pil_img = ImageEnhance.Brightness(pil_img).enhance(self.image_adjustments["brightness"])
+        pil_img = ImageEnhance.Contrast(pil_img).enhance(self.image_adjustments["contrast"])
+        pil_img = ImageEnhance.Sharpness(pil_img).enhance(self.image_adjustments["sharpness"])
+        if self.image_adjustments["smoothness"] > 0: pil_img = pil_img.filter(ImageFilter.GaussianBlur(radius=self.image_adjustments["smoothness"]))
+        if self.image_adjustments["flatfield"] > 0:
+            arr = np.array(pil_img).astype(np.float32)
+            arr = arr * (1 - self.image_adjustments["flatfield"]) + np.mean(arr) * self.image_adjustments["flatfield"]
+            arr = np.clip(arr, 0, 255).astype(np.uint8)
+            pil_img = Image.fromarray(arr)
+        if self.image_adjustments["denoise"] > 0:
+            arr = np.array(pil_img)
+            arr = cv2.fastNlMeansDenoisingColored(arr, None, h=self.image_adjustments["denoise"], hColor=self.image_adjustments["denoise"], templateWindowSize=7, searchWindowSize=21)
+            pil_img = Image.fromarray(arr)
+        return pil_img
+
+    # --- Configuración Tagger ---
+    def open_config_selector(self):
+        win = tk.Toplevel(self)
+        win.title("Configuraciones del Tagger")
+        win.geometry("520x460")
+        win.transient(self)
+        win.grab_set()
+
+        tk.Label(win, text=f"Config activa: {self.active_tagger_config_name or 'Por defecto'}",
+                 font=("Arial", 10, "italic"), fg="#555").pack(pady=(8, 2))
+
+        # 🔹 Filtros (solo en modo estándar)
+        self._filter_frame = tk.Frame(win)
+        if not self.scientific_mode:
+            self._filter_frame.pack(pady=5)
+            self.filter_sci_var = tk.BooleanVar(value=True)
+            self.filter_std_var = tk.BooleanVar(value=True)
+            tk.Checkbutton(self._filter_frame, text="Mostrar científicas", variable=self.filter_sci_var,
+                           command=self._update_selector_listbox).pack(side="left", padx=10)
+            tk.Checkbutton(self._filter_frame, text="Mostrar estándar", variable=self.filter_std_var,
+                           command=self._update_selector_listbox).pack(side="left", padx=10)
+
+        list_frame = tk.Frame(win)
+        list_frame.pack(fill="both", expand=True, padx=10, pady=5)
+        scrollbar = tk.Scrollbar(list_frame)
+        scrollbar.pack(side="right", fill="y")
+        self.selector_listbox = tk.Listbox(list_frame, yscrollcommand=scrollbar.set, font=("Arial", 11))
+        self.selector_listbox.pack(fill="both", expand=True)
+        scrollbar.config(command=self.selector_listbox.yview)
+
+        self._selector_configs = []
+        self._update_selector_listbox()
+
+        btn_frame = tk.Frame(win)
+        btn_frame.pack(pady=8)
+
+        def on_load():
+            sel = self.selector_listbox.curselection()
+            if not sel:
+                messagebox.showwarning("Atención", "Seleccione una configuración.", parent=win)
+                return
+            cfg = self._selector_configs[sel[0]]
+            if self.scientific_mode and not cfg.get("is_scientific", False):
+                messagebox.showwarning("Modo Científico",
+                    "Está cargando una configuración no marcada como científica.\n"
+                    "Algunas columnas de taxonID o coordenadas podrían quedar vacías en Camtrap DP.", parent=win)
+            self._apply_and_reload_config(cfg["path"], cfg["name"])
+            win.destroy()
+
+        tk.Button(btn_frame, text="Cargar", width=10, bg="#4CAF50", fg="white", command=on_load).pack(side="left", padx=5)
+        tk.Button(btn_frame, text="Nueva", width=10, bg="#2196F3", fg="white", 
+                  command=lambda: [win.destroy(), self.open_config_editor()]).pack(side="left", padx=5)
+        tk.Button(btn_frame, text="Editar", width=10, bg="#FF9800", fg="white", 
+                  command=self._edit_selected_config).pack(side="left", padx=5)
+        tk.Button(btn_frame, text="Cancelar", width=10, command=win.destroy).pack(side="left", padx=5)
+
+    def _update_selector_listbox(self):
+        if not hasattr(self, 'selector_listbox'): return
+        self.selector_listbox.delete(0, "end")
+        self._selector_configs = []
+        configs_dir = get_tagger_configs_dir()
+        if not os.path.exists(configs_dir): return
+
+        for fname in sorted(os.listdir(configs_dir)):
+            if not fname.endswith(".json"): continue
+            fpath = os.path.join(configs_dir, fname)
+            try:
+                data = load_tagger_config(fpath)
+                meta = data.get("_metadata", {})
+                is_sci = meta.get("is_scientific", False)
+                name = meta.get("name", fname)
+
+                # 🔹 Lógica de filtrado
+                if self.scientific_mode:
+                    if not is_sci: continue
+                else:
+                    if is_sci and not getattr(self, 'filter_sci_var', tk.BooleanVar(value=True)).get(): continue
+                    if not is_sci and not getattr(self, 'filter_std_var', tk.BooleanVar(value=True)).get(): continue
+
+                icon = "🔬" if is_sci else "📝"
+                self.selector_listbox.insert("end", f"{name}  {icon}")
+                self._selector_configs.append({"path": fpath, "name": name, "is_scientific": is_sci})
+            except Exception:
+                pass
+
+    def _edit_selected_config(self):
+        sel = self.selector_listbox.curselection()
+        if not sel:
+            messagebox.showwarning("Atención", "Seleccione una configuración para editar.")
+            return
+        cfg = self._selector_configs[sel[0]]
+        try:
+            data = load_tagger_config(cfg["path"])
+            self.open_config_editor(config_path=cfg["path"], config_data=data)
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo cargar:\n{e}")
+
+    def _update_config_listbox(self):
+        if not hasattr(self, 'config_listbox'): return
+        self.config_listbox.delete(0, "end")
+        self._all_configs = []
+        configs_dir = get_tagger_configs_dir()
+        if not os.path.exists(configs_dir): return
+
+        for fname in sorted(os.listdir(configs_dir)):
+            if not fname.endswith(".json"): continue
+            fpath = os.path.join(configs_dir, fname)
+            try:
+                data = load_tagger_config(fpath)
+                meta = data.get("_metadata", {})
+                is_sci = meta.get("is_scientific", False)
+                name = meta.get("name", fname)
+
+                if self.scientific_mode:
+                    if not is_sci: continue
+                else:
+                    if is_sci and not self.filter_sci_var.get(): continue
+                    if not is_sci and not self.filter_std_var.get(): continue
+
+                label = f"{name} {'🔬' if is_sci else '📝'}"
+                self.config_listbox.insert("end", label)
+                self._all_configs.append({"path": fpath, "name": name, "is_scientific": is_sci})
+            except Exception:
+                pass
+
+    def _edit_selected_config(self):
+        sel = self.config_listbox.curselection()
+        if not sel:
+            messagebox.showwarning("Atención", "Seleccione una configuración para editar.")
+            return
+        cfg = self._all_configs[sel[0]]
+        try:
+            data = load_tagger_config(cfg["path"])
+            self.open_config_editor(config_path=cfg["path"], config_data=data)
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo cargar la config:\n{e}")
+
+    def _open_config_creator(self):
+        messagebox.showinfo("Módulo en desarrollo",
+            "La creación de configuraciones se gestionará desde un módulo externo.\n"
+            "Por ahora, edite la configuración por defecto o copie un JSON en 'config/tagger_configs/'.",
+            parent=self)
+
+    def _apply_and_reload_config(self, config_path, config_name):
+        try:
+            data = load_tagger_config(config_path)
+            apply_tagger_config(data, self.config_data)
+            
+            # 🔹 Guardar en la clave correspondiente al modo actual
+            mode_key = "last_scientific_config" if self.scientific_mode else "last_standard_config"
+            self.config_data.setdefault("GUI_Tagger", {})[mode_key] = config_path
+            from config_utils import save_config
+            save_config(self.config_data)
+
+            gui_cfg = self.config_data.get("GUI_Tagger", {})
+            self.species_tags = gui_cfg.get("species_tags", [])
+            self.secondary_tags = gui_cfg.get("secondary_tags", [])
+            self.behavior_tags = gui_cfg.get("behavior_tags", [])
+            self.other_tags_list = gui_cfg.get("other_tags_list", [])
+            self.taxon_map = gui_cfg.get("taxon_map", {})
+            self.active_tagger_config_path = config_path
+            self.active_tagger_config_name = config_name
+
+            self._rebuild_tag_buttons()
+            self.show_frame()
+            messagebox.showinfo("Config cargada", f"Se aplicó: {config_name}")
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo aplicar la config:\n{e}")
+
+
+    def _rebuild_tag_buttons(self):
+        # 1. Limpiar listas internas para evitar referencias a botones viejos
+        self.main_buttons.clear()
+        self.left_buttons.clear()
+        self.species_buttons.clear()
+        self.behaviors.clear()
+
+        # 2. Reconstruir Botones Principales (Columna 2 - Abajo)
+        # Limpiar el frame existente
+        for widget in self.tag_frame_bottom.winfo_children():
+            widget.destroy()
+
+        c1 = self.colors_cfg.get("main_button_1_inactive", "#FFD700")
+        c2 = self.colors_cfg.get("main_button_2_inactive", "#87CEEB")
+        for i, tag in enumerate(self.species_tags[:2]):
+            bg = c1 if i == 0 else c2
+            b = tk.Button(self.tag_frame_bottom, text=tag, width=28, height=3, bg=bg, font=("Arial", 11, "bold"))
+            b.pack(side="left", padx=4)
+            b.bind("<Button-1>", lambda e, t=tag: self.species_click(t, left=True, event=e))
+            b.bind("<Button-3>", lambda e, t=tag: self.species_click(t, left=False, event=e))
+            self.main_buttons.append(b)
+            self.species_buttons[tag] = b
+
+        # 3. Reconstruir Panel Derecho (Columna 3: Comportamiento + Secundarios)
+        # IMPORTANTE: Requiere que en build_layout hayas cambiado 'col3' por 'self.col3'
+        if hasattr(self, 'col3'):
+            # Destruir todo el contenido actual de la columna 3
+            for widget in self.col3.winfo_children():
+                widget.destroy()
+
+            # 3.1 Reconstruir Comportamiento
+            tk.Label(self.col3, text="Comportamiento", font=("Arial", 9, "bold")).pack(pady=(5, 2))
+            for tag in self.behavior_tags:
+                b = tk.Button(self.col3, text=tag, width=12, bg=self.behavior_inactive_bg)
+                b.pack(fill="x", pady=2, padx=5)
+                b.bind("<Button-1>", lambda e, t=tag: self.behavior_click(t))
+                self.behaviors[tag] = b
+
+            tk.Frame(self.col3, height=2, bd=1, relief="groove").pack(fill="x", padx=5, pady=5)
+
+            # 3.2 Reconstruir Secundarios
+            tk.Label(self.col3, text="Secundarios", font=("Arial", 9, "bold")).pack(pady=(2, 2))
+            for i, tag in enumerate(self.secondary_tags):
+                b = tk.Button(self.col3, text=tag, width=12, bg=self.tag_inactive_bg)
+                b.pack(fill="x", pady=2, padx=5)
+                if i == 0:
+                    b.bind("<Button-1>", self.show_secondary_dropdown)
+                else:
+                    b.bind("<Button-1>", lambda e, t=tag: self.species_click(t, left=True, event=e))
+                    b.bind("<Button-3>", lambda e, t=tag: self.species_click(t, left=False, event=e))
+                    self.species_buttons[tag] = b # <--- Esto arregla el contador y color
+                self.left_buttons.append(b)
+        else:
+            print("⚠️ Error: 'col3' no es una variable de instancia. Cambia 'col3' por 'self.col3' en build_layout.")
+
+    def open_config_editor(self, config_path=None, config_data=None):
+        is_new = config_path is None
+        if config_data is None:
+            config_data = get_template_tagger_config()
+            config_data["GUI_Tagger"]["species_tags"] = list(self.species_tags)
+            config_data["GUI_Tagger"]["secondary_tags"] = list(self.secondary_tags)
+            config_data["GUI_Tagger"]["behavior_tags"] = list(self.behavior_tags)
+            config_data["GUI_Tagger"]["other_tags_list"] = list(self.other_tags_list)
+            config_data["Taxon_Map"] = dict(self.taxon_map)
+
+        win = tk.Toplevel(self)
+        win.title("Nueva configuración" if is_new else "Editar configuración")
+        win.geometry("820x720")
+        win.transient(self)
+        win.grab_set()
+
+        notebook = ttk.Notebook(win)
+        notebook.pack(fill="both", expand=True, padx=5, pady=5)
+
+        tab_meta = ttk.Frame(notebook)
+        notebook.add(tab_meta, text="Información")
+
+        meta = config_data.get("_metadata", {})
+        fields_meta = [("Nombre", "name"), ("Versión", "version"), ("Región", "region"), ("Descripción", "description")]
+        meta_entries = {}
+        for row_i, (label, key) in enumerate(fields_meta):
+            tk.Label(tab_meta, text=label + ": ", font=("Arial", 11)).grid(row=row_i, column=0, sticky="e", padx=8, pady=4)
+            e = tk.Entry(tab_meta, width=50, font=("Arial", 11))
+            e.grid(row=row_i, column=1, padx=8, pady=4, sticky="w")
+            e.insert(0, meta.get(key, ""))
+            meta_entries[key] = e
+
+        # 🔹 CHECKBOX MODO CIENTÍFICO
+        self._editor_is_sci_var = tk.BooleanVar(value=meta.get("is_scientific", False))
+        tk.Checkbutton(tab_meta, text="Configuración Científica (requerida para Camtrap DP)", 
+                       variable=self._editor_is_sci_var, font=("Arial", 10, "bold")
+        ).grid(row=len(fields_meta), column=0, columnspan=2, sticky="w", padx=8, pady=10)
+
+        tab_tags = ttk.Frame(notebook)
+        notebook.add(tab_tags, text="Tags")
+        gui_t = config_data.get("GUI_Tagger", {})
+        tag_fields = [("Especies principales", "species_tags"), ("Tags secundarios", "secondary_tags"), 
+                      ("Comportamientos", "behavior_tags"), ("Lista 'Otros'", "other_tags_list")]
+        tag_texts = {}
+        for row_i, (label, key) in enumerate(tag_fields):
+            tk.Label(tab_tags, text=label + ": ", font=("Arial", 10)).grid(row=row_i, column=0, sticky="ne", padx=8, pady=4)
+            t = tk.Text(tab_tags, width=30, height=5, font=("Arial", 10))
+            t.grid(row=row_i, column=1, padx=8, pady=4, sticky="w")
+            t.insert("1.0", "\n".join(gui_t.get(key, [])))
+            tag_texts[key] = t
+
+        tab_taxon = ttk.Frame(notebook)
+        notebook.add(tab_taxon, text="Taxon Map")
+        self._build_taxon_map_tab(tab_taxon, config_data)
+
+        btn_frame = tk.Frame(win)
+        btn_frame.pack(pady=8)
+
+        def on_save():
+            name = meta_entries["name"].get().strip()
+            if not name:
+                messagebox.showwarning("Atención", "El nombre es obligatorio.", parent=win)
+                return
+            for key, t in tag_texts.items():
+                config_data["GUI_Tagger"][key] = [x.strip() for x in t.get("1.0", "end").strip().splitlines() if x.strip()]
+            for key, e in meta_entries.items():
+                config_data["_metadata"][key] = e.get().strip()
+            
+            # 🔹 Guardar flag científico
+            config_data["_metadata"]["is_scientific"] = self._editor_is_sci_var.get()
+
+            nonlocal config_path
+            if is_new or not config_path:
+                safe_name = name.lower().replace(" ", "_").replace("/", "-")
+                config_path = os.path.join(get_tagger_configs_dir(), f"{safe_name}.json")
+            try:
+                save_tagger_config(config_path, config_data)
+                messagebox.showinfo("Guardado", f"Configuración guardada:\n{config_path}", parent=win)
+                win.destroy()
+                if messagebox.askyesno("Cargar", "¿Aplicar esta configuración ahora?"):
+                    self._apply_and_reload_config(config_path, name)
+            except Exception as e:
+                messagebox.showerror("Error", f"No se pudo guardar:\n{e}", parent=win)
+
+        tk.Button(btn_frame, text="Guardar", width=12, bg="#4CAF50", fg="white", command=on_save).pack(side="left", padx=8)
+        tk.Button(btn_frame, text="Cancelar", width=12, command=win.destroy).pack(side="left", padx=8)
+
+    def _build_taxon_map_tab(self, parent, config_data):
+        taxon_map = config_data.setdefault("Taxon_Map", {})
+
+        # --- Panel superior: buscador ---
+        search_frame = tk.LabelFrame(parent, text="Buscar taxón", font=("Arial", 10, "bold"))
+        search_frame.pack(fill="x", padx=8, pady=5)
+
+        search_row = tk.Frame(search_frame)
+        search_row.pack(fill="x", padx=5, pady=4)
+
+        tk.Label(search_row, text="Búsqueda: ").pack(side="left")
+        search_var = tk.StringVar()
+        search_entry = tk.Entry(search_row, textvariable=search_var, width=30)
+        search_entry.pack(side="left", padx=5)
+
+        status_var = tk.StringVar(value="")
+        status_lbl = tk.Label(search_frame, textvariable=status_var, fg="#555", font=("Arial", 9, "italic"))
+        status_lbl.pack(anchor="w", padx=5)
+
+        results_frame = tk.Frame(search_frame)
+        results_frame.pack(fill="x", padx=5, pady=3)
+
+        res_scroll = tk.Scrollbar(results_frame)
+        res_scroll.pack(side="right", fill="y")
+
+        results_listbox = tk.Listbox(results_frame, height=5, yscrollcommand=res_scroll.set, font=("Arial", 10))
+        results_listbox.pack(fill="x", side="left", expand=True)
+        res_scroll.config(command=results_listbox.yview)
+
+        _search_results = []
+
+        def update_ui(results, source_name="Local"):
+            _search_results.clear()
+            _search_results.extend(results)
+            results_listbox.delete(0, "end")
+            if not results:
+                status_var.set(f"No se encontraron resultados en {source_name}.")
+                return
+            for r in results:
+                label = f"{r.get('vernacularName','')} | {r.get('scientificName','')} | ID:{r.get('taxonID','')}"
+                results_listbox.insert("end", label)
+            status_var.set(f"{len(results)} resultado(s) de {source_name}.")
+
+        def do_search_local():
+            q = search_var.get().strip()
+            if not q: return
+            # Búsqueda directa en el CSV
+            results = self._search_local_csv(q)
+            update_ui(results, "species_list.csv")
+
+        def do_search_gbif():
+            q = search_var.get().strip()
+            if not q: return
+            status_var.set("Buscando en GBIF (puede tardar)...")
+            parent.update_idletasks()
+            def _bg():
+                try:
+                    from config_utils import search_taxa_gbif
+                    results = search_taxa_gbif(q)
+                    parent.after(0, lambda: update_ui(results, "GBIF"))
+                except Exception:
+                    # Fallback automático a local si falla GBIF
+                    parent.after(0, lambda: status_var.set("Error GBIF. Buscando en local..."))
+                    parent.after(0, lambda: do_search_local_fallback(q))
+            threading.Thread(target=_bg, daemon=True).start()
+
+        def do_search_local_fallback(q):
+            results = self._search_local_csv(q)
+            parent.after(0, lambda: update_ui(results, "Local (Fallback)"))
+
+        btn_search_row = tk.Frame(search_frame)
+        btn_search_row.pack(fill="x", padx=5, pady=(0, 5))
+        tk.Button(btn_search_row, text="Buscar Local", command=do_search_local, bg="#e0e0e0").pack(side="left", padx=3)
+        tk.Button(btn_search_row, text="Buscar GBIF", command=do_search_gbif, bg="#bbdefb").pack(side="left", padx=3)
+
+        search_entry.bind("<Return>", lambda e: do_search_gbif()) # Enter intenta GBIF, si falla usa local
+
+        # Campo para nombre del tag a asignar
+        assign_frame = tk.Frame(search_frame)
+        assign_frame.pack(fill="x", padx=5, pady=3)
+
+        tk.Label(assign_frame, text="Asignar a tag: ").pack(side="left")
+        tag_assign_var = tk.StringVar()
+        tag_assign_entry = tk.Entry(assign_frame, textvariable=tag_assign_var, width=20)
+        tag_assign_entry.pack(side="left", padx=5)
+
+        # --- Panel inferior: Taxon Map actual ---
+        map_frame = tk.LabelFrame(parent, text="Taxon Map activo", font=("Arial", 10, "bold"))
+        map_frame.pack(fill="both", expand=True, padx=8, pady=5)
+
+        map_scroll = tk.Scrollbar(map_frame)
+        map_scroll.pack(side="right", fill="y")
+
+        map_listbox = tk.Listbox(map_frame, yscrollcommand=map_scroll.set, font=("Arial", 10))
+        map_listbox.pack(fill="both", expand=True)
+        map_scroll.config(command=map_listbox.yview)
+
+        def refresh_map_listbox():
+            map_listbox.delete(0, "end")
+            for tag, info in taxon_map.items():
+                map_listbox.insert("end", f"{tag}  →  taxonID: {info.get('taxonID', '')}")
+
+        refresh_map_listbox()
+
+        def on_assign():
+            sel = results_listbox.curselection()
+            if not sel:
+                messagebox.showwarning("Atención", "Seleccione un resultado.", parent=parent)
+                return
+            tag_name = tag_assign_var.get().strip()
+            if not tag_name:
+                messagebox.showwarning("Atención", "Ingrese el tag a asignar.", parent=parent)
+                return
+            taxon_map[tag_name] = {
+                "taxonID": result.get("taxonID", ""),
+                "scientificName": result.get("scientificName", ""),
+                "vernacularName": result.get("vernacularName", "")
+            }
+        
+            config_data["Taxon_Map"] = taxon_map
+            refresh_map_listbox()
+            tag_assign_var.set("")
+
+        def on_remove():
+            sel = map_listbox.curselection()
+            if not sel: return
+            item_text = map_listbox.get(sel[0])
+            tag_name = item_text.split("→")[0].strip()
+            taxon_map.pop(tag_name, None)
+            config_data["Taxon_Map"] = taxon_map
+            refresh_map_listbox()
+
+        map_btn_frame = tk.Frame(parent)
+        map_btn_frame.pack(pady=3)
+        tk.Button(map_btn_frame, text="Asignar taxón", bg="#4CAF50", fg="white", command=on_assign).pack(side="left", padx=5)
+        tk.Button(map_btn_frame, text="Quitar entrada", bg="#f44336", fg="white", command=on_remove).pack(side="left", padx=5)
+
 def run_gui_tagger():
     app = DynamicTagger()
     app.mainloop()
 
-
-# -------------------------------
 if __name__ == "__main__":
     run_gui_tagger()

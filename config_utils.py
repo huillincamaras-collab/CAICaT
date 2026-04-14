@@ -13,24 +13,23 @@ metadata_lock = threading.Lock()
 def get_config_path():
     return os.path.join(os.path.abspath(os.path.dirname(__file__)), CONFIG_FILENAME)
 
+def get_tagger_configs_dir():
+    return os.path.join(os.path.abspath(os.path.dirname(__file__)), "config", "tagger_configs")
+
+def get_species_csv_path():
+    return os.path.join(os.path.abspath(os.path.dirname(__file__)), "config", "species_list.csv")
+
 # ---------------------------
 # Generar PC ID
 # ---------------------------
 def generate_pc_id():
-    """
-    Genera un ID único de PC basado en la dirección MAC de la interfaz de red.
-    Retorna un string de 12 caracteres hexadecimales en mayúsculas.
-    """
     try:
         mac_num = uuid.getnode()
-        # Verificar que sea una MAC válida (no local/aleatoria)
-        if (mac_num >> 40) & 1 == 0:  # bit de difusión no activado → dirección global
+        if (mac_num >> 40) & 1 == 0:
             return f"{mac_num:012X}"[-12:]
         else:
-            # Si es MAC local, aún la usamos (mejor que fallback)
             return f"{mac_num:012X}"[-12:]
     except Exception:
-        # Fallback: usar hostname limpio y rellenar a 12 caracteres
         host = socket.gethostname().replace('-', '').replace('_', '').replace('.', '').upper()
         return (host + "000000000000")[:12]
 
@@ -38,24 +37,13 @@ def generate_pc_id():
 # Generar Session ID
 # ---------------------------
 def generate_session_id(config=None):
-    """
-    Genera un ID de sesión legible, corto y ordenable cronológicamente:
-    {YYMMDD}_{HHMMSS}_{pc_id_corto}
-    
-    - YYMMDD: año (2 dígitos), mes, día
-    - HHMMSS: hora, minuto, segundo
-    - pc_id_corto: primeros 6 caracteres del ID de PC (basado en MAC)
-    
-    Ejemplo: 251025_143022_A1B2C3
-    """
     if config is None:
         pc_id = generate_pc_id()
     else:
         pc_id = config.get("General", {}).get("pc_id", generate_pc_id())
-    
-    short_pc_id = pc_id[:6]  # 6 caracteres hexadecimales
-    timestamp_date = datetime.now().strftime("%y%m%d")  # YYMMDD
-    timestamp_time = datetime.now().strftime("%H%M%S")  # HHMMSS
+    short_pc_id = pc_id[:6]
+    timestamp_date = datetime.now().strftime("%y%m%d")
+    timestamp_time = datetime.now().strftime("%H%M%S")
     return f"{timestamp_date}_{timestamp_time}_{short_pc_id}"
 
 # ---------------------------
@@ -63,38 +51,110 @@ def generate_session_id(config=None):
 # ---------------------------
 def get_default_metadata_model():
     return {
-        "session_id": "",
-        "project": "",
-        "deployment": "",
-        "site": "",
-        "subsite": "",
-        "camera": "",
-        "operator": "",
-        "video_path": "",
-        "frames_folder": "",
-        "promedio": "",
-        "mask": "",
-        "tops": [],
-        "tags": [],
-        "behaviors": [],
-        "status": "",
-        "frames": 0,
-        "time_sec": 0.0,
-        "temp": "",
-        "moon": "",
-        "weather": "",
-        "recorded_at": ""
+        "media_id": "",
+        "event_id": "",
+        "deployment_id": "",
+        "file": {
+            "video_path": "",
+            "video_hash": "",
+            "frames_folder": "",
+            "promedio": None,
+            "tops": [],
+            "mask": None
+        },
+        "processing": {
+            "status": "pending",
+            "frames": None,
+            "time_sec": None
+        },
+        "classification": {
+            "species": [],
+            "counts": {},
+            "behaviors": []
+        },
+        "metadata": {
+            "site": "",
+            "subsite": "",
+            "camera": "",
+            "operator": "",
+            "recorded_at": "",
+            "notes": ""
+        },
+        "ui": {
+            "is_favorite": False,
+            "is_excluded": False,
+            "embed_metadata": False,
+            "xlsx": False
+        },
+        "session": {
+            "session_id": "",
+            "camtrap_db_session": False
+        }
     }
 
+def normalize_video_meta(video_meta):
+    from copy import deepcopy
+    base = get_default_metadata_model()
+    new_meta = deepcopy(base)
+
+    new_meta["media_id"] = video_meta.get("video_hash", "")
+    new_meta["event_id"] = video_meta.get("video_hash", "")
+    new_meta["deployment_id"] = video_meta.get("camera", "")
+
+    new_meta["file"]["video_path"] = video_meta.get("video_path", "")
+    new_meta["file"]["video_hash"] = video_meta.get("video_hash", "")
+    new_meta["file"]["frames_folder"] = video_meta.get("frames_folder", "")
+    new_meta["file"]["promedio"] = video_meta.get("promedio")
+    new_meta["file"]["tops"] = video_meta.get("tops", [])
+    new_meta["file"]["mask"] = video_meta.get("mask")
+
+    new_meta["processing"]["status"] = video_meta.get("status", "pending")
+    new_meta["processing"]["frames"] = video_meta.get("frames")
+    new_meta["processing"]["time_sec"] = video_meta.get("time_sec")
+
+    new_meta["classification"]["species"] = video_meta.get("tags", [])
+    new_meta["classification"]["counts"] = video_meta.get("species_counts", {})
+    new_meta["classification"]["behaviors"] = video_meta.get("behaviors", [])
+
+    new_meta["metadata"]["site"] = video_meta.get("site", "")
+    new_meta["metadata"]["subsite"] = video_meta.get("subsite", "")
+    new_meta["metadata"]["camera"] = video_meta.get("camera", "")
+    new_meta["metadata"]["operator"] = video_meta.get("operator", "")
+    new_meta["metadata"]["recorded_at"] = video_meta.get("recorded_at", "")
+    new_meta["metadata"]["notes"] = video_meta.get("notes", "")
+
+    new_meta["ui"]["is_favorite"] = video_meta.get("is_favorite", False)
+    new_meta["ui"]["is_excluded"] = video_meta.get("is_excluded", False)
+    new_meta["ui"]["embed_metadata"] = video_meta.get("embed_metadata", False)
+    new_meta["ui"]["xlsx"] = video_meta.get("xlsx", False)
+
+    new_meta["session"]["session_id"] = video_meta.get("session_id", "")
+    new_meta["session"]["camtrap_db_session"] = video_meta.get("camtrap_db_session", False)
+
+    new_meta["tags"] = new_meta["classification"]["species"]
+    new_meta["species_counts"] = new_meta["classification"]["counts"]
+    new_meta["behaviors"] = new_meta["classification"]["behaviors"]
+
+    new_meta["site"] = new_meta["metadata"]["site"]
+    new_meta["subsite"] = new_meta["metadata"]["subsite"]
+    new_meta["camera"] = new_meta["metadata"]["camera"]
+    new_meta["operator"] = new_meta["metadata"]["operator"]
+    new_meta["recorded_at"] = new_meta["metadata"]["recorded_at"]
+    new_meta["notes"] = new_meta["metadata"]["notes"]
+
+    new_meta["embed_metadata"] = new_meta["ui"]["embed_metadata"]
+    new_meta["xlsx"] = new_meta["ui"]["xlsx"]
+    new_meta["is_favorite"] = new_meta["ui"]["is_favorite"]
+    new_meta["is_excluded"] = new_meta["ui"]["is_excluded"]
+
+    return new_meta
+
 # ---------------------------
-# Config por defecto (para setup)
-# ---------------------------
-# ---------------------------
-# Config por defecto (para setup)
+# Config por defecto
 # ---------------------------
 def get_default_config():
     output_folder = os.path.join(os.path.abspath(os.path.dirname(__file__)), "output")
-    default_config = { # <-- Creamos el diccionario en una variable
+    default_config = {
         "General": {
             "pc_id": str(uuid.uuid4()),
             "output_folder": output_folder,
@@ -146,7 +206,10 @@ def get_default_config():
                 "next_frame": "Frame >>",
                 "prev_video": "<< Video",
                 "next_video": "Video >>"
-            }
+            },
+            "camtrap_mode": False,
+            "last_tagger_config": "",
+            "taxon_map": {}
         },
         "Processing": {
             "FPS_EXTRACT": 1,
@@ -183,22 +246,18 @@ def get_default_config():
                 "temp","moon","weather","recorded_at"
             ]
         },
-        # Añadir la sección CamtrapDB vacía aquí también
         "CamtrapDB": {}
     }
-
-    # --- AÑADIR ESTA LÍNEA DENTRO DE LA FUNCIÓN, PERO ANTES DEL RETURN ---
-    # Asegurar que camtrap_mode esté en GUI_Tagger con valor por defecto False
     default_config["GUI_Tagger"]["camtrap_mode"] = False
-    # --- FIN AÑADIDO ---
-
-    return default_config # <-- Retornamos la variable
+    return default_config
 
 # ---------------------------
-# Cargar config (crear si no existe)
+# Cargar config
 # ---------------------------
 def load_config():
     config_path = get_config_path()
+    config_modified = False
+
     if os.path.exists(config_path):
         with open(config_path, "r") as f:
             config = json.load(f)
@@ -206,36 +265,28 @@ def load_config():
         config = get_default_config()
         os.makedirs(config["General"]["output_folder"], exist_ok=True)
         save_config(config)
+        return config
 
-    # Asegurarse de que secciones y claves por defecto existan, añadirlas si no
     default_config = get_default_config()
 
-    # Asegurar sección General
     if "General" not in config:
         config["General"] = default_config["General"]
-    # Asegurar sección GUI_Tagger
+        config_modified = True
+
     if "GUI_Tagger" not in config:
         config["GUI_Tagger"] = default_config["GUI_Tagger"]
+        config_modified = True
     else:
-        # Verificar y añadir subclaves faltantes en GUI_Tagger si es necesario
-        if "other_tags_list" not in config["GUI_Tagger"]:
-            config["GUI_Tagger"]["other_tags_list"] = default_config["GUI_Tagger"]["other_tags_list"]
-        # --- AÑADIR ESTE BLOQUE ---
-        # Asegurar que camtrap_mode exista en GUI_Tagger
-        if "camtrap_mode" not in config["GUI_Tagger"]:
-            config["GUI_Tagger"]["camtrap_mode"] = default_config["GUI_Tagger"]["camtrap_mode"]
-        # --- FIN AÑADIDO ---
-    # Asegurar sección CamtrapDB (aunque esté vacía por ahora)
+        for key in ("other_tags_list", "camtrap_mode", "last_tagger_config", "taxon_map"):
+            if key not in config["GUI_Tagger"]:
+                config["GUI_Tagger"][key] = default_config["GUI_Tagger"][key]
+                config_modified = True
+
     if "CamtrapDB" not in config:
         config["CamtrapDB"] = default_config["CamtrapDB"]
+        config_modified = True
 
-    # Si se modificó la config (añadiendo claves faltantes), guardarla
-    # Solo guardar si el archivo ya existía originalmente y lo modificamos
-    if os.path.exists(config_path) and (
-        "other_tags_list" not in config["GUI_Tagger"] or
-        "camtrap_mode" not in config["GUI_Tagger"] or
-        "CamtrapDB" not in config
-    ):
+    if config_modified:
         save_config(config)
 
     return config
@@ -249,7 +300,164 @@ def save_config(config):
         json.dump(config, f, indent=4)
 
 # ---------------------------
-# Obtener campos para embed
+# Tagger configs
+# ---------------------------
+def list_tagger_configs():
+    """Retorna lista de dicts con {path, name} de cada config disponible."""
+    configs_dir = get_tagger_configs_dir()
+    if not os.path.exists(configs_dir):
+        return []
+    result = []
+    for fname in sorted(os.listdir(configs_dir)):
+        if not fname.endswith(".json"):
+            continue
+        fpath = os.path.join(configs_dir, fname)
+        try:
+            with open(fpath, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            name = data.get("_metadata", {}).get("name", fname)
+            result.append({"path": fpath, "name": name, "filename": fname})
+        except Exception:
+            result.append({"path": fpath, "name": fname, "filename": fname})
+    return result
+
+def load_tagger_config(json_path):
+    """Carga un archivo de config del tagger y retorna el dict."""
+    with open(json_path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+def save_tagger_config(json_path, data):
+    """Guarda un archivo de config del tagger."""
+    os.makedirs(os.path.dirname(json_path), exist_ok=True)
+    data["_metadata"]["last_modified"] = datetime.now().strftime("%Y-%m-%d %H:%M")
+    with open(json_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=4, ensure_ascii=False)
+
+def apply_tagger_config(tagger_config_data, app_config):
+    """
+    Aplica los valores de GUI_Tagger y Taxon_Map de tagger_config_data
+    sobre app_config en memoria y actualiza last_tagger_config.
+    No guarda en disco — el llamador decide cuándo llamar save_config.
+    """
+    gui_tagger_keys = ("species_tags", "secondary_tags", "behavior_tags", "other_tags_list")
+    for key in gui_tagger_keys:
+        if key in tagger_config_data.get("GUI_Tagger", {}):
+            app_config["GUI_Tagger"][key] = tagger_config_data["GUI_Tagger"][key]
+    app_config["GUI_Tagger"]["taxon_map"] = tagger_config_data.get("Taxon_Map", {})
+    return app_config
+
+def set_last_tagger_config(config, json_path):
+    """Registra la última config de tagger usada en config.ini."""
+    config["GUI_Tagger"]["last_tagger_config"] = json_path
+    save_config(config)
+
+def get_last_tagger_config(config):
+    """Retorna la ruta de la última config usada, o '' si no existe."""
+    return config.get("GUI_Tagger", {}).get("last_tagger_config", "")
+
+def get_template_tagger_config():
+    """Retorna la plantilla base para crear una nueva config."""
+    template_path = os.path.join(get_tagger_configs_dir(), "template.json")
+    if os.path.exists(template_path):
+        return load_tagger_config(template_path)
+    return {
+        "_metadata": {
+            "name": "", "version": "1.0", "region": "", "description": "",
+            "created": "", "last_modified": "", "is_scientific": False  # 🔹 NUEVO
+        },
+        "GUI_Tagger": {"species_tags": [], "secondary_tags": [], "behavior_tags": [], "other_tags_list": []},
+        "Taxon_Map": {}
+    }
+# ---------------------------
+# Búsqueda de taxones
+# ---------------------------
+def _normalize_text(text):
+    """Normaliza texto: minúsculas y sin acentos."""
+    import unicodedata
+    text = text.lower()
+    text = ''.join(c for c in unicodedata.normalize('NFD', text) if unicodedata.category(c) != 'Mn')
+    return text
+
+def search_taxa_local(query, max_results=20):
+    """
+    Busca en species_list.csv por nombre vernáculo, científico o taxonID.
+    Insensible a acentos y mayúsculas. Busca en todos los campos.
+    Retorna lista de dicts con las columnas del CSV.
+    """
+    import csv
+    csv_path = get_species_csv_path()
+    if not os.path.exists(csv_path):
+        return []
+
+    q = _normalize_text(query)
+    results = []
+    try:
+        with open(csv_path, "r", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                searchable = " ".join([
+                    row.get("scientificName", ""),
+                    row.get("vernacularName", ""),
+                    row.get("taxonID", ""),
+                    row.get("taxonRank", ""),
+                    row.get("family", ""),
+                    row.get("kingdom", "")
+                ])
+                if q in _normalize_text(searchable):
+                    results.append(dict(row))
+                    if len(results) >= max_results:
+                        break
+    except Exception as e:
+        print(f"[search_taxa_local] Error: {e}")
+    return results
+
+def search_taxa_gbif(query, max_results=20):
+    """
+    Busca en la API de GBIF por nombre vernáculo o científico.
+    Retorna lista de dicts normalizados con las mismas claves que el CSV local.
+    """
+    try:
+        import requests
+        url = "https://api.gbif.org/v1/species/search"
+        params = {"q": query, "limit": max_results}
+        resp = requests.get(url, params=params, timeout=5)
+        if resp.status_code != 200:
+            return []
+        data = resp.json()
+        results = []
+        for item in data.get("results", []):
+            vernacular = ""
+            if item.get("vernacularNames"):
+                # Preferir español, luego cualquier idioma
+                for vn in item["vernacularNames"]:
+                    if vn.get("language") in ("spa", "es"):
+                        vernacular = vn.get("vernacularName", "")
+                        break
+                if not vernacular:
+                    vernacular = item["vernacularNames"][0].get("vernacularName", "")
+            results.append({
+                "taxonID": str(item.get("key", "")),
+                "scientificName": item.get("canonicalName", item.get("scientificName", "")),
+                "vernacularName": vernacular,
+                "taxonRank": item.get("rank", "").lower(),
+                "kingdom": item.get("kingdom", ""),
+                "family": item.get("family", "")
+            })
+        return results
+    except Exception as e:
+        print(f"[search_taxa_gbif] Error: {e}")
+        return []
+
+def search_taxa(query, max_results=20):
+    """
+    Busca primero en local, luego ofrece resultados de GBIF si hay pocos locales.
+    Retorna (local_results, gbif_results).
+    """
+    local = search_taxa_local(query, max_results)
+    return local
+
+# ---------------------------
+# Campos para embed/excel
 # ---------------------------
 def get_fields_to_embed(config=None):
     if config is None:
@@ -331,43 +539,41 @@ def update_summaries_from_metadata(config=None, metadata_path=None):
 
     save_config(config)
     return config
-# ---------------------------
-# Reconstruir archivo consolidado desde sesiones
-# ---------------------------
-def rebuild_consolidated_metadata(config=None):
-    """
-    Reconstruye output_folder/consolidated/all_sessions_metadata.json
-    combinando todos los metadata.json de output_folder/sessions/.
-    Útil si el archivo consolidado se corrompe o se elimina.
-    """
+
+def get_processing_config(config=None):
     if config is None:
         config = load_config()
-    
+    return config.get("Processing", {})
+
+# ---------------------------
+# Reconstruir consolidado
+# ---------------------------
+def rebuild_consolidated_metadata(config=None):
+    if config is None:
+        config = load_config()
+
     output_folder = config["General"]["output_folder"]
     sessions_dir = os.path.join(output_folder, "sessions")
     consolidated_dir = os.path.join(output_folder, "consolidated")
     consolidated_path = os.path.join(consolidated_dir, "all_sessions_metadata.json")
-    
+
     if not os.path.exists(sessions_dir):
         print(f"[rebuild_consolidated_metadata] No existe la carpeta de sesiones: {sessions_dir}")
         return []
 
     os.makedirs(consolidated_dir, exist_ok=True)
-    
+
     all_videos = []
     for session_id in os.listdir(sessions_dir):
         session_path = os.path.join(sessions_dir, session_id)
         if not os.path.isdir(session_path):
             continue
-        
         metadata_path = os.path.join(session_path, "metadata.json")
         if not os.path.exists(metadata_path):
             continue
-        
         try:
             with open(metadata_path, "r", encoding="utf-8") as f:
                 session_metadata = json.load(f)
-                # Asegurarse de que cada entrada tenga session_id
                 for entry in session_metadata:
                     if "session_id" not in entry or not entry["session_id"]:
                         entry["session_id"] = session_id
@@ -376,19 +582,18 @@ def rebuild_consolidated_metadata(config=None):
             print(f"[rebuild_consolidated_metadata] Error leyendo {metadata_path}: {e}")
             continue
 
-    # Eliminar duplicados por video_path (mantener la última versión)
     seen = {}
     unique_videos = []
-    for video in reversed(all_videos):  # última versión primero
+    for video in reversed(all_videos):
         path = video.get("video_path")
         if path and path not in seen:
             seen[path] = True
             unique_videos.append(video)
-    unique_videos.reverse()  # restaurar orden cronológico
+    unique_videos.reverse()
 
     with metadata_lock:
         with open(consolidated_path, "w", encoding="utf-8") as f:
             json.dump(unique_videos, f, indent=4, ensure_ascii=False)
-    
+
     print(f"[rebuild_consolidated_metadata] Archivo consolidado reconstruido: {consolidated_path}")
     return unique_videos

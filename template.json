@@ -1,0 +1,20 @@
+{
+    "_metadata": {
+        "name": "Plantilla base",
+        "version": "1.0",
+        "region": "",
+        "description": "Configuración de ejemplo. Duplicar y personalizar.",
+        "created": "",
+        "last_modified": ""
+    },
+    "GUI_Tagger": {
+        "species_tags": ["Especie1", "Especie2"],
+        "secondary_tags": ["Otros", "Vacío", "Setup"],
+        "behavior_tags": ["Camina", "Come", "Duerme"],
+        "other_tags_list": ["Tag extra 1", "Tag extra 2"]
+    },
+    "Taxon_Map": {
+        "Especie1": {"taxonID": ""},
+        "Especie2": {"taxonID": ""}
+    }
+}

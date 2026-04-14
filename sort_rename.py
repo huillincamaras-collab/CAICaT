@@ -13,11 +13,16 @@ class SortRenameAdvancedGUI(tk.Tk):
         self.geometry("600x700")
 
         self.metadata_path = metadata_path
-        with open(metadata_path, "r") as f:
-            self.metadata_list = json.load(f)
+        try:
+            with open(metadata_path, "r", encoding="utf-8") as f:
+                self.metadata_list = json.load(f)
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo cargar el archivo JSON:\n{e}")
+            self.destroy()
+            return
 
         # --- Sesión ---
-        tk.Label(self, text="Sesión:").pack(pady=5)
+        tk.Label(self, text="Sesión: ").pack(pady=5)
         self.session_option = tk.StringVar(value="last")
         tk.Radiobutton(self, text="Última sesión", variable=self.session_option, value="last").pack(anchor="w")
         tk.Radiobutton(self, text="Todas las sesiones", variable=self.session_option, value="all").pack(anchor="w")
@@ -26,51 +31,74 @@ class SortRenameAdvancedGUI(tk.Tk):
         self.session_entry.pack(pady=2)
         self.session_entry.insert(0, "ID de sesión")
 
-        # --- Tags ---
+        # --- Extracción de filtros (Compatible con modelo nuevo) ---
+        # Tags (Species)
         tags_set = set()
         for v in self.metadata_list:
-            tags_set.update(v.get("tags", []))
-        self.tags = sorted(tags_set)
+            # Busca en 'tags' (legacy) o 'classification/species' (nuevo)
+            species = v.get("classification", {}).get("species", []) or v.get("tags", [])
+            tags_set.update(species)
+        self.tags = sorted(list(tags_set))
 
-        tk.Label(self, text="Seleccionar tags (especies):").pack(pady=5)
+        tk.Label(self, text="Seleccionar tags (especies): ").pack(pady=5)
         self.tag_vars = {}
         for tag in self.tags:
             var = tk.BooleanVar()
             tk.Checkbutton(self, text=tag, variable=var).pack(anchor="w")
             self.tag_vars[tag] = var
 
-        # --- Operadores ---
-        operators_set = sorted({v.get("operator", "") for v in self.metadata_list if v.get("operator")})
-        tk.Label(self, text="Seleccionar operadores:").pack(pady=5)
+        # Operadores
+        operators_set = set()
+        for v in self.metadata_list:
+            op = v.get("metadata", {}).get("operator", "") or v.get("operator", "")
+            if op: operators_set.add(op)
+        operators_list = sorted(list(operators_set))
+        
+        tk.Label(self, text="Seleccionar operadores: ").pack(pady=5)
         self.operator_vars = {}
-        for op in operators_set:
+        for op in operators_list:
             var = tk.BooleanVar()
             tk.Checkbutton(self, text=op, variable=var).pack(anchor="w")
             self.operator_vars[op] = var
 
-        # --- Cámaras ---
-        cameras_set = sorted({v.get("camera", "") for v in self.metadata_list if v.get("camera")})
-        tk.Label(self, text="Seleccionar cámaras:").pack(pady=5)
+        # Cámaras
+        cameras_set = set()
+        for v in self.metadata_list:
+            cam = v.get("metadata", {}).get("camera", "") or v.get("camera", "")
+            if cam: cameras_set.add(cam)
+        cameras_list = sorted(list(cameras_set))
+
+        tk.Label(self, text="Seleccionar cámaras: ").pack(pady=5)
         self.camera_vars = {}
-        for cam in cameras_set:
+        for cam in cameras_list:
             var = tk.BooleanVar()
             tk.Checkbutton(self, text=cam, variable=var).pack(anchor="w")
             self.camera_vars[cam] = var
 
-        # --- Sitios ---
-        sites_set = sorted({v.get("site", "") for v in self.metadata_list if v.get("site")})
-        tk.Label(self, text="Seleccionar sitios:").pack(pady=5)
+        # Sitios
+        sites_set = set()
+        for v in self.metadata_list:
+            site = v.get("metadata", {}).get("site", "") or v.get("site", "")
+            if site: sites_set.add(site)
+        sites_list = sorted(list(sites_set))
+
+        tk.Label(self, text="Seleccionar sitios: ").pack(pady=5)
         self.site_vars = {}
-        for site in sites_set:
+        for site in sites_list:
             var = tk.BooleanVar()
             tk.Checkbutton(self, text=site, variable=var).pack(anchor="w")
             self.site_vars[site] = var
 
-        # --- Comportamientos ---
-        behaviors_set = sorted({b for v in self.metadata_list for b in v.get("behaviors", []) if b})
-        tk.Label(self, text="Seleccionar comportamientos:").pack(pady=5)
+        # Comportamientos
+        behaviors_set = set()
+        for v in self.metadata_list:
+            behs = v.get("classification", {}).get("behaviors", []) or v.get("behaviors", [])
+            behaviors_set.update(behs)
+        behaviors_list = sorted(list(behaviors_set))
+
+        tk.Label(self, text="Seleccionar comportamientos: ").pack(pady=5)
         self.behavior_vars = {}
-        for b in behaviors_set:
+        for b in behaviors_list:
             var = tk.BooleanVar()
             tk.Checkbutton(self, text=b, variable=var).pack(anchor="w")
             self.behavior_vars[b] = var
@@ -83,7 +111,6 @@ class SortRenameAdvancedGUI(tk.Tk):
         self.preview_text = tk.Text(self, height=10)
         self.preview_text.pack(fill="both", expand=True)
 
-# filter videos
     def filter_videos(self):
         # Recopilar selecciones del usuario
         selected_tags = [t for t, var in self.tag_vars.items() if var.get()]
@@ -118,10 +145,12 @@ class SortRenameAdvancedGUI(tk.Tk):
         filtered = self.filter_videos()
         tag_count = {}
         for v in filtered:
-            for t in v.get("tags", []):
+            species = v.get("classification", {}).get("species", []) or v.get("tags", [])
+            for t in species:
                 if t not in tag_count:
                     tag_count[t] = 0
                 tag_count[t] += 1
+        
         self.preview_text.delete(1.0, tk.END)
         self.preview_text.insert(tk.END, f"Se van a mover {len(filtered)} videos.\n")
         for t, c in tag_count.items():
@@ -139,35 +168,82 @@ class SortRenameAdvancedGUI(tk.Tk):
 
         output_folder = load_config()['General']['output_folder']
         moved_count = 0
+
         for v in filtered:
-            tags_list = v.get("tags", [])
-            src = v.get("video_path")
-            if not os.path.exists(src):
+            # Leer tags (compatibilidad nueva y vieja)
+            tags_list = v.get("classification", {}).get("species", []) or v.get("tags", [])
+            
+            # Leer ruta de origen (compatibilidad)
+            src = v.get("video_path") or v.get("file", {}).get("video_path")
+            if not src or not os.path.exists(src):
                 continue
 
-            ts = os.path.getmtime(src)
-            dt = datetime.fromtimestamp(ts)
-            fecha = dt.strftime("%y%m%d")
-            hora = dt.strftime("%H%M%S")
+            # Extraer fecha del archivo (o usar recorded_at si está disponible)
+            try:
+                recorded = v.get("metadata", {}).get("recorded_at", "")
+                if recorded:
+                    dt = datetime.strptime(recorded, "%Y-%m-%d %H:%M:%S")
+                    fecha = dt.strftime("%y%m%d")
+                    hora = dt.strftime("%H%M%S")
+                else:
+                    ts = os.path.getmtime(src)
+                    dt = datetime.fromtimestamp(ts)
+                    fecha = dt.strftime("%y%m%d")
+                    hora = dt.strftime("%H%M%S")
+            except Exception:
+                # Fallback por fecha de modificación
+                ts = os.path.getmtime(src)
+                dt = datetime.fromtimestamp(ts)
+                fecha = dt.strftime("%y%m%d")
+                hora = dt.strftime("%H%M%S")
 
-            site = v.get("site", "UnknownSite")
-            subsite = v.get("subsite", "UnknownSubsite")
-            camera = v.get("camera", "UnknownCamera")
+            # Extraer metadatos (compatibilidad nueva y vieja)
+            site = v.get("metadata", {}).get("site", "") or v.get("site", "UnknownSite")
+            subsite = v.get("metadata", {}).get("subsite", "") or v.get("subsite", "UnknownSubsite")
+            camera = v.get("metadata", {}).get("camera", "") or v.get("camera", "UnknownCamera")
+
             base_name = f"{site}_{subsite}_{fecha}_{hora}_{camera}{os.path.splitext(src)[1]}"
 
-            for tag in tags_list:
-                dest_folder = os.path.join(output_folder, tag)
+            if not tags_list:
+                # Si no tiene tags, lo movemos a una carpeta "Sin_Especie"
+                dest_folder = os.path.join(output_folder, "Sin_Especie")
                 os.makedirs(dest_folder, exist_ok=True)
                 dest_path = os.path.join(dest_folder, base_name)
                 counter = 1
-                temp_dest_path = dest_path
-                while os.path.exists(temp_dest_path):
-                    temp_dest_path = os.path.join(dest_folder, f"{os.path.splitext(base_name)[0]}_{counter}{os.path.splitext(base_name)[1]}")
+                while os.path.exists(dest_path):
+                    base_no_ext = os.path.splitext(base_name)[0]
+                    ext = os.path.splitext(base_name)[1]
+                    dest_path = os.path.join(dest_folder, f"{base_no_ext}_{counter}{ext}")
                     counter += 1
-                shutil.copy2(src, temp_dest_path)
-            moved_count += 1
+                try:
+                    shutil.copy2(src, dest_path)
+                    moved_count += 1
+                except Exception as e:
+                    print(f"Error moviendo {src}: {e}")
+            else:
+                # Copiar a una carpeta por cada especie detectada
+                for tag in tags_list:
+                    dest_folder = os.path.join(output_folder, tag)
+                    os.makedirs(dest_folder, exist_ok=True)
+                    dest_path = os.path.join(dest_folder, base_name)
+                    
+                    # Manejo de nombres duplicados
+                    if os.path.exists(dest_path):
+                        base_no_ext = os.path.splitext(base_name)[0]
+                        ext = os.path.splitext(base_name)[1]
+                        counter = 1
+                        while os.path.exists(dest_path):
+                            dest_path = os.path.join(dest_folder, f"{base_no_ext}_{counter}{ext}")
+                            counter += 1
+                    
+                    try:
+                        shutil.copy2(src, dest_path)
+                    except Exception as e:
+                        print(f"Error moviendo {src} a {dest_folder}: {e}")
+                
+                moved_count += 1
 
-        messagebox.showinfo("Éxito", f"Se procesaron {moved_count} videos.")
+        messagebox.showinfo("Éxito", f"Se procesaron/copiaron {moved_count} videos a las carpetas correspondientes.")
 
 # -------------------------------
 # Lanzador
@@ -181,7 +257,13 @@ def run_sort_rename_advanced(metadata_path=None):
         from config_utils import load_config
         config = load_config()
         output_folder = config["General"]["output_folder"]
-        metadata_path = os.path.join(output_folder, "consolidated", "all_sessions_metadata.json")
-    
+        # Intenta cargar el consolidado
+        consolidated_path = os.path.join(output_folder, "consolidated", "all_sessions_metadata.json")
+        if os.path.exists(consolidated_path):
+            metadata_path = consolidated_path
+        else:
+            messagebox.showerror("Error", "No se encontró el archivo consolidado ni se especificó un archivo de metadatos.")
+            return
+
     app = SortRenameAdvancedGUI(metadata_path)
     app.mainloop()
