@@ -1,0 +1,15 @@
+{
+  "metadata": {
+    "region_id": "base",
+    "region_name": "Base - Configuración Estándar",
+    "region_code": "BASE",
+    "species_count": 2,
+    "generated_at": "2026-05-12 18:00:00",
+    "type": "region",
+    "country_id": "argentina"
+  },
+  "species_names": [
+    "Felino",
+    "Cérvido"
+  ]
+}

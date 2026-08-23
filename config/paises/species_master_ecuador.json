@@ -1,0 +1,6198 @@
+{
+  "metadata": {
+    "type": "species_master",
+    "country_id": "ecuador",
+    "country_name": "Ecuador",
+    "region_id": "master",
+    "region_name": "Ecuador - Todas las Regiones",
+    "region_code": "ALL",
+    "total_species": 494,
+    "total_regions": 5,
+    "regions": [
+      "Parque Nacional Llanganates",
+      "Parque Nacional Atillo",
+      "Parque Nacional Cubilán",
+      "Parque Nacional Culebrillas",
+      "Parque Nacional TU-Buerán"
+    ],
+    "generated_at": "2026-04-23 12:49:50",
+    "last_modified": "2026-06-20 14:00:37"
+  },
+  "species": [
+    {
+      "scientificName": "Acropternis orthonyx",
+      "family": "Rhinocryptidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Acropternis",
+      "taxonID_GBIF": "104134216",
+      "taxonID_iNaturalist": "14795"
+    },
+    {
+      "scientificName": "Actitis",
+      "family": "Scolopacidae",
+      "order": "Charadriiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Actitis",
+      "taxonID_GBIF": "317302175",
+      "taxonID_iNaturalist": "3977"
+    },
+    {
+      "scientificName": "Actitis macularius",
+      "family": "Scolopacidae",
+      "order": "Charadriiformes",
+      "class": "Aves",
+      "regions": [
+        "atillo",
+        "bueran"
+      ],
+      "commonName": "Actitis",
+      "taxonID_GBIF": "124958376",
+      "taxonID_iNaturalist": "72458"
+    },
+    {
+      "scientificName": "Adelomyia",
+      "family": "Trochilidae",
+      "order": "Apodiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Adelomyia",
+      "taxonID_GBIF": "321184441",
+      "taxonID_iNaturalist": "6165"
+    },
+    {
+      "scientificName": "Adelomyia melanogenys",
+      "family": "Trochilidae",
+      "order": "Apodiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Adelomyia",
+      "taxonID_GBIF": "100179068",
+      "taxonID_iNaturalist": "6166"
+    },
+    {
+      "scientificName": "Adenomera",
+      "family": "LEPTODACTYLIDAE",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Adenomera",
+      "taxonID_GBIF": "177707450",
+      "taxonID_iNaturalist": "134231"
+    },
+    {
+      "scientificName": "Adenomera andreae",
+      "family": "LEPTODACTYLIDAE",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Adenomera",
+      "taxonID_GBIF": "217123011",
+      "taxonID_iNaturalist": "135011"
+    },
+    {
+      "scientificName": "Agalychnis",
+      "family": "Phyllomedusidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Agalychnis",
+      "taxonID_GBIF": "217111672",
+      "taxonID_iNaturalist": "23694"
+    },
+    {
+      "scientificName": "Aglaeactis",
+      "family": "Trochilidae",
+      "order": "Apodiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "bueran"
+      ],
+      "commonName": "Aglaeactis",
+      "taxonID_GBIF": "116806725",
+      "taxonID_iNaturalist": "6204"
+    },
+    {
+      "scientificName": "Aglaiocercus",
+      "family": "Trochilidae",
+      "order": "Apodiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Aglaiocercus",
+      "taxonID_GBIF": "321184421",
+      "taxonID_iNaturalist": "5878"
+    },
+    {
+      "scientificName": "Agriornis",
+      "family": "Tyrannidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "cubilan",
+        "culebrillas"
+      ],
+      "commonName": "Agriornis",
+      "taxonID_GBIF": "256413438",
+      "taxonID_iNaturalist": "16639"
+    },
+    {
+      "scientificName": "Agriornis montanus",
+      "family": "Tyrannidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Agriornis",
+      "taxonID_GBIF": "198969263",
+      "taxonID_iNaturalist": "16644"
+    },
+    {
+      "scientificName": "Akodon",
+      "family": "Cricetidae",
+      "order": "Rodentia",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Akodon",
+      "taxonID_GBIF": "321518785",
+      "taxonID_iNaturalist": "735079"
+    },
+    {
+      "scientificName": "Akodon mollis",
+      "family": "Cricetidae",
+      "order": "Rodentia",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "cubilan",
+        "bueran"
+      ],
+      "commonName": "Akodon",
+      "taxonID_GBIF": "104055122",
+      "taxonID_iNaturalist": "44613"
+    },
+    {
+      "scientificName": "Alopoglossus",
+      "family": "ALOPOGLOSSIDAE",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Alopoglossus",
+      "taxonID_GBIF": "315880380",
+      "taxonID_iNaturalist": "34985"
+    },
+    {
+      "scientificName": "Alopoglossus buckleyi",
+      "family": "ALOPOGLOSSIDAE",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Alopoglossus",
+      "taxonID_GBIF": "177662967",
+      "taxonID_iNaturalist": "34988"
+    },
+    {
+      "scientificName": "Ameerega bilinguis",
+      "family": "DENDROBATIDAE",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Ameerega",
+      "taxonID_GBIF": "104014716",
+      "taxonID_iNaturalist": "64885"
+    },
+    {
+      "scientificName": "Ammodramus",
+      "family": "Passerellidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Ammodramus",
+      "taxonID_GBIF": "256413378",
+      "taxonID_iNaturalist": "9981"
+    },
+    {
+      "scientificName": "Ampelion",
+      "family": "Cotingidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "culebrillas"
+      ],
+      "commonName": "Ampelion",
+      "taxonID_GBIF": "321730573",
+      "taxonID_iNaturalist": "8817"
+    },
+    {
+      "scientificName": "Anabacerthia",
+      "family": "Furnariidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Anabacerthia",
+      "taxonID_GBIF": "321301500",
+      "taxonID_iNaturalist": "11723"
+    },
+    {
+      "scientificName": "Anairetes",
+      "family": "Tyrannidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "culebrillas"
+      ],
+      "commonName": "Anairetes",
+      "taxonID_GBIF": "321301667",
+      "taxonID_iNaturalist": "16423"
+    },
+    {
+      "scientificName": "Anairetes parulus",
+      "family": "Tyrannidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "culebrillas"
+      ],
+      "commonName": "Anairetes",
+      "taxonID_GBIF": "133163498",
+      "taxonID_iNaturalist": "16433"
+    },
+    {
+      "scientificName": "Anas",
+      "family": "Anatidae",
+      "order": "Anseriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "cubilan",
+        "culebrillas"
+      ],
+      "commonName": "Anas",
+      "taxonID_GBIF": "246754263",
+      "taxonID_iNaturalist": "6922"
+    },
+    {
+      "scientificName": "Anas andium",
+      "family": "Anatidae",
+      "order": "Anseriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "bueran"
+      ],
+      "commonName": "Anas",
+      "taxonID_GBIF": "120732312",
+      "taxonID_iNaturalist": "72501"
+    },
+    {
+      "scientificName": "Andigena",
+      "family": "Ramphastidae",
+      "order": "Piciformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Andigena",
+      "taxonID_GBIF": "317297547",
+      "taxonID_iNaturalist": "18845"
+    },
+    {
+      "scientificName": "Anisognathus",
+      "family": "Thraupidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "culebrillas"
+      ],
+      "commonName": "Anisognathus",
+      "taxonID_GBIF": "119255542",
+      "taxonID_iNaturalist": "10183"
+    },
+    {
+      "scientificName": "Anisognathus igniventris",
+      "family": "Thraupidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Anisognathus",
+      "taxonID_GBIF": "104136841",
+      "taxonID_iNaturalist": "10188"
+    },
+    {
+      "scientificName": "Anolis fitchi",
+      "family": "IGUANIDAE",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Anolis",
+      "taxonID_GBIF": "177677291",
+      "taxonID_iNaturalist": "36439"
+    },
+    {
+      "scientificName": "Anolis fuscoauratus",
+      "family": "IGUANIDAE",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Anolis",
+      "taxonID_GBIF": "198971277",
+      "taxonID_iNaturalist": "116412"
+    },
+    {
+      "scientificName": "Anolis gracilipes",
+      "family": "IGUANIDAE",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Anolis",
+      "taxonID_GBIF": "104089482",
+      "taxonID_iNaturalist": "116414"
+    },
+    {
+      "scientificName": "Anolis maculiventris",
+      "family": "IGUANIDAE",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Anolis",
+      "taxonID_GBIF": "204033769",
+      "taxonID_iNaturalist": "116435"
+    },
+    {
+      "scientificName": "Anoura caudifer",
+      "family": "Phyllostomidae",
+      "order": "Chiroptera",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates",
+        "culebrillas"
+      ],
+      "commonName": "Anoura",
+      "taxonID_GBIF": "193396037",
+      "taxonID_iNaturalist": "74062"
+    },
+    {
+      "scientificName": "Anoura fistulata",
+      "family": "Phyllostomidae",
+      "order": "Chiroptera",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Anoura",
+      "taxonID_GBIF": "164366674",
+      "taxonID_iNaturalist": "74063"
+    },
+    {
+      "scientificName": "Anoura geoffroyi",
+      "family": "Phyllostomidae",
+      "order": "Chiroptera",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Anoura",
+      "taxonID_GBIF": "114869280",
+      "taxonID_iNaturalist": "41137"
+    },
+    {
+      "scientificName": "Ara",
+      "family": "Psittacidae",
+      "order": "Psittaciformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Ara",
+      "taxonID_GBIF": "104145438",
+      "taxonID_iNaturalist": "47120"
+    },
+    {
+      "scientificName": "Arenaria",
+      "family": "Caryophyllaceae",
+      "order": "Charadriiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Arenaria",
+      "taxonID_GBIF": "315578882",
+      "taxonID_iNaturalist": "3937"
+    },
+    {
+      "scientificName": "Asio",
+      "family": "Strigidae",
+      "order": "Strigiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Asio",
+      "taxonID_GBIF": "321209028",
+      "taxonID_iNaturalist": "20306"
+    },
+    {
+      "scientificName": "Asthenes",
+      "family": "Furnariidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "culebrillas"
+      ],
+      "commonName": "Asthenes",
+      "taxonID_GBIF": "256413478",
+      "taxonID_iNaturalist": "11290"
+    },
+    {
+      "scientificName": "Asthenes flammulata",
+      "family": "Furnariidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Asthenes",
+      "taxonID_GBIF": "104127099",
+      "taxonID_iNaturalist": "11347"
+    },
+    {
+      "scientificName": "Asthenes fuliginosa",
+      "family": "Furnariidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Asthenes",
+      "taxonID_GBIF": "168012154",
+      "taxonID_iNaturalist": "72538"
+    },
+    {
+      "scientificName": "Asthenes griseomurina",
+      "family": "Furnariidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "culebrillas"
+      ],
+      "commonName": "Asthenes",
+      "taxonID_GBIF": "133161273",
+      "taxonID_iNaturalist": "72539"
+    },
+    {
+      "scientificName": "Atelopus",
+      "family": "Bufonidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Atelopus",
+      "taxonID_GBIF": "104010906",
+      "taxonID_iNaturalist": "21647"
+    },
+    {
+      "scientificName": "Atelopus balios",
+      "family": "BUFONIDAE",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "culebrillas"
+      ],
+      "commonName": "Atelopus",
+      "taxonID_GBIF": "213128764",
+      "taxonID_iNaturalist": "21702"
+    },
+    {
+      "scientificName": "Atelopus planispina",
+      "family": "Bufonidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Atelopus",
+      "taxonID_GBIF": "212461579",
+      "taxonID_iNaturalist": "21691"
+    },
+    {
+      "scientificName": "Athene",
+      "family": "Strigidae",
+      "order": "Strigiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Athene",
+      "taxonID_GBIF": "321244390",
+      "taxonID_iNaturalist": "19974"
+    },
+    {
+      "scientificName": "Atlapetes",
+      "family": "Passerellidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "cubilan",
+        "culebrillas"
+      ],
+      "commonName": "Atlapetes",
+      "taxonID_GBIF": "317308443",
+      "taxonID_iNaturalist": "10326"
+    },
+    {
+      "scientificName": "Atlapetes pallidinucha",
+      "family": "Passerellidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "bueran"
+      ],
+      "commonName": "Atlapetes",
+      "taxonID_GBIF": "164366089",
+      "taxonID_iNaturalist": "10332"
+    },
+    {
+      "scientificName": "Atractus",
+      "family": "Colubridae",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Atractus",
+      "taxonID_GBIF": "181666325",
+      "taxonID_iNaturalist": "6914"
+    },
+    {
+      "scientificName": "Atractus ecuadorensis",
+      "family": "Colubridae",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Atractus",
+      "taxonID_GBIF": "177665841",
+      "taxonID_iNaturalist": "27925"
+    },
+    {
+      "scientificName": "Atractus orcesi",
+      "family": "Colubridae",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Atractus",
+      "taxonID_GBIF": "168147009",
+      "taxonID_iNaturalist": "94879"
+    },
+    {
+      "scientificName": "Atractus resplendens",
+      "family": "Colubridae",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Atractus",
+      "taxonID_GBIF": "117140474",
+      "taxonID_iNaturalist": "27833"
+    },
+    {
+      "scientificName": "Atractus roulei",
+      "family": "Colubridae",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Atractus",
+      "taxonID_GBIF": "177665867",
+      "taxonID_iNaturalist": "27780"
+    },
+    {
+      "scientificName": "Aulacorhynchus",
+      "family": "Ramphastidae",
+      "order": "Piciformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Aulacorhynchus",
+      "taxonID_GBIF": "321226302",
+      "taxonID_iNaturalist": "18814"
+    },
+    {
+      "scientificName": "Bartramia longicauda",
+      "family": "Scolopacidae",
+      "order": "Charadriiformes",
+      "class": "Aves",
+      "regions": [
+        "atillo",
+        "bueran"
+      ],
+      "commonName": "Bartramia",
+      "taxonID_GBIF": "170530110",
+      "taxonID_iNaturalist": "3962"
+    },
+    {
+      "scientificName": "Barycholos",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Barycholos",
+      "taxonID_GBIF": "244879843",
+      "taxonID_iNaturalist": "23238"
+    },
+    {
+      "scientificName": "Barycholos pulcher",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Barycholos",
+      "taxonID_GBIF": "212461600",
+      "taxonID_iNaturalist": "23240"
+    },
+    {
+      "scientificName": "Basileuterus",
+      "family": "Parulidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Basileuterus",
+      "taxonID_GBIF": "317297638",
+      "taxonID_iNaturalist": "10022"
+    },
+    {
+      "scientificName": "Basiliscus galeritus",
+      "family": "IGUANIDAE",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Basiliscus",
+      "taxonID_GBIF": "114906488",
+      "taxonID_iNaturalist": "33120"
+    },
+    {
+      "scientificName": "Boana",
+      "family": "Hylidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Boana",
+      "taxonID_GBIF": "321165539",
+      "taxonID_iNaturalist": "555034"
+    },
+    {
+      "scientificName": "Boana almendarizae",
+      "family": "Hylidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Boana",
+      "taxonID_GBIF": "195816049",
+      "taxonID_iNaturalist": "555079"
+    },
+    {
+      "scientificName": "Boana appendiculata",
+      "family": "Hylidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Boana",
+      "taxonID_GBIF": "177706236",
+      "taxonID_iNaturalist": "1273328"
+    },
+    {
+      "scientificName": "Boana calcarata",
+      "family": "Hylidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Boana",
+      "taxonID_GBIF": "177706322",
+      "taxonID_iNaturalist": "555091"
+    },
+    {
+      "scientificName": "Boana cinerascens",
+      "family": "Hylidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Boana",
+      "taxonID_GBIF": "177706267",
+      "taxonID_iNaturalist": "555094"
+    },
+    {
+      "scientificName": "Boana lanciformis",
+      "family": "Hylidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Boana",
+      "taxonID_GBIF": "198971498",
+      "taxonID_iNaturalist": "555117"
+    },
+    {
+      "scientificName": "Boana rubracyla",
+      "family": "Hylidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Boana",
+      "taxonID_GBIF": "166354168",
+      "taxonID_iNaturalist": "555151"
+    },
+    {
+      "scientificName": "Bolitoglossa",
+      "family": "PLETHODONTIDAE",
+      "order": "Caudata",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Bolitoglossa",
+      "taxonID_GBIF": "321192202",
+      "taxonID_iNaturalist": "26911"
+    },
+    {
+      "scientificName": "Bos",
+      "family": "Bovidae",
+      "order": "Artiodactyla",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "cubilan",
+        "culebrillas"
+      ],
+      "commonName": "Bos",
+      "taxonID_GBIF": "252711297",
+      "taxonID_iNaturalist": "6930"
+    },
+    {
+      "scientificName": "Brotogeris",
+      "family": "Psittacidae",
+      "order": "Psittaciformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Brotogeris",
+      "taxonID_GBIF": "321233194",
+      "taxonID_iNaturalist": "19207"
+    },
+    {
+      "scientificName": "Bubulcus",
+      "family": "Ardeidae",
+      "order": "Pelecaniformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Bubulcus",
+      "taxonID_GBIF": "317302286",
+      "taxonID_iNaturalist": "4950"
+    },
+    {
+      "scientificName": "Buthraupis",
+      "family": "Thraupidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Buthraupis",
+      "taxonID_GBIF": "321484305",
+      "taxonID_iNaturalist": "10377"
+    },
+    {
+      "scientificName": "Buthraupis montana",
+      "family": "Thraupidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Buthraupis",
+      "taxonID_GBIF": "116897437",
+      "taxonID_iNaturalist": "10381"
+    },
+    {
+      "scientificName": "Cacicus",
+      "family": "Icteridae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "cubilan",
+        "culebrillas"
+      ],
+      "commonName": "Cacicus",
+      "taxonID_GBIF": "119252671",
+      "taxonID_iNaturalist": "10356"
+    },
+    {
+      "scientificName": "Caecilia",
+      "family": "CAECILIIDAE",
+      "order": "Gymnophiona",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Caecilia",
+      "taxonID_GBIF": "240172516",
+      "taxonID_iNaturalist": "27880"
+    },
+    {
+      "scientificName": "Caecilia abitaguae",
+      "family": "CAECILIIDAE",
+      "order": "Gymnophiona",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Caecilia",
+      "taxonID_GBIF": "212461203",
+      "taxonID_iNaturalist": "27920"
+    },
+    {
+      "scientificName": "Caecilia guntheri",
+      "family": "CAECILIIDAE",
+      "order": "Gymnophiona",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Caecilia",
+      "taxonID_GBIF": "159126107",
+      "taxonID_iNaturalist": "27922"
+    },
+    {
+      "scientificName": "Caenolestes",
+      "family": "Caenolestidae",
+      "order": "Paucituberculata",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "cubilan",
+        "bueran"
+      ],
+      "commonName": "Caenolestes",
+      "taxonID_GBIF": "317308980",
+      "taxonID_iNaturalist": "43264"
+    },
+    {
+      "scientificName": "Caenolestes fuliginosus",
+      "family": "Caenolestidae",
+      "order": "Paucituberculata",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "cubilan",
+        "bueran"
+      ],
+      "commonName": "Caenolestes",
+      "taxonID_GBIF": "116895543",
+      "taxonID_iNaturalist": "43266"
+    },
+    {
+      "scientificName": "Caenolestes sangay",
+      "family": "Caenolestidae",
+      "order": "Paucituberculata",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "cubilan",
+        "culebrillas",
+        "bueran"
+      ],
+      "commonName": "Caenolestes",
+      "taxonID_GBIF": "177685778",
+      "taxonID_iNaturalist": "560917"
+    },
+    {
+      "scientificName": "Calochaetes",
+      "family": "Thraupidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Calochaetes",
+      "taxonID_GBIF": "116793271",
+      "taxonID_iNaturalist": "10691"
+    },
+    {
+      "scientificName": "Caluromys lanatus",
+      "family": "Didelphidae",
+      "order": "Didelphimorphia",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Caluromys",
+      "taxonID_GBIF": "177686357",
+      "taxonID_iNaturalist": "42543"
+    },
+    {
+      "scientificName": "Campephilus",
+      "family": "Picidae",
+      "order": "Piciformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Campephilus",
+      "taxonID_GBIF": "321229908",
+      "taxonID_iNaturalist": "18272"
+    },
+    {
+      "scientificName": "Catamenia",
+      "family": "Thraupidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "cubilan",
+        "culebrillas"
+      ],
+      "commonName": "Catamenia",
+      "taxonID_GBIF": "317297626",
+      "taxonID_iNaturalist": "10538"
+    },
+    {
+      "scientificName": "Catamenia analis",
+      "family": "Thraupidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Catamenia",
+      "taxonID_GBIF": "104137204",
+      "taxonID_iNaturalist": "10541"
+    },
+    {
+      "scientificName": "Catamenia inornata",
+      "family": "Thraupidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Catamenia",
+      "taxonID_GBIF": "104137210",
+      "taxonID_iNaturalist": "10540"
+    },
+    {
+      "scientificName": "Catharus",
+      "family": "Turdidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Catharus",
+      "taxonID_GBIF": "265501513",
+      "taxonID_iNaturalist": "12875"
+    },
+    {
+      "scientificName": "Catharus ustulatus",
+      "family": "Turdidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Catharus",
+      "taxonID_GBIF": "170529881",
+      "taxonID_iNaturalist": "12878"
+    },
+    {
+      "scientificName": "Cavia",
+      "family": "Caviidae",
+      "order": "Rodentia",
+      "class": "Mammalia",
+      "regions": [
+        "atillo",
+        "cubilan",
+        "bueran"
+      ],
+      "commonName": "Cavia",
+      "taxonID_GBIF": "217136486",
+      "taxonID_iNaturalist": "43795"
+    },
+    {
+      "scientificName": "Cavia patzelti",
+      "family": "Caviidae",
+      "order": "Rodentia",
+      "class": "Mammalia",
+      "regions": [
+        "atillo",
+        "cubilan",
+        "bueran"
+      ],
+      "commonName": "Cavia",
+      "taxonID_GBIF": "177663528",
+      "taxonID_iNaturalist": "607208"
+    },
+    {
+      "scientificName": "Cercosaura",
+      "family": "Gymnophthalmidae",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "culebrillas"
+      ],
+      "commonName": "Cercosaura",
+      "taxonID_GBIF": "321185210",
+      "taxonID_iNaturalist": "34753"
+    },
+    {
+      "scientificName": "Chaetocercus",
+      "family": "Trochilidae",
+      "order": "Apodiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "culebrillas"
+      ],
+      "commonName": "Chaetocercus",
+      "taxonID_GBIF": "317308768",
+      "taxonID_iNaturalist": "6175"
+    },
+    {
+      "scientificName": "Chalcostigma",
+      "family": "Trochilidae",
+      "order": "Apodiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Chalcostigma",
+      "taxonID_GBIF": "321215377",
+      "taxonID_iNaturalist": "5897"
+    },
+    {
+      "scientificName": "Chalcostigma herrani",
+      "family": "Trochilidae",
+      "order": "Apodiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "bueran"
+      ],
+      "commonName": "Chalcostigma",
+      "taxonID_GBIF": "168015694",
+      "taxonID_iNaturalist": "5900"
+    },
+    {
+      "scientificName": "Chalcostigma stanleyi",
+      "family": "Trochilidae",
+      "order": "Apodiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "culebrillas"
+      ],
+      "commonName": "Chalcostigma",
+      "taxonID_GBIF": "104147880",
+      "taxonID_iNaturalist": "5903"
+    },
+    {
+      "scientificName": "Chilomys percequilloi",
+      "family": "Cricetidae",
+      "order": "Rodentia",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Chilomys",
+      "taxonID_GBIF": "12227319",
+      "taxonID_iNaturalist": "1431190"
+    },
+    {
+      "scientificName": "Chimerella",
+      "family": "CENTROLENIDAE",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Chimerella",
+      "taxonID_GBIF": "104024004",
+      "taxonID_iNaturalist": "70555"
+    },
+    {
+      "scientificName": "Chimerella mariaelenae",
+      "family": "CENTROLENIDAE",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Chimerella",
+      "taxonID_GBIF": "165787476",
+      "taxonID_iNaturalist": "135071"
+    },
+    {
+      "scientificName": "Chionomesa",
+      "family": "Trochilidae",
+      "order": "Apodiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Chionomesa",
+      "taxonID_GBIF": "317302245",
+      "taxonID_iNaturalist": "1289340"
+    },
+    {
+      "scientificName": "Chironius",
+      "family": "Colubridae",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Chironius",
+      "taxonID_GBIF": "321177527",
+      "taxonID_iNaturalist": "27227"
+    },
+    {
+      "scientificName": "Chironius fuscus",
+      "family": "Colubridae",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Chironius",
+      "taxonID_GBIF": "177671268",
+      "taxonID_iNaturalist": "27236"
+    },
+    {
+      "scientificName": "Chironius monticola",
+      "family": "Colubridae",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Chironius",
+      "taxonID_GBIF": "164366611",
+      "taxonID_iNaturalist": "27259"
+    },
+    {
+      "scientificName": "Chironius multiventris",
+      "family": "Colubridae",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Chironius",
+      "taxonID_GBIF": "104093372",
+      "taxonID_iNaturalist": "27241"
+    },
+    {
+      "scientificName": "Chlorochrysa",
+      "family": "Thraupidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Chlorochrysa",
+      "taxonID_GBIF": "321419319",
+      "taxonID_iNaturalist": "9540"
+    },
+    {
+      "scientificName": "Chlorornis riefferii",
+      "family": "Thraupidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Chlorornis",
+      "taxonID_GBIF": "124558621",
+      "taxonID_iNaturalist": "10466"
+    },
+    {
+      "scientificName": "Chlorospingus",
+      "family": "Passerellidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Chlorospingus",
+      "taxonID_GBIF": "321209198",
+      "taxonID_iNaturalist": "10206"
+    },
+    {
+      "scientificName": "Chroicocephalus",
+      "family": "Laridae",
+      "order": "Charadriiformes",
+      "class": "Aves",
+      "regions": [
+        "atillo",
+        "cubilan",
+        "culebrillas",
+        "bueran"
+      ],
+      "commonName": "Chroicocephalus",
+      "taxonID_GBIF": "315179593",
+      "taxonID_iNaturalist": "144320"
+    },
+    {
+      "scientificName": "Cinclodes",
+      "family": "Furnariidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "culebrillas",
+        "bueran"
+      ],
+      "commonName": "Cinclodes",
+      "taxonID_GBIF": "321374394",
+      "taxonID_iNaturalist": "11373"
+    },
+    {
+      "scientificName": "Cinclodes albidiventris",
+      "family": "Furnariidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "bueran"
+      ],
+      "commonName": "Cinclodes",
+      "taxonID_GBIF": "133161143",
+      "taxonID_iNaturalist": "72675"
+    },
+    {
+      "scientificName": "Cinclus",
+      "family": "Cinclidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Cinclus",
+      "taxonID_GBIF": "315214828",
+      "taxonID_iNaturalist": "7641"
+    },
+    {
+      "scientificName": "Cinclus leucocephalus",
+      "family": "Cinclidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Cinclus",
+      "taxonID_GBIF": "133152526",
+      "taxonID_iNaturalist": "7646"
+    },
+    {
+      "scientificName": "Cissopis",
+      "family": "Thraupidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Cissopis",
+      "taxonID_GBIF": "321215726",
+      "taxonID_iNaturalist": "10685"
+    },
+    {
+      "scientificName": "Cistothorus platensis",
+      "family": "Troglodytidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "bueran"
+      ],
+      "commonName": "Cistothorus",
+      "taxonID_GBIF": "104124734",
+      "taxonID_iNaturalist": "1286843"
+    },
+    {
+      "scientificName": "Clelia clelia",
+      "family": "Colubridae",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Clelia",
+      "taxonID_GBIF": "114318875",
+      "taxonID_iNaturalist": "146320"
+    },
+    {
+      "scientificName": "Cnemathraupis eximia",
+      "family": "Thraupidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "atillo",
+        "bueran"
+      ],
+      "commonName": "Cnemathraupis",
+      "taxonID_GBIF": "168008469",
+      "taxonID_iNaturalist": "339885"
+    },
+    {
+      "scientificName": "Coeligena",
+      "family": "Trochilidae",
+      "order": "Apodiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "culebrillas"
+      ],
+      "commonName": "Coeligena",
+      "taxonID_GBIF": "321192760",
+      "taxonID_iNaturalist": "6213"
+    },
+    {
+      "scientificName": "Coeligena coeligena",
+      "family": "Trochilidae",
+      "order": "Apodiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Coeligena",
+      "taxonID_GBIF": "7192851",
+      "taxonID_iNaturalist": "6213"
+    },
+    {
+      "scientificName": "Coereba",
+      "family": "Thraupidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Coereba",
+      "taxonID_GBIF": "321138731",
+      "taxonID_iNaturalist": "10198"
+    },
+    {
+      "scientificName": "Colaptes",
+      "family": "Picidae",
+      "order": "Piciformes",
+      "class": "Aves",
+      "regions": [
+        "cubilan",
+        "culebrillas"
+      ],
+      "commonName": "Colaptes",
+      "taxonID_GBIF": "116907844",
+      "taxonID_iNaturalist": "18230"
+    },
+    {
+      "scientificName": "Colibri",
+      "family": "Trochilidae",
+      "order": "Apodiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "cubilan",
+        "culebrillas"
+      ],
+      "commonName": "Colibri",
+      "taxonID_GBIF": "119239199",
+      "taxonID_iNaturalist": "1583761"
+    },
+    {
+      "scientificName": "Columba",
+      "family": "Columbidae",
+      "order": "Columbiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "cubilan",
+        "culebrillas"
+      ],
+      "commonName": "Columba",
+      "taxonID_GBIF": "321209091",
+      "taxonID_iNaturalist": "3000"
+    },
+    {
+      "scientificName": "Conirostrum",
+      "family": "Thraupidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Conirostrum",
+      "taxonID_GBIF": "321214959",
+      "taxonID_iNaturalist": "10003"
+    },
+    {
+      "scientificName": "Conirostrum cinereum",
+      "family": "Thraupidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "culebrillas"
+      ],
+      "commonName": "Conirostrum",
+      "taxonID_GBIF": "124558584",
+      "taxonID_iNaturalist": "10012"
+    },
+    {
+      "scientificName": "Cryptotis montivagus",
+      "family": "Soricidae",
+      "order": "Soricomorpha",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "cubilan",
+        "bueran"
+      ],
+      "commonName": "Cryptotis",
+      "taxonID_GBIF": "156260944",
+      "taxonID_iNaturalist": "46813"
+    },
+    {
+      "scientificName": "Cryptotis osgoodi",
+      "family": "Cricetidae",
+      "order": "Soricomorpha",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Cryptotis",
+      "taxonID_GBIF": "209807824",
+      "taxonID_iNaturalist": "1370703"
+    },
+    {
+      "scientificName": "Cuniculus taczanowskii",
+      "family": "Cuniculidae",
+      "order": "Rodentia",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Cuniculus",
+      "taxonID_GBIF": "114869472",
+      "taxonID_iNaturalist": "74258"
+    },
+    {
+      "scientificName": "Cyanocorax",
+      "family": "Corvidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Cyanocorax",
+      "taxonID_GBIF": "321209163",
+      "taxonID_iNaturalist": "8465"
+    },
+    {
+      "scientificName": "Cyanocorax yncas",
+      "family": "Corvidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Cyanocorax",
+      "taxonID_GBIF": "168007513",
+      "taxonID_iNaturalist": "8474"
+    },
+    {
+      "scientificName": "Cyanolyca",
+      "family": "Corvidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Cyanolyca",
+      "taxonID_GBIF": "317124543",
+      "taxonID_iNaturalist": "8166"
+    },
+    {
+      "scientificName": "Cyclarhis",
+      "family": "Vireonidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Cyclarhis",
+      "taxonID_GBIF": "317227141",
+      "taxonID_iNaturalist": "17419"
+    },
+    {
+      "scientificName": "Dasyprocta",
+      "family": "Dasyproctidae",
+      "order": "Rodentia",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Dasyprocta",
+      "taxonID_GBIF": "116894803",
+      "taxonID_iNaturalist": "43711"
+    },
+    {
+      "scientificName": "Dendropsophus",
+      "family": "Hylidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Dendropsophus",
+      "taxonID_GBIF": "240182186",
+      "taxonID_iNaturalist": "64765"
+    },
+    {
+      "scientificName": "Dendropsophus bifurcus",
+      "family": "Hylidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Dendropsophus",
+      "taxonID_GBIF": "177706526",
+      "taxonID_iNaturalist": "143170"
+    },
+    {
+      "scientificName": "Dendropsophus parviceps",
+      "family": "Hylidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Dendropsophus",
+      "taxonID_GBIF": "104018303",
+      "taxonID_iNaturalist": "65384"
+    },
+    {
+      "scientificName": "Dendropsophus sarayacuensis",
+      "family": "Hylidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Dendropsophus",
+      "taxonID_GBIF": "198971488",
+      "taxonID_iNaturalist": "65399"
+    },
+    {
+      "scientificName": "Didelphis",
+      "family": "Didelphidae",
+      "order": "Didelphimorphia",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Didelphis",
+      "taxonID_GBIF": "321207384",
+      "taxonID_iNaturalist": "42646"
+    },
+    {
+      "scientificName": "Didelphis pernigra",
+      "family": "Didelphidae",
+      "order": "Didelphimorphia",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Didelphis",
+      "taxonID_GBIF": "196148013",
+      "taxonID_iNaturalist": "42648"
+    },
+    {
+      "scientificName": "Diglossa",
+      "family": "Thraupidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "cubilan",
+        "culebrillas"
+      ],
+      "commonName": "Diglossa",
+      "taxonID_GBIF": "315214925",
+      "taxonID_iNaturalist": "9830"
+    },
+    {
+      "scientificName": "Diglossa humeralis",
+      "family": "Thraupidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "culebrillas",
+        "bueran"
+      ],
+      "commonName": "Diglossa",
+      "taxonID_GBIF": "133147637",
+      "taxonID_iNaturalist": "9836"
+    },
+    {
+      "scientificName": "Diglossa lafresnayii",
+      "family": "Thraupidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "bueran"
+      ],
+      "commonName": "Diglossa",
+      "taxonID_GBIF": "116793166",
+      "taxonID_iNaturalist": "9835"
+    },
+    {
+      "scientificName": "Dipsas",
+      "family": "Colubridae",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Dipsas",
+      "taxonID_GBIF": "315215377",
+      "taxonID_iNaturalist": "354723"
+    },
+    {
+      "scientificName": "Dipsas indica",
+      "family": "Colubridae",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Dipsas",
+      "taxonID_GBIF": "104096293",
+      "taxonID_iNaturalist": "30365"
+    },
+    {
+      "scientificName": "Dipsas palmeri",
+      "family": "Colubridae",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Dipsas",
+      "taxonID_GBIF": "177665326",
+      "taxonID_iNaturalist": "738096"
+    },
+    {
+      "scientificName": "Doryfera johannae",
+      "family": "Trochilidae",
+      "order": "Apodiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Doryfera",
+      "taxonID_GBIF": "168015589",
+      "taxonID_iNaturalist": "6319"
+    },
+    {
+      "scientificName": "Drymoluber dichrous",
+      "family": "Colubridae",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Drymoluber",
+      "taxonID_GBIF": "104093713",
+      "taxonID_iNaturalist": "26821"
+    },
+    {
+      "scientificName": "Elaenia",
+      "family": "Tyrannidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "culebrillas"
+      ],
+      "commonName": "Elaenia",
+      "taxonID_GBIF": "321232992",
+      "taxonID_iNaturalist": "16679"
+    },
+    {
+      "scientificName": "Elaenia albiceps",
+      "family": "Tyrannidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Elaenia",
+      "taxonID_GBIF": "100182694",
+      "taxonID_iNaturalist": "16686"
+    },
+    {
+      "scientificName": "Ensifera",
+      "family": "Trochilidae",
+      "order": "Apodiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Ensifera",
+      "taxonID_GBIF": "321177386",
+      "taxonID_iNaturalist": "132694"
+    },
+    {
+      "scientificName": "Epipedobates boulengeri",
+      "family": "DENDROBATIDAE",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Epipedobates",
+      "taxonID_GBIF": "104015106",
+      "taxonID_iNaturalist": "21165"
+    },
+    {
+      "scientificName": "Eriocnemis",
+      "family": "Trochilidae",
+      "order": "Apodiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "culebrillas"
+      ],
+      "commonName": "Eriocnemis",
+      "taxonID_GBIF": "104148068",
+      "taxonID_iNaturalist": "6268"
+    },
+    {
+      "scientificName": "Eriocnemis luciani",
+      "family": "Trochilidae",
+      "order": "Apodiformes",
+      "class": "Aves",
+      "regions": [
+        "atillo",
+        "bueran"
+      ],
+      "commonName": "Eriocnemis",
+      "taxonID_GBIF": "104148085",
+      "taxonID_iNaturalist": "6270"
+    },
+    {
+      "scientificName": "Eriocnemis vestita",
+      "family": "Trochilidae",
+      "order": "Apodiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Eriocnemis",
+      "taxonID_GBIF": "125812140",
+      "taxonID_iNaturalist": "6276"
+    },
+    {
+      "scientificName": "Erythrolamprus",
+      "family": "Colubridae",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates",
+        "culebrillas"
+      ],
+      "commonName": "Erythrolamprus",
+      "taxonID_GBIF": "315215407",
+      "taxonID_iNaturalist": "30151"
+    },
+    {
+      "scientificName": "Erythrolamprus breviceps",
+      "family": "Colubridae",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Erythrolamprus",
+      "taxonID_GBIF": "104096344",
+      "taxonID_iNaturalist": "539675"
+    },
+    {
+      "scientificName": "Erythrolamprus darwinnunezi",
+      "family": "Colubridae",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Erythrolamprus",
+      "taxonID_GBIF": "307423831",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "Erythrolamprus mimus",
+      "family": "Colubridae",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Erythrolamprus",
+      "taxonID_GBIF": "100040501",
+      "taxonID_iNaturalist": "30158"
+    },
+    {
+      "scientificName": "Espadarana",
+      "family": "CENTROLENIDAE",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Espadarana",
+      "taxonID_GBIF": "321467460",
+      "taxonID_iNaturalist": "70625"
+    },
+    {
+      "scientificName": "Espadarana durrellorum",
+      "family": "CENTROLENIDAE",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Espadarana",
+      "taxonID_GBIF": "255712254",
+      "taxonID_iNaturalist": "476353"
+    },
+    {
+      "scientificName": "Espadarana prosoblepon",
+      "family": "CENTROLENIDAE",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Espadarana",
+      "taxonID_GBIF": "104024103",
+      "taxonID_iNaturalist": "134933"
+    },
+    {
+      "scientificName": "Euphonia",
+      "family": "Fringillidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Euphonia",
+      "taxonID_GBIF": "265655384",
+      "taxonID_iNaturalist": "9079"
+    },
+    {
+      "scientificName": "Euphonia xanthogaster",
+      "family": "Fringillidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Euphonia",
+      "taxonID_GBIF": "124558427",
+      "taxonID_iNaturalist": "9306"
+    },
+    {
+      "scientificName": "Eutoxeres",
+      "family": "Trochilidae",
+      "order": "Apodiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Eutoxeres",
+      "taxonID_GBIF": "321583746",
+      "taxonID_iNaturalist": "6043"
+    },
+    {
+      "scientificName": "Eutoxeres aquila",
+      "family": "Trochilidae",
+      "order": "Apodiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Eutoxeres",
+      "taxonID_GBIF": "104148148",
+      "taxonID_iNaturalist": "6044"
+    },
+    {
+      "scientificName": "Falco",
+      "family": "Falconidae",
+      "order": "Falconiformes",
+      "class": "Aves",
+      "regions": [
+        "cubilan"
+      ],
+      "commonName": "Falco",
+      "taxonID_GBIF": "144031903",
+      "taxonID_iNaturalist": "67570"
+    },
+    {
+      "scientificName": "Fulica",
+      "family": "Rallidae",
+      "order": "Gruiformes",
+      "class": "Aves",
+      "regions": [
+        "cubilan",
+        "culebrillas"
+      ],
+      "commonName": "Fulica",
+      "taxonID_GBIF": "300119252",
+      "taxonID_iNaturalist": "472"
+    },
+    {
+      "scientificName": "Galbula",
+      "family": "Galbulidae",
+      "order": "Piciformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Galbula",
+      "taxonID_GBIF": "321194815",
+      "taxonID_iNaturalist": "9346"
+    },
+    {
+      "scientificName": "Gallinago jamesoni",
+      "family": "Scolopacidae",
+      "order": "Charadriiformes",
+      "class": "Aves",
+      "regions": [
+        "atillo",
+        "bueran"
+      ],
+      "commonName": "Gallinago",
+      "taxonID_GBIF": "168322719",
+      "taxonID_iNaturalist": "3916"
+    },
+    {
+      "scientificName": "Gastrotheca",
+      "family": "HEMIPHRACTIDAE",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Gastrotheca",
+      "taxonID_GBIF": "321139317",
+      "taxonID_iNaturalist": "24126"
+    },
+    {
+      "scientificName": "Gastrotheca pseustes",
+      "family": "HEMIPHRACTIDAE",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "cubilan",
+        "culebrillas"
+      ],
+      "commonName": "Gastrotheca",
+      "taxonID_GBIF": "177703643",
+      "taxonID_iNaturalist": "24152"
+    },
+    {
+      "scientificName": "Gastrotheca testudinea",
+      "family": "HEMIPHRACTIDAE",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Gastrotheca",
+      "taxonID_GBIF": "159126683",
+      "taxonID_iNaturalist": "24155"
+    },
+    {
+      "scientificName": "Gelanesaurus",
+      "family": "GYMNOPHTHALMIDAE",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Gelanesaurus",
+      "taxonID_GBIF": "321215152",
+      "taxonID_iNaturalist": "539146"
+    },
+    {
+      "scientificName": "Gelanesaurus flavogularis",
+      "family": "GYMNOPHTHALIMIDAE",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Gelanesaurus",
+      "taxonID_GBIF": "119680941",
+      "taxonID_iNaturalist": "539733"
+    },
+    {
+      "scientificName": "Geospizopsis",
+      "family": "Thraupidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "atillo",
+        "bueran"
+      ],
+      "commonName": "Geospizopsis",
+      "taxonID_GBIF": "321481779",
+      "taxonID_iNaturalist": "558416"
+    },
+    {
+      "scientificName": "Geospizopsis unicolor",
+      "family": "Thraupidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "bueran"
+      ],
+      "commonName": "Geospizopsis",
+      "taxonID_GBIF": "133147353",
+      "taxonID_iNaturalist": "558575"
+    },
+    {
+      "scientificName": "Glyphorynchus",
+      "family": "Furnariidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Glyphorynchus",
+      "taxonID_GBIF": "177699476",
+      "taxonID_iNaturalist": "11409"
+    },
+    {
+      "scientificName": "Grallaria",
+      "family": "Grallariidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Grallaria",
+      "taxonID_GBIF": "116798876",
+      "taxonID_iNaturalist": "71694"
+    },
+    {
+      "scientificName": "Grallaria nuchalis",
+      "family": "Grallariidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Grallaria",
+      "taxonID_GBIF": "114905283",
+      "taxonID_iNaturalist": "116902"
+    },
+    {
+      "scientificName": "Grallaria quitensis",
+      "family": "Grallariidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "culebrillas",
+        "bueran"
+      ],
+      "commonName": "Grallaria",
+      "taxonID_GBIF": "116898966",
+      "taxonID_iNaturalist": "116904"
+    },
+    {
+      "scientificName": "Grallaria rufula",
+      "family": "Grallariidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Grallaria",
+      "taxonID_GBIF": "104126943",
+      "taxonID_iNaturalist": "116906"
+    },
+    {
+      "scientificName": "Haplospiza rustica",
+      "family": "Thraupidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Haplospiza",
+      "taxonID_GBIF": "114905235",
+      "taxonID_iNaturalist": "9281"
+    },
+    {
+      "scientificName": "Heliangelus",
+      "family": "Trochilidae",
+      "order": "Apodiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "cubilan",
+        "culebrillas"
+      ],
+      "commonName": "Heliangelus",
+      "taxonID_GBIF": "104148206",
+      "taxonID_iNaturalist": "6187"
+    },
+    {
+      "scientificName": "Helicops pastazae",
+      "family": "Colubridae",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Helicops",
+      "taxonID_GBIF": "148814382",
+      "taxonID_iNaturalist": "29973"
+    },
+    {
+      "scientificName": "Heliodoxa",
+      "family": "Trochilidae",
+      "order": "Apodiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Heliodoxa",
+      "taxonID_GBIF": "168015523",
+      "taxonID_iNaturalist": "5910"
+    },
+    {
+      "scientificName": "Heliodoxa leadbeateri",
+      "family": "Trochilidae",
+      "order": "Apodiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Heliodoxa",
+      "taxonID_GBIF": "193391917",
+      "taxonID_iNaturalist": "5929"
+    },
+    {
+      "scientificName": "Hellmayrea gularis",
+      "family": "Furnariidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "bueran"
+      ],
+      "commonName": "Hellmayrea",
+      "taxonID_GBIF": "104127496",
+      "taxonID_iNaturalist": "11739"
+    },
+    {
+      "scientificName": "Henicorhina",
+      "family": "Troglodytidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Henicorhina",
+      "taxonID_GBIF": "315215020",
+      "taxonID_iNaturalist": "7611"
+    },
+    {
+      "scientificName": "Hirundinea",
+      "family": "Tyrannidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Hirundinea",
+      "taxonID_GBIF": "321215490",
+      "taxonID_iNaturalist": "17179"
+    },
+    {
+      "scientificName": "Histiotus montanus",
+      "family": "Vespertilionidae",
+      "order": "Chiroptera",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Histiotus",
+      "taxonID_GBIF": "209809739",
+      "taxonID_iNaturalist": "40534"
+    },
+    {
+      "scientificName": "Hyalinobatrachium",
+      "family": "CENTROLENIDAE",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Hyalinobatrachium",
+      "taxonID_GBIF": "321210421",
+      "taxonID_iNaturalist": "21321"
+    },
+    {
+      "scientificName": "Hyalinobatrachium adespinosai",
+      "family": "CENTROLENIDAE",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Hyalinobatrachium",
+      "taxonID_GBIF": "212461239",
+      "taxonID_iNaturalist": "991944"
+    },
+    {
+      "scientificName": "Hylaeamys tatei",
+      "family": "Cricetidae",
+      "order": "Rodentia",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Hylaeamys",
+      "taxonID_GBIF": "217138675",
+      "taxonID_iNaturalist": "74451"
+    },
+    {
+      "scientificName": "Hylaeamys yunganus",
+      "family": "Cricetidae",
+      "order": "Rodentia",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Hylaeamys",
+      "taxonID_GBIF": "104055553",
+      "taxonID_iNaturalist": "74452"
+    },
+    {
+      "scientificName": "Hyloscirtus palmeri",
+      "family": "Hylidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Hyloscirtus",
+      "taxonID_GBIF": "114904651",
+      "taxonID_iNaturalist": "65660"
+    },
+    {
+      "scientificName": "Hyloscirtus sethmacfarlanei",
+      "family": "Hylidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Hyloscirtus",
+      "taxonID_GBIF": "303054393",
+      "taxonID_iNaturalist": "1423536"
+    },
+    {
+      "scientificName": "Hyloscirtus torrenticola",
+      "family": "Hylidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Hyloscirtus",
+      "taxonID_GBIF": "212461362",
+      "taxonID_iNaturalist": "65671"
+    },
+    {
+      "scientificName": "Hyloxalus",
+      "family": "DENDROBATIDAE",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Hyloxalus",
+      "taxonID_GBIF": "217110322",
+      "taxonID_iNaturalist": "64784"
+    },
+    {
+      "scientificName": "Hyloxalus fuliginosus",
+      "family": "DENDROBATIDAE",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Hyloxalus",
+      "taxonID_GBIF": "159126728",
+      "taxonID_iNaturalist": "65692"
+    },
+    {
+      "scientificName": "Hyloxalus pulchellus",
+      "family": "DENDROBATIDAE",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Hyloxalus",
+      "taxonID_GBIF": "104015761",
+      "taxonID_iNaturalist": "65708"
+    },
+    {
+      "scientificName": "Hypodactylus",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Hypodactylus",
+      "taxonID_GBIF": "104022390",
+      "taxonID_iNaturalist": "64798"
+    },
+    {
+      "scientificName": "Ichthyomys stolzmanni",
+      "family": "Cricetidae",
+      "order": "Rodentia",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Ichthyomys",
+      "taxonID_GBIF": "156259738",
+      "taxonID_iNaturalist": "45017"
+    },
+    {
+      "scientificName": "Imantodes cenchoa",
+      "family": "Colubridae",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Imantodes",
+      "taxonID_GBIF": "104096641",
+      "taxonID_iNaturalist": "29873"
+    },
+    {
+      "scientificName": "Iridophanes",
+      "family": "Thraupidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Iridophanes",
+      "taxonID_GBIF": "321562159",
+      "taxonID_iNaturalist": "10632"
+    },
+    {
+      "scientificName": "Iridosornis rufivertex",
+      "family": "Thraupidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "bueran"
+      ],
+      "commonName": "Iridosornis",
+      "taxonID_GBIF": "116793104",
+      "taxonID_iNaturalist": "9278"
+    },
+    {
+      "scientificName": "Kentropyx",
+      "family": "Teiidae",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Kentropyx",
+      "taxonID_GBIF": "217153606",
+      "taxonID_iNaturalist": "38943"
+    },
+    {
+      "scientificName": "Knipolegus",
+      "family": "Tyrannidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Knipolegus",
+      "taxonID_GBIF": "177696497",
+      "taxonID_iNaturalist": "16802"
+    },
+    {
+      "scientificName": "Lafresnaya lafresnayi",
+      "family": "Trochilidae",
+      "order": "Apodiformes",
+      "class": "Aves",
+      "regions": [
+        "atillo",
+        "bueran"
+      ],
+      "commonName": "Lafresnaya",
+      "taxonID_GBIF": "100180147",
+      "taxonID_iNaturalist": "6056"
+    },
+    {
+      "scientificName": "Leistes",
+      "family": "Icteridae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "cubilan",
+        "culebrillas"
+      ],
+      "commonName": "Leistes",
+      "taxonID_GBIF": "324829176",
+      "taxonID_iNaturalist": "793307"
+    },
+    {
+      "scientificName": "Leopardus tigrinus",
+      "family": "Felidae",
+      "order": "Carnivora",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "cubilan",
+        "culebrillas",
+        "bueran"
+      ],
+      "commonName": "Leopardus",
+      "taxonID_GBIF": "158964533",
+      "taxonID_iNaturalist": "544590"
+    },
+    {
+      "scientificName": "Lepidoblepharis",
+      "family": "SPHAERODACTYLIDAE",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Lepidoblepharis",
+      "taxonID_GBIF": "147243296",
+      "taxonID_iNaturalist": "34366"
+    },
+    {
+      "scientificName": "Lepidoblepharis festae",
+      "family": "GYMNOPHTHALMIDAE",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Lepidoblepharis",
+      "taxonID_GBIF": "177689996",
+      "taxonID_iNaturalist": "104193"
+    },
+    {
+      "scientificName": "Lepidothrix",
+      "family": "Pipridae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Lepidothrix",
+      "taxonID_GBIF": "168012567",
+      "taxonID_iNaturalist": "14316"
+    },
+    {
+      "scientificName": "Leptasthenura andicola",
+      "family": "Furnariidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "culebrillas"
+      ],
+      "commonName": "Leptasthenura",
+      "taxonID_GBIF": "104127545",
+      "taxonID_iNaturalist": "11682"
+    },
+    {
+      "scientificName": "Leptodactylus melanonotus",
+      "family": "LEPTODACTYLIDAE",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Leptodactylus",
+      "taxonID_GBIF": "177707586",
+      "taxonID_iNaturalist": "22951"
+    },
+    {
+      "scientificName": "Leptodactylus wagneri",
+      "family": "LEPTODACTYLIDAE",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Leptodactylus",
+      "taxonID_GBIF": "212461293",
+      "taxonID_iNaturalist": "22952"
+    },
+    {
+      "scientificName": "Leptopogon",
+      "family": "Tyrannidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Leptopogon",
+      "taxonID_GBIF": "317124589",
+      "taxonID_iNaturalist": "16370"
+    },
+    {
+      "scientificName": "Leptosittaca",
+      "family": "Psittacidae",
+      "order": "Psittaciformes",
+      "class": "Aves",
+      "regions": [
+        "cubilan",
+        "culebrillas"
+      ],
+      "commonName": "Leptosittaca",
+      "taxonID_GBIF": "321046702",
+      "taxonID_iNaturalist": "19297"
+    },
+    {
+      "scientificName": "Lesbia",
+      "family": "Trochilidae",
+      "order": "Apodiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "cubilan",
+        "culebrillas"
+      ],
+      "commonName": "Lesbia",
+      "taxonID_GBIF": "119244422",
+      "taxonID_iNaturalist": "424213"
+    },
+    {
+      "scientificName": "Lithodytes",
+      "family": "LEPTODACTYLIDAE",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Lithodytes",
+      "taxonID_GBIF": "315213755",
+      "taxonID_iNaturalist": "134243"
+    },
+    {
+      "scientificName": "Lontra",
+      "family": "Mustelidae",
+      "order": "Carnivora",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "cubilan",
+        "culebrillas",
+        "bueran"
+      ],
+      "commonName": "Lontra",
+      "taxonID_GBIF": "317227001",
+      "taxonID_iNaturalist": "526556"
+    },
+    {
+      "scientificName": "Lycalopex culpaeus",
+      "family": "Canidae",
+      "order": "Carnivora",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "cubilan",
+        "culebrillas",
+        "bueran"
+      ],
+      "commonName": "Lycalopex",
+      "taxonID_GBIF": "104059871",
+      "taxonID_iNaturalist": "516126"
+    },
+    {
+      "scientificName": "Lynchius",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Lynchius",
+      "taxonID_GBIF": "177702407",
+      "taxonID_iNaturalist": "64791"
+    },
+    {
+      "scientificName": "Malacoptila",
+      "family": "Bucconidae",
+      "order": "Piciformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "culebrillas"
+      ],
+      "commonName": "Malacoptila",
+      "taxonID_GBIF": "321209019",
+      "taxonID_iNaturalist": "1510"
+    },
+    {
+      "scientificName": "Margarornis squamiger",
+      "family": "Furnariidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "culebrillas"
+      ],
+      "commonName": "Margarornis",
+      "taxonID_GBIF": "104127597",
+      "taxonID_iNaturalist": "10907"
+    },
+    {
+      "scientificName": "Marmosa",
+      "family": "Didelphidae",
+      "order": "Didelphimorphia",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Marmosa",
+      "taxonID_GBIF": "104071710",
+      "taxonID_iNaturalist": "42540"
+    },
+    {
+      "scientificName": "Marmosa germana",
+      "family": "Didelphidae",
+      "order": "Didelphimorphia",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Marmosa",
+      "taxonID_GBIF": "166401658",
+      "taxonID_iNaturalist": "1370660"
+    },
+    {
+      "scientificName": "Marmosa rubra",
+      "family": "Didelphidae",
+      "order": "Didelphimorphia",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Marmosa",
+      "taxonID_GBIF": "104071756",
+      "taxonID_iNaturalist": "42676"
+    },
+    {
+      "scientificName": "Marmosops caucae",
+      "family": "Didelphidae",
+      "order": "Didelphimorphia",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Marmosops",
+      "taxonID_GBIF": "100070305",
+      "taxonID_iNaturalist": "1370651"
+    },
+    {
+      "scientificName": "Masius",
+      "family": "Pipridae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Masius",
+      "taxonID_GBIF": "321184064",
+      "taxonID_iNaturalist": "14309"
+    },
+    {
+      "scientificName": "Mazama",
+      "family": "Cervidae",
+      "order": "Artiodactyla",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "cubilan",
+        "culebrillas",
+        "bueran"
+      ],
+      "commonName": "Mazama",
+      "taxonID_GBIF": "317471209",
+      "taxonID_iNaturalist": "1596103"
+    },
+    {
+      "scientificName": "Mecocerculus",
+      "family": "Tyrannidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Mecocerculus",
+      "taxonID_GBIF": "321508833",
+      "taxonID_iNaturalist": "16400"
+    },
+    {
+      "scientificName": "Mecocerculus leucophrys",
+      "family": "Tyrannidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "culebrillas",
+        "bueran"
+      ],
+      "commonName": "Mecocerculus",
+      "taxonID_GBIF": "133163330",
+      "taxonID_iNaturalist": "16407"
+    },
+    {
+      "scientificName": "Mecocerculus stictopterus",
+      "family": "Tyrannidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "atillo",
+        "bueran"
+      ],
+      "commonName": "Mecocerculus",
+      "taxonID_GBIF": "133163340",
+      "taxonID_iNaturalist": "16402"
+    },
+    {
+      "scientificName": "Megascops albogularis",
+      "family": "Strigidae",
+      "order": "Strigiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Megascops",
+      "taxonID_GBIF": "168003794",
+      "taxonID_iNaturalist": "19778"
+    },
+    {
+      "scientificName": "Merganetta",
+      "family": "Anatidae",
+      "order": "Anseriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Merganetta",
+      "taxonID_GBIF": "321731119",
+      "taxonID_iNaturalist": "7167"
+    },
+    {
+      "scientificName": "Metallura",
+      "family": "Trochilidae",
+      "order": "Apodiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "cubilan",
+        "culebrillas"
+      ],
+      "commonName": "Metallura",
+      "taxonID_GBIF": "317297588",
+      "taxonID_iNaturalist": "5563"
+    },
+    {
+      "scientificName": "Metallura baroni",
+      "family": "Trochilidae",
+      "order": "Apodiformes",
+      "class": "Aves",
+      "regions": [
+        "culebrillas"
+      ],
+      "commonName": "Metallura",
+      "taxonID_GBIF": "100180338",
+      "taxonID_iNaturalist": "5568"
+    },
+    {
+      "scientificName": "Metallura williami",
+      "family": "Trochilidae",
+      "order": "Apodiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "bueran"
+      ],
+      "commonName": "Metallura",
+      "taxonID_GBIF": "100180374",
+      "taxonID_iNaturalist": "5582"
+    },
+    {
+      "scientificName": "Micronycteris megalotis",
+      "family": "Phyllostomidae",
+      "order": "Chiroptera",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Micronycteris",
+      "taxonID_GBIF": "104063364",
+      "taxonID_iNaturalist": "41072"
+    },
+    {
+      "scientificName": "Microryzomys altissimus",
+      "family": "Cricetidae",
+      "order": "Rodentia",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "cubilan",
+        "bueran"
+      ],
+      "commonName": "Microryzomys",
+      "taxonID_GBIF": "114869511",
+      "taxonID_iNaturalist": "44768"
+    },
+    {
+      "scientificName": "Microryzomys minutus",
+      "family": "Cricetidae",
+      "order": "Rodentia",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates",
+        "culebrillas"
+      ],
+      "commonName": "Microryzomys",
+      "taxonID_GBIF": "177655738",
+      "taxonID_iNaturalist": "44767"
+    },
+    {
+      "scientificName": "Microsciurus",
+      "family": "Sciuridae",
+      "order": "Rodentia",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Microsciurus",
+      "taxonID_GBIF": "177661415",
+      "taxonID_iNaturalist": "46098"
+    },
+    {
+      "scientificName": "Mimon crenulatum",
+      "family": "Phyllostomidae",
+      "order": "Chiroptera",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Mimon",
+      "taxonID_GBIF": "195285829",
+      "taxonID_iNaturalist": "852272"
+    },
+    {
+      "scientificName": "Mionectes",
+      "family": "Tyrannidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Mionectes",
+      "taxonID_GBIF": "104140512",
+      "taxonID_iNaturalist": "16505"
+    },
+    {
+      "scientificName": "Monodelphis adusta",
+      "family": "Didelphidae",
+      "order": "Didelphimorphia",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Monodelphis",
+      "taxonID_GBIF": "116904729",
+      "taxonID_iNaturalist": "852374"
+    },
+    {
+      "scientificName": "Mus musculus",
+      "family": "Muridae",
+      "order": "Rodentia",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Mus",
+      "taxonID_GBIF": "304186627",
+      "taxonID_iNaturalist": "1578442"
+    },
+    {
+      "scientificName": "Muscisaxicola",
+      "family": "Tyrannidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "culebrillas"
+      ],
+      "commonName": "Muscisaxicola",
+      "taxonID_GBIF": "317124587",
+      "taxonID_iNaturalist": "16137"
+    },
+    {
+      "scientificName": "Muscisaxicola alpinus",
+      "family": "Tyrannidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Muscisaxicola",
+      "taxonID_GBIF": "100183243",
+      "taxonID_iNaturalist": "16150"
+    },
+    {
+      "scientificName": "Mustela frenata",
+      "family": "Mustelidae",
+      "order": "Carnivora",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "cubilan",
+        "culebrillas",
+        "bueran"
+      ],
+      "commonName": "Mustela",
+      "taxonID_GBIF": "116906600",
+      "taxonID_iNaturalist": "1264431"
+    },
+    {
+      "scientificName": "Myadestes",
+      "family": "Turdidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Myadestes",
+      "taxonID_GBIF": "317124570",
+      "taxonID_iNaturalist": "12947"
+    },
+    {
+      "scientificName": "Myiarchus",
+      "family": "Tyrannidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Myiarchus",
+      "taxonID_GBIF": "114143296",
+      "taxonID_iNaturalist": "15985"
+    },
+    {
+      "scientificName": "Myioborus",
+      "family": "Parulidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "cubilan",
+        "culebrillas"
+      ],
+      "commonName": "Myioborus",
+      "taxonID_GBIF": "321215422",
+      "taxonID_iNaturalist": "9446"
+    },
+    {
+      "scientificName": "Myioborus melanocephalus",
+      "family": "Parulidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "bueran"
+      ],
+      "commonName": "Myioborus",
+      "taxonID_GBIF": "164366114",
+      "taxonID_iNaturalist": "9447"
+    },
+    {
+      "scientificName": "Myiodynastes",
+      "family": "Tyrannidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Myiodynastes",
+      "taxonID_GBIF": "321215484",
+      "taxonID_iNaturalist": "16058"
+    },
+    {
+      "scientificName": "Myiophobus",
+      "family": "Tyrannidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Myiophobus",
+      "taxonID_GBIF": "256413445",
+      "taxonID_iNaturalist": "16850"
+    },
+    {
+      "scientificName": "Myiotheretes",
+      "family": "Tyrannidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "culebrillas"
+      ],
+      "commonName": "Myiotheretes",
+      "taxonID_GBIF": "321409689",
+      "taxonID_iNaturalist": "16988"
+    },
+    {
+      "scientificName": "Myiothlypis nigrocristata",
+      "family": "Parulidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "atillo",
+        "bueran"
+      ],
+      "commonName": "Myiothlypis",
+      "taxonID_GBIF": "100158199",
+      "taxonID_iNaturalist": "201226"
+    },
+    {
+      "scientificName": "Myiotriccus",
+      "family": "Tyrannidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Myiotriccus",
+      "taxonID_GBIF": "321140419",
+      "taxonID_iNaturalist": "17224"
+    },
+    {
+      "scientificName": "Myotis albescens",
+      "family": "Vespertilionidae",
+      "order": "Chiroptera",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Myotis",
+      "taxonID_GBIF": "209809395",
+      "taxonID_iNaturalist": "40296"
+    },
+    {
+      "scientificName": "Myotis keaysi",
+      "family": "Vespertilionidae",
+      "order": "Chiroptera",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Myotis",
+      "taxonID_GBIF": "114906260",
+      "taxonID_iNaturalist": "1431559"
+    },
+    {
+      "scientificName": "Myotis nigricans",
+      "family": "Vespertilionidae",
+      "order": "Chiroptera",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Myotis",
+      "taxonID_GBIF": "177677466",
+      "taxonID_iNaturalist": "40286"
+    },
+    {
+      "scientificName": "Nasua",
+      "family": "Procyonidae",
+      "order": "Carnivora",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "cubilan",
+        "culebrillas",
+        "bueran"
+      ],
+      "commonName": "Nasua",
+      "taxonID_GBIF": "315095140",
+      "taxonID_iNaturalist": "41669"
+    },
+    {
+      "scientificName": "Nasuella olivacea",
+      "family": "Procyonidae",
+      "order": "Carnivora",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "cubilan",
+        "culebrillas",
+        "bueran"
+      ],
+      "commonName": "Nasuella",
+      "taxonID_GBIF": "209806551",
+      "taxonID_iNaturalist": "1431872"
+    },
+    {
+      "scientificName": "Neacomys rosalindae",
+      "family": "Cricetidae",
+      "order": "Rodentia",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Neacomys",
+      "taxonID_GBIF": "183515766",
+      "taxonID_iNaturalist": "1431212"
+    },
+    {
+      "scientificName": "Nectomys apicalis",
+      "family": "Cricetidae",
+      "order": "Rodentia",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Nectomys",
+      "taxonID_GBIF": "209802867",
+      "taxonID_iNaturalist": "74746"
+    },
+    {
+      "scientificName": "Neomicroxus latebricola",
+      "family": "Cricetidae",
+      "order": "Rodentia",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Neomicroxus",
+      "taxonID_GBIF": "196220858",
+      "taxonID_iNaturalist": "607178"
+    },
+    {
+      "scientificName": "Nephelomys auriventer",
+      "family": "Cricetidae",
+      "order": "Rodentia",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Nephelomys",
+      "taxonID_GBIF": "209802817",
+      "taxonID_iNaturalist": "74760"
+    },
+    {
+      "scientificName": "Nephelomys nimbosus",
+      "family": "Cricetidae",
+      "order": "Rodentia",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "cubilan",
+        "bueran"
+      ],
+      "commonName": "Nephelomys",
+      "taxonID_GBIF": "199467485",
+      "taxonID_iNaturalist": "935857"
+    },
+    {
+      "scientificName": "Neusticomys",
+      "family": "Cricetidae",
+      "order": "Rodentia",
+      "class": "Mammalia",
+      "regions": [
+        "atillo",
+        "cubilan",
+        "bueran"
+      ],
+      "commonName": "Neusticomys",
+      "taxonID_GBIF": "321677527",
+      "taxonID_iNaturalist": "504810"
+    },
+    {
+      "scientificName": "Neusticomys vossi",
+      "family": "Cricetidae",
+      "order": "Rodentia",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "cubilan",
+        "bueran"
+      ],
+      "commonName": "Neusticomys",
+      "taxonID_GBIF": "177655323",
+      "taxonID_iNaturalist": "504810"
+    },
+    {
+      "scientificName": "Niceforonia",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Niceforonia",
+      "taxonID_GBIF": "321210465",
+      "taxonID_iNaturalist": "64798"
+    },
+    {
+      "scientificName": "Niceforonia nigrovittata",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Niceforonia",
+      "taxonID_GBIF": "",
+      "taxonID_iNaturalist": "803871"
+    },
+    {
+      "scientificName": "Noblella",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Noblella",
+      "taxonID_GBIF": "244920376",
+      "taxonID_iNaturalist": "64799"
+    },
+    {
+      "scientificName": "Notosciurus granatensis",
+      "family": "Sciuridae",
+      "order": "Rodentia",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Notosciurus",
+      "taxonID_GBIF": "11160000",
+      "taxonID_iNaturalist": "46010"
+    },
+    {
+      "scientificName": "Nymphargus",
+      "family": "CENTROLENIDAE",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Nymphargus",
+      "taxonID_GBIF": "321210417",
+      "taxonID_iNaturalist": "64800"
+    },
+    {
+      "scientificName": "Nymphargus anomalus",
+      "family": "CENTROLENIDAE",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Nymphargus",
+      "taxonID_GBIF": "",
+      "taxonID_iNaturalist": "66192"
+    },
+    {
+      "scientificName": "Ochthoeca",
+      "family": "Tyrannidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Ochthoeca",
+      "taxonID_GBIF": "114143894",
+      "taxonID_iNaturalist": "16166"
+    },
+    {
+      "scientificName": "Ochthoeca frontalis",
+      "family": "Tyrannidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "bueran"
+      ],
+      "commonName": "Ochthoeca",
+      "taxonID_GBIF": "125811951",
+      "taxonID_iNaturalist": "1440169"
+    },
+    {
+      "scientificName": "Ochthoeca fumicolor",
+      "family": "Tyrannidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "culebrillas"
+      ],
+      "commonName": "Ochthoeca",
+      "taxonID_GBIF": "100183656",
+      "taxonID_iNaturalist": "16188"
+    },
+    {
+      "scientificName": "Ocreatus",
+      "family": "Trochilidae",
+      "order": "Apodiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Ocreatus",
+      "taxonID_GBIF": "116806659",
+      "taxonID_iNaturalist": "5857"
+    },
+    {
+      "scientificName": "Odocoileus",
+      "family": "Cervidae",
+      "order": "Artiodactyla",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "cubilan",
+        "culebrillas",
+        "bueran"
+      ],
+      "commonName": "Odocoileus",
+      "taxonID_GBIF": "317424269",
+      "taxonID_iNaturalist": "42219"
+    },
+    {
+      "scientificName": "Oecomys bicolor",
+      "family": "Cricetidae",
+      "order": "Rodentia",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Oecomys",
+      "taxonID_GBIF": "177655838",
+      "taxonID_iNaturalist": "44782"
+    },
+    {
+      "scientificName": "Oligoryzomys",
+      "family": "Cricetidae",
+      "order": "Rodentia",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Oligoryzomys",
+      "taxonID_GBIF": "315214490",
+      "taxonID_iNaturalist": "44820"
+    },
+    {
+      "scientificName": "Oligoryzomys delicatus",
+      "family": "Cricetidae",
+      "order": "Rodentia",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Oligoryzomys",
+      "taxonID_GBIF": "205148084",
+      "taxonID_iNaturalist": "932235"
+    },
+    {
+      "scientificName": "Oligoryzomys destructor",
+      "family": "Cricetidae",
+      "order": "Rodentia",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Oligoryzomys",
+      "taxonID_GBIF": "177655575",
+      "taxonID_iNaturalist": "44835"
+    },
+    {
+      "scientificName": "Oreobates quixensis",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Oreobates",
+      "taxonID_GBIF": "",
+      "taxonID_iNaturalist": "66291"
+    },
+    {
+      "scientificName": "Oreoryzomys balneator",
+      "family": "Cricetidae",
+      "order": "Rodentia",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Oreoryzomys",
+      "taxonID_GBIF": "177655367",
+      "taxonID_iNaturalist": "74815"
+    },
+    {
+      "scientificName": "Oreotrochilus",
+      "family": "Trochilidae",
+      "order": "Apodiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Oreotrochilus",
+      "taxonID_GBIF": "104148430",
+      "taxonID_iNaturalist": "5845"
+    },
+    {
+      "scientificName": "Oreotrochilus chimborazo",
+      "family": "Trochilidae",
+      "order": "Apodiformes",
+      "class": "Aves",
+      "regions": [
+        "atillo",
+        "bueran"
+      ],
+      "commonName": "Oreotrochilus",
+      "taxonID_GBIF": "209688965",
+      "taxonID_iNaturalist": "5853"
+    },
+    {
+      "scientificName": "Oreotrochilus chimborazo jamesonii",
+      "family": "Trochilidae",
+      "order": "Apodiformes",
+      "class": "Aves",
+      "regions": [
+        "atillo",
+        "bueran"
+      ],
+      "commonName": "Oreotrochilus",
+      "taxonID_GBIF": "119210179",
+      "taxonID_iNaturalist": "727243"
+    },
+    {
+      "scientificName": "Orochelidon",
+      "family": "Hirundinidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Orochelidon",
+      "taxonID_GBIF": "317308592",
+      "taxonID_iNaturalist": "144347"
+    },
+    {
+      "scientificName": "Orochelidon murina",
+      "family": "Hirundinidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "atillo",
+        "bueran"
+      ],
+      "commonName": "Orochelidon",
+      "taxonID_GBIF": "125811912",
+      "taxonID_iNaturalist": "144782"
+    },
+    {
+      "scientificName": "Osornophryne",
+      "family": "Bufonidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Osornophryne",
+      "taxonID_GBIF": "321678763",
+      "taxonID_iNaturalist": "21804"
+    },
+    {
+      "scientificName": "Osornophryne simpsoni",
+      "family": "Bufonidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Osornophryne",
+      "taxonID_GBIF": "152029802",
+      "taxonID_iNaturalist": "134773"
+    },
+    {
+      "scientificName": "Osteocephalus",
+      "family": "Hylidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Osteocephalus",
+      "taxonID_GBIF": "253823273",
+      "taxonID_iNaturalist": "24174"
+    },
+    {
+      "scientificName": "Osteocephalus verruciger",
+      "family": "Hylidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Osteocephalus",
+      "taxonID_GBIF": "168148041",
+      "taxonID_iNaturalist": "24190"
+    },
+    {
+      "scientificName": "Oxybelis brevirostris",
+      "family": "Colubridae",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Oxybelis",
+      "taxonID_GBIF": "176736468",
+      "taxonID_iNaturalist": "29179"
+    },
+    {
+      "scientificName": "Oxyrhopus occipitalis",
+      "family": "Colubridae",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Oxyrhopus",
+      "taxonID_GBIF": "177665669",
+      "taxonID_iNaturalist": "29160"
+    },
+    {
+      "scientificName": "Oxyrhopus petolarius",
+      "family": "Colubridae",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Oxyrhopus",
+      "taxonID_GBIF": "168147083",
+      "taxonID_iNaturalist": "146320"
+    },
+    {
+      "scientificName": "Oxyura",
+      "family": "Anatidae",
+      "order": "Anseriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "cubilan",
+        "culebrillas"
+      ],
+      "commonName": "Oxyura",
+      "taxonID_GBIF": "315179886",
+      "taxonID_iNaturalist": "7073"
+    },
+    {
+      "scientificName": "Passer",
+      "family": "Passeridae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Passer",
+      "taxonID_GBIF": "4413707",
+      "taxonID_iNaturalist": "7251"
+    },
+    {
+      "scientificName": "Patagioenas",
+      "family": "Columbidae",
+      "order": "Columbiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Patagioenas",
+      "taxonID_GBIF": "315201247",
+      "taxonID_iNaturalist": "3078"
+    },
+    {
+      "scientificName": "Patagona",
+      "family": "Trochilidae",
+      "order": "Apodiformes",
+      "class": "Aves",
+      "regions": [
+        "culebrillas"
+      ],
+      "commonName": "Patagona",
+      "taxonID_GBIF": "234989136",
+      "taxonID_iNaturalist": "6254"
+    },
+    {
+      "scientificName": "Penelope",
+      "family": "Cracidae",
+      "order": "Galliformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "culebrillas"
+      ],
+      "commonName": "Penelope",
+      "taxonID_GBIF": "297941748",
+      "taxonID_iNaturalist": "2043"
+    },
+    {
+      "scientificName": "Penelope montagnii",
+      "family": "Cracidae",
+      "order": "Galliformes",
+      "class": "Aves",
+      "regions": [
+        "atillo",
+        "bueran"
+      ],
+      "commonName": "Penelope",
+      "taxonID_GBIF": "124559371",
+      "taxonID_iNaturalist": "2071"
+    },
+    {
+      "scientificName": "Phaethornis",
+      "family": "Trochilidae",
+      "order": "Apodiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Phaethornis",
+      "taxonID_GBIF": "217123432",
+      "taxonID_iNaturalist": "5588"
+    },
+    {
+      "scientificName": "Phaethornis guy",
+      "family": "Trochilidae",
+      "order": "Apodiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Phaethornis",
+      "taxonID_GBIF": "133137809",
+      "taxonID_iNaturalist": "5628"
+    },
+    {
+      "scientificName": "Phaethornis syrmatophorus",
+      "family": "Trochilidae",
+      "order": "Apodiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Phaethornis",
+      "taxonID_GBIF": "125812120",
+      "taxonID_iNaturalist": "5609"
+    },
+    {
+      "scientificName": "Pharomachrus",
+      "family": "Trogonidae",
+      "order": "Trogoniformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pharomachrus",
+      "taxonID_GBIF": "116891958",
+      "taxonID_iNaturalist": "20848"
+    },
+    {
+      "scientificName": "Pheucticus",
+      "family": "Cardinalidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "cubilan",
+        "culebrillas"
+      ],
+      "commonName": "Pheucticus",
+      "taxonID_GBIF": "317321601",
+      "taxonID_iNaturalist": "10269"
+    },
+    {
+      "scientificName": "Pheucticus chrysogaster",
+      "family": "Cardinalidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pheucticus",
+      "taxonID_GBIF": "212465320",
+      "taxonID_iNaturalist": "10270"
+    },
+    {
+      "scientificName": "Pheugopedius euophrys",
+      "family": "Troglodytidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pheugopedius",
+      "taxonID_GBIF": "209900218",
+      "taxonID_iNaturalist": "144858"
+    },
+    {
+      "scientificName": "Phlogophilus",
+      "family": "Trochilidae",
+      "order": "Apodiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Phlogophilus",
+      "taxonID_GBIF": "217122975",
+      "taxonID_iNaturalist": "5790"
+    },
+    {
+      "scientificName": "Phlogophilus hemileucurus",
+      "family": "Trochilidae",
+      "order": "Apodiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Phlogophilus",
+      "taxonID_GBIF": "104148546",
+      "taxonID_iNaturalist": "5792"
+    },
+    {
+      "scientificName": "Pholidobolus",
+      "family": "GYMNOPHTHALMIDAE",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pholidobolus",
+      "taxonID_GBIF": "181725772",
+      "taxonID_iNaturalist": "34895"
+    },
+    {
+      "scientificName": "Pholidobolus dicrus",
+      "family": "GYMNOPHTHALMIDAE",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pholidobolus",
+      "taxonID_GBIF": "115376652",
+      "taxonID_iNaturalist": "540059"
+    },
+    {
+      "scientificName": "Phyllomedusa tarsius",
+      "family": "Hylidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Phyllomedusa",
+      "taxonID_GBIF": "104020938",
+      "taxonID_iNaturalist": "23740"
+    },
+    {
+      "scientificName": "Phyllotis haggardi",
+      "family": "Cricetidae",
+      "order": "Rodentia",
+      "class": "Mammalia",
+      "regions": [
+        "atillo",
+        "cubilan",
+        "bueran"
+      ],
+      "commonName": "Phyllotis",
+      "taxonID_GBIF": "128032842",
+      "taxonID_iNaturalist": "44730"
+    },
+    {
+      "scientificName": "Picumnus",
+      "family": "Picidae",
+      "order": "Piciformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Picumnus",
+      "taxonID_GBIF": "317321492",
+      "taxonID_iNaturalist": "17748"
+    },
+    {
+      "scientificName": "Pionus",
+      "family": "Psittacidae",
+      "order": "Psittaciformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pionus",
+      "taxonID_GBIF": "205154173",
+      "taxonID_iNaturalist": "19093"
+    },
+    {
+      "scientificName": "Piranga",
+      "family": "Cardinalidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Piranga",
+      "taxonID_GBIF": "321215680",
+      "taxonID_iNaturalist": "71305"
+    },
+    {
+      "scientificName": "Potamites",
+      "family": "GYMNOPHTHALMIDAE",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Potamites",
+      "taxonID_GBIF": "315895995",
+      "taxonID_iNaturalist": "34882"
+    },
+    {
+      "scientificName": "Potamites ecpleopus",
+      "family": "GYMNOPTALMIDAE",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Potamites",
+      "taxonID_GBIF": "177662193",
+      "taxonID_iNaturalist": "110215"
+    },
+    {
+      "scientificName": "Potamites strangulatus",
+      "family": "GYMNOPHTHALMIDAE",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Potamites",
+      "taxonID_GBIF": "177662183",
+      "taxonID_iNaturalist": "34883"
+    },
+    {
+      "scientificName": "Potos flavus",
+      "family": "Procyonidae",
+      "order": "Carnivora",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "cubilan",
+        "culebrillas",
+        "bueran"
+      ],
+      "commonName": "Potos",
+      "taxonID_GBIF": "114869212",
+      "taxonID_iNaturalist": "41678"
+    },
+    {
+      "scientificName": "Premnoplex",
+      "family": "Furnariidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Premnoplex",
+      "taxonID_GBIF": "168012417",
+      "taxonID_iNaturalist": "11177"
+    },
+    {
+      "scientificName": "Pristimantis",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "cubilan",
+        "culebrillas",
+        "bueran"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "244906875",
+      "taxonID_iNaturalist": "64811"
+    },
+    {
+      "scientificName": "Pristimantis altamazonicus",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "198971445",
+      "taxonID_iNaturalist": "66544"
+    },
+    {
+      "scientificName": "Pristimantis anaiae",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "193710816",
+      "taxonID_iNaturalist": "1423545"
+    },
+    {
+      "scientificName": "Pristimantis bellae",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "212461755",
+      "taxonID_iNaturalist": "134790"
+    },
+    {
+      "scientificName": "Pristimantis bicantus",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "177702792",
+      "taxonID_iNaturalist": "70846"
+    },
+    {
+      "scientificName": "Pristimantis bromeliaceus",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "104022823",
+      "taxonID_iNaturalist": "66582"
+    },
+    {
+      "scientificName": "Pristimantis buckleyi",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "212461840",
+      "taxonID_iNaturalist": "66584"
+    },
+    {
+      "scientificName": "Pristimantis burtoniorum",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "255712177",
+      "taxonID_iNaturalist": "1363693"
+    },
+    {
+      "scientificName": "Pristimantis churuwiai",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "212461637",
+      "taxonID_iNaturalist": "556513"
+    },
+    {
+      "scientificName": "Pristimantis conspicillatus",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "159126477",
+      "taxonID_iNaturalist": "66616"
+    },
+    {
+      "scientificName": "Pristimantis cremnobates",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "104022948",
+      "taxonID_iNaturalist": "66622"
+    },
+    {
+      "scientificName": "Pristimantis curtipes",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "198971461",
+      "taxonID_iNaturalist": "66635"
+    },
+    {
+      "scientificName": "Pristimantis devillei",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "177703334",
+      "taxonID_iNaturalist": "66642"
+    },
+    {
+      "scientificName": "Pristimantis donnelsoni",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "303053220",
+      "taxonID_iNaturalist": "1530373"
+    },
+    {
+      "scientificName": "Pristimantis eriphus",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "191994043",
+      "taxonID_iNaturalist": "66655"
+    },
+    {
+      "scientificName": "Pristimantis erythros",
+      "family": "STRABOMANTIDAE",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "culebrillas"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "212461830",
+      "taxonID_iNaturalist": "717603"
+    },
+    {
+      "scientificName": "Pristimantis festae",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "177703220",
+      "taxonID_iNaturalist": "66666"
+    },
+    {
+      "scientificName": "Pristimantis galdi",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "104023100",
+      "taxonID_iNaturalist": "66674"
+    },
+    {
+      "scientificName": "Pristimantis ganonotus",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "255712073",
+      "taxonID_iNaturalist": "66675"
+    },
+    {
+      "scientificName": "Pristimantis incomptus",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "177703200",
+      "taxonID_iNaturalist": "66695"
+    },
+    {
+      "scientificName": "Pristimantis katoptroides",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "193710766",
+      "taxonID_iNaturalist": "66710"
+    },
+    {
+      "scientificName": "Pristimantis kayi",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "225656286",
+      "taxonID_iNaturalist": "1530372"
+    },
+    {
+      "scientificName": "Pristimantis labiosus",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "177703192",
+      "taxonID_iNaturalist": "66713"
+    },
+    {
+      "scientificName": "Pristimantis laticlavius",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "166361712",
+      "taxonID_iNaturalist": "66718"
+    },
+    {
+      "scientificName": "Pristimantis llanganati",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "127885731",
+      "taxonID_iNaturalist": "517272"
+    },
+    {
+      "scientificName": "Pristimantis loujosti",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "212461618",
+      "taxonID_iNaturalist": "134417"
+    },
+    {
+      "scientificName": "Pristimantis mallii",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "154472161",
+      "taxonID_iNaturalist": "923325"
+    },
+    {
+      "scientificName": "Pristimantis marcoreyesi",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "255712181",
+      "taxonID_iNaturalist": "476724"
+    },
+    {
+      "scientificName": "Pristimantis maryanneae",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "249287287",
+      "taxonID_iNaturalist": "1363691"
+    },
+    {
+      "scientificName": "Pristimantis modipeplus",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "212461702",
+      "taxonID_iNaturalist": "66758"
+    },
+    {
+      "scientificName": "Pristimantis muricatus",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "212461850",
+      "taxonID_iNaturalist": "66762"
+    },
+    {
+      "scientificName": "Pristimantis nelsongalloi",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "183406004",
+      "taxonID_iNaturalist": "991943"
+    },
+    {
+      "scientificName": "Pristimantis orcesi",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "177703134",
+      "taxonID_iNaturalist": "66777"
+    },
+    {
+      "scientificName": "Pristimantis pastazensis",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "304827249",
+      "taxonID_iNaturalist": "66792"
+    },
+    {
+      "scientificName": "Pristimantis peruvianus",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "104023414",
+      "taxonID_iNaturalist": "66802"
+    },
+    {
+      "scientificName": "Pristimantis petersorum",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "102083730",
+      "taxonID_iNaturalist": "135128"
+    },
+    {
+      "scientificName": "Pristimantis pinchaque",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "212461848",
+      "taxonID_iNaturalist": "517276"
+    },
+    {
+      "scientificName": "Pristimantis prolatus",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "104023460",
+      "taxonID_iNaturalist": "66819"
+    },
+    {
+      "scientificName": "Pristimantis punzan",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "212461740",
+      "taxonID_iNaturalist": "476731"
+    },
+    {
+      "scientificName": "Pristimantis puruscafeum",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "212461743",
+      "taxonID_iNaturalist": "476732"
+    },
+    {
+      "scientificName": "Pristimantis quaquaversus",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "104023493",
+      "taxonID_iNaturalist": "66831"
+    },
+    {
+      "scientificName": "Pristimantis rubicundus",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "159126383",
+      "taxonID_iNaturalist": "66850"
+    },
+    {
+      "scientificName": "Pristimantis rufoviridis",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "212461660",
+      "taxonID_iNaturalist": "199783"
+    },
+    {
+      "scientificName": "Pristimantis sacharuna",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "183515230",
+      "taxonID_iNaturalist": "517277"
+    },
+    {
+      "scientificName": "Pristimantis thymelensis",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "104023703",
+      "taxonID_iNaturalist": "66904"
+    },
+    {
+      "scientificName": "Pristimantis tinguichaca",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "166362359",
+      "taxonID_iNaturalist": "517278"
+    },
+    {
+      "scientificName": "Pristimantis trachyblepharis",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "177703025",
+      "taxonID_iNaturalist": "66907"
+    },
+    {
+      "scientificName": "Pristimantis tungurahua",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "255712179",
+      "taxonID_iNaturalist": "121248"
+    },
+    {
+      "scientificName": "Pristimantis unistrigatus",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "177703336",
+      "taxonID_iNaturalist": "66914"
+    },
+    {
+      "scientificName": "Pristimantis w-nigrum",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "104023796",
+      "taxonID_iNaturalist": "66936"
+    },
+    {
+      "scientificName": "Pristimantis yanezi",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pristimantis",
+      "taxonID_GBIF": "127885732",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "Pseudocolaptes",
+      "family": "Furnariidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "culebrillas"
+      ],
+      "commonName": "Pseudocolaptes",
+      "taxonID_GBIF": "321141486",
+      "taxonID_iNaturalist": "11599"
+    },
+    {
+      "scientificName": "Pseudocolaptes boissonneautii",
+      "family": "Furnariidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pseudocolaptes",
+      "taxonID_GBIF": "133162080",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "Pseudospingus verticalis",
+      "family": "Thraupidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "atillo",
+        "bueran"
+      ],
+      "commonName": "Pseudospingus",
+      "taxonID_GBIF": "176347530",
+      "taxonID_iNaturalist": "558578"
+    },
+    {
+      "scientificName": "Pseudotriccus pelzelni",
+      "family": "Tyrannidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pseudotriccus",
+      "taxonID_GBIF": "114905871",
+      "taxonID_iNaturalist": "17217"
+    },
+    {
+      "scientificName": "Pterophanes",
+      "family": "Trochilidae",
+      "order": "Apodiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "culebrillas"
+      ],
+      "commonName": "Pterophanes",
+      "taxonID_GBIF": "321713254",
+      "taxonID_iNaturalist": "6149"
+    },
+    {
+      "scientificName": "Pterophanes cyanopterus",
+      "family": "Trochilidae",
+      "order": "Apodiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "bueran"
+      ],
+      "commonName": "Pterophanes",
+      "taxonID_GBIF": "104148568",
+      "taxonID_iNaturalist": "6150"
+    },
+    {
+      "scientificName": "Ptychoglossus",
+      "family": "ALOPOGLOSSIDAE",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Ptychoglossus",
+      "taxonID_GBIF": "325162529",
+      "taxonID_iNaturalist": "34985"
+    },
+    {
+      "scientificName": "Pudu mephistophiles",
+      "family": "Cervidae",
+      "order": "Artiodactyla",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "cubilan",
+        "culebrillas",
+        "bueran"
+      ],
+      "commonName": "Pudu",
+      "taxonID_GBIF": "177670522",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "Puma concolor",
+      "family": "Felidae",
+      "order": "Carnivora",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "cubilan",
+        "culebrillas",
+        "bueran"
+      ],
+      "commonName": "Puma",
+      "taxonID_GBIF": "116892593",
+      "taxonID_iNaturalist": "42007"
+    },
+    {
+      "scientificName": "Pygochelidon",
+      "family": "Hirundinidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "cubilan",
+        "culebrillas"
+      ],
+      "commonName": "Pygochelidon",
+      "taxonID_GBIF": "321324269",
+      "taxonID_iNaturalist": "68827"
+    },
+    {
+      "scientificName": "Pyriglena",
+      "family": "Thamnophilidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pyriglena",
+      "taxonID_GBIF": "119256640",
+      "taxonID_iNaturalist": "15950"
+    },
+    {
+      "scientificName": "Pyrocephalus",
+      "family": "Tyrannidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pyrocephalus",
+      "taxonID_GBIF": "317321553",
+      "taxonID_iNaturalist": "16446"
+    },
+    {
+      "scientificName": "Pyrrhomyias",
+      "family": "Tyrannidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "cubilan",
+        "culebrillas"
+      ],
+      "commonName": "Pyrrhomyias",
+      "taxonID_GBIF": "321508712",
+      "taxonID_iNaturalist": "16345"
+    },
+    {
+      "scientificName": "Pyrrhura melanura",
+      "family": "Psittacidae",
+      "order": "Psittaciformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Pyrrhura",
+      "taxonID_GBIF": "100167073",
+      "taxonID_iNaturalist": "19160"
+    },
+    {
+      "scientificName": "Ramphocelus",
+      "family": "Thraupidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Ramphocelus",
+      "taxonID_GBIF": "321215711",
+      "taxonID_iNaturalist": "10052"
+    },
+    {
+      "scientificName": "Ranitomeya",
+      "family": "DENDROBATIDAE",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Ranitomeya",
+      "taxonID_GBIF": "104015484",
+      "taxonID_iNaturalist": "64816"
+    },
+    {
+      "scientificName": "Rattus",
+      "family": "Muridae",
+      "order": "Rodentia",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Rattus",
+      "taxonID_GBIF": "315672065",
+      "taxonID_iNaturalist": "44540"
+    },
+    {
+      "scientificName": "Rhaebo colomai",
+      "family": "Bufonidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Rhaebo",
+      "taxonID_GBIF": "177707137",
+      "taxonID_iNaturalist": "476409"
+    },
+    {
+      "scientificName": "Rhinella",
+      "family": "Bufonidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Rhinella",
+      "taxonID_GBIF": "240233192",
+      "taxonID_iNaturalist": "64819"
+    },
+    {
+      "scientificName": "Rhinella alata",
+      "family": "BUFONIDAE",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "culebrillas"
+      ],
+      "commonName": "Rhinella",
+      "taxonID_GBIF": "177707201",
+      "taxonID_iNaturalist": "67089"
+    },
+    {
+      "scientificName": "Rhinella festae",
+      "family": "Bufonidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Rhinella",
+      "taxonID_GBIF": "204943591",
+      "taxonID_iNaturalist": "67110"
+    },
+    {
+      "scientificName": "Rhinella margaritifera",
+      "family": "Bufonidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Rhinella",
+      "taxonID_GBIF": "196148064",
+      "taxonID_iNaturalist": "67128"
+    },
+    {
+      "scientificName": "Rhinella marina",
+      "family": "Bufonidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Rhinella",
+      "taxonID_GBIF": "198971437",
+      "taxonID_iNaturalist": "553515"
+    },
+    {
+      "scientificName": "Rhipidomys",
+      "family": "Cricetidae",
+      "order": "Rodentia",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Rhipidomys",
+      "taxonID_GBIF": "177655668",
+      "taxonID_iNaturalist": "44334"
+    },
+    {
+      "scientificName": "Rhipidomys albujai",
+      "family": "Cricetidae",
+      "order": "Rodentia",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Rhipidomys",
+      "taxonID_GBIF": "156259723",
+      "taxonID_iNaturalist": "959874"
+    },
+    {
+      "scientificName": "Rhipidomys leucodactylus",
+      "family": "Cricetidae",
+      "order": "Rodentia",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Rhipidomys",
+      "taxonID_GBIF": "177655691",
+      "taxonID_iNaturalist": "44342"
+    },
+    {
+      "scientificName": "Rhynchocyclus",
+      "family": "Tyrannidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Rhynchocyclus",
+      "taxonID_GBIF": "195436854",
+      "taxonID_iNaturalist": "16353"
+    },
+    {
+      "scientificName": "Riama balneator",
+      "family": "GYMNOPHTHALMIDAE",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Riama",
+      "taxonID_GBIF": "119680959",
+      "taxonID_iNaturalist": "34847"
+    },
+    {
+      "scientificName": "Riama colomaromani",
+      "family": "GYMNOPHTHALMIDAE",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Riama",
+      "taxonID_GBIF": "104084978",
+      "taxonID_iNaturalist": "34849"
+    },
+    {
+      "scientificName": "Riama meleagris",
+      "family": "Gymnophtalmidae",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Riama",
+      "taxonID_GBIF": "104084989",
+      "taxonID_iNaturalist": "34837"
+    },
+    {
+      "scientificName": "Rulyrana",
+      "family": "CENTROLENIDAE",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Rulyrana",
+      "taxonID_GBIF": "321685548",
+      "taxonID_iNaturalist": "70939"
+    },
+    {
+      "scientificName": "Rulyrana flavopunctata",
+      "family": "CENTROLENIDAE",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Rulyrana",
+      "taxonID_GBIF": "217112665",
+      "taxonID_iNaturalist": "21230"
+    },
+    {
+      "scientificName": "Rupicola",
+      "family": "Cotingidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Rupicola",
+      "taxonID_GBIF": "104126165",
+      "taxonID_iNaturalist": "199542"
+    },
+    {
+      "scientificName": "Rupicola peruviana",
+      "family": "Cotingidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Rupicola",
+      "taxonID_GBIF": "116899028",
+      "taxonID_iNaturalist": "8877"
+    },
+    {
+      "scientificName": "STRABOMANTIDAE",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Strabomantidae",
+      "taxonID_GBIF": "321232686",
+      "taxonID_iNaturalist": "1628224"
+    },
+    {
+      "scientificName": "Sachatamia orejuela",
+      "family": "CENTROLENIDAE",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Sachatamia",
+      "taxonID_GBIF": "104024146",
+      "taxonID_iNaturalist": "476403"
+    },
+    {
+      "scientificName": "Sayornis",
+      "family": "Tyrannidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Sayornis",
+      "taxonID_GBIF": "321209141",
+      "taxonID_iNaturalist": "17007"
+    },
+    {
+      "scientificName": "Schistes",
+      "family": "Trochilidae",
+      "order": "Apodiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Schistes",
+      "taxonID_GBIF": "321356588",
+      "taxonID_iNaturalist": "6303"
+    },
+    {
+      "scientificName": "Schistes geoffroyi",
+      "family": "Trochilidae",
+      "order": "Apodiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Schistes",
+      "taxonID_GBIF": "177657391",
+      "taxonID_iNaturalist": "827377"
+    },
+    {
+      "scientificName": "Scinax",
+      "family": "Hylidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Scinax",
+      "taxonID_GBIF": "119612020",
+      "taxonID_iNaturalist": "1658175"
+    },
+    {
+      "scientificName": "Scinax garbei",
+      "family": "Hylidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Scinax",
+      "taxonID_GBIF": "168148035",
+      "taxonID_iNaturalist": "24288"
+    },
+    {
+      "scientificName": "Scinax ruber",
+      "family": "Hylidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Scinax",
+      "taxonID_GBIF": "100220447",
+      "taxonID_iNaturalist": "24322"
+    },
+    {
+      "scientificName": "Scytalopus opacus",
+      "family": "Rhinocryptidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Scytalopus",
+      "taxonID_GBIF": "133160959",
+      "taxonID_iNaturalist": "144700"
+    },
+    {
+      "scientificName": "Serpophaga",
+      "family": "Tyrannidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Serpophaga",
+      "taxonID_GBIF": "315214793",
+      "taxonID_iNaturalist": "17201"
+    },
+    {
+      "scientificName": "Setophaga",
+      "family": "Parulidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Setophaga",
+      "taxonID_GBIF": "217133303",
+      "taxonID_iNaturalist": "10246"
+    },
+    {
+      "scientificName": "Setophaga fusca",
+      "family": "Parulidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Setophaga",
+      "taxonID_GBIF": "177686130",
+      "taxonID_iNaturalist": "145237"
+    },
+    {
+      "scientificName": "Sicalis",
+      "family": "Thraupidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Sicalis",
+      "taxonID_GBIF": "116897129",
+      "taxonID_iNaturalist": "9862"
+    },
+    {
+      "scientificName": "Siphlophis ayauma",
+      "family": "Colubridae",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Siphlophis",
+      "taxonID_GBIF": "128032222",
+      "taxonID_iNaturalist": "540206"
+    },
+    {
+      "scientificName": "Smilisca phaeota",
+      "family": "Hylidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Smilisca",
+      "taxonID_GBIF": "199975341",
+      "taxonID_iNaturalist": "24272"
+    },
+    {
+      "scientificName": "Spinus",
+      "family": "Fringillidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "cubilan",
+        "culebrillas"
+      ],
+      "commonName": "Spinus",
+      "taxonID_GBIF": "252811212",
+      "taxonID_iNaturalist": "144410"
+    },
+    {
+      "scientificName": "Sporophila luctuosa",
+      "family": "Thraupidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "atillo",
+        "bueran"
+      ],
+      "commonName": "Sporophila",
+      "taxonID_GBIF": "133148024",
+      "taxonID_iNaturalist": "9509"
+    },
+    {
+      "scientificName": "Stenocercus angulifer",
+      "family": "HOPLOCERCIDAE",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Stenocercus",
+      "taxonID_GBIF": "104090461",
+      "taxonID_iNaturalist": "113140"
+    },
+    {
+      "scientificName": "Stenocercus cadlei",
+      "family": "IGUANIDAE",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Stenocercus",
+      "taxonID_GBIF": "104090469",
+      "taxonID_iNaturalist": "540227"
+    },
+    {
+      "scientificName": "Stilpnia",
+      "family": "Thraupidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Stilpnia",
+      "taxonID_GBIF": "321344603",
+      "taxonID_iNaturalist": "979961"
+    },
+    {
+      "scientificName": "Strabomantis cornutus",
+      "family": "Strabomantidae",
+      "order": "Anura",
+      "class": "Amphibia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Strabomantis",
+      "taxonID_GBIF": "159126283",
+      "taxonID_iNaturalist": "67212"
+    },
+    {
+      "scientificName": "Streptoprocne",
+      "family": "Apodidae",
+      "order": "Apodiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Streptoprocne",
+      "taxonID_GBIF": "267020615",
+      "taxonID_iNaturalist": "6591"
+    },
+    {
+      "scientificName": "Sturnira bidens",
+      "family": "Phyllostomidae",
+      "order": "Chiroptera",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Sturnira",
+      "taxonID_GBIF": "164366692",
+      "taxonID_iNaturalist": "41041"
+    },
+    {
+      "scientificName": "Sturnira bogotensis",
+      "family": "Phyllostomidae",
+      "order": "Chiroptera",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Sturnira",
+      "taxonID_GBIF": "104063652",
+      "taxonID_iNaturalist": "41040"
+    },
+    {
+      "scientificName": "Sturnira erythromos",
+      "family": "Phyllostomidae",
+      "order": "Chiroptera",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Sturnira",
+      "taxonID_GBIF": "114906232",
+      "taxonID_iNaturalist": "41044"
+    },
+    {
+      "scientificName": "Sturnira oporaphilum",
+      "family": "Phyllostomidae",
+      "order": "Chiroptera",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Sturnira",
+      "taxonID_GBIF": "104063687",
+      "taxonID_iNaturalist": "75108"
+    },
+    {
+      "scientificName": "Sylvilagus",
+      "family": "Leporidae",
+      "order": "Lagomorpha",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates",
+        "cubilan",
+        "culebrillas",
+        "bueran"
+      ],
+      "commonName": "Sylvilagus",
+      "taxonID_GBIF": "315214293",
+      "taxonID_iNaturalist": "43096"
+    },
+    {
+      "scientificName": "Synallaxis",
+      "family": "Furnariidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Synallaxis",
+      "taxonID_GBIF": "321193337",
+      "taxonID_iNaturalist": "10914"
+    },
+    {
+      "scientificName": "Systellura longirostris",
+      "family": "Caprimulgidae",
+      "order": "Caprimulgiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Systellura",
+      "taxonID_GBIF": "100145021",
+      "taxonID_iNaturalist": "605123"
+    },
+    {
+      "scientificName": "Tachyphonus",
+      "family": "Thraupidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Tachyphonus",
+      "taxonID_GBIF": "321214417",
+      "taxonID_iNaturalist": "10072"
+    },
+    {
+      "scientificName": "Tadarida brasiliensis",
+      "family": "Molossidae",
+      "order": "Chiroptera",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Tadarida",
+      "taxonID_GBIF": "164366706",
+      "taxonID_iNaturalist": "41301"
+    },
+    {
+      "scientificName": "Tangara",
+      "family": "Thraupidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Tangara",
+      "taxonID_GBIF": "114139476",
+      "taxonID_iNaturalist": "71369"
+    },
+    {
+      "scientificName": "Tangara chrysotis",
+      "family": "Thraupidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Tangara",
+      "taxonID_GBIF": "133148489",
+      "taxonID_iNaturalist": "9565"
+    },
+    {
+      "scientificName": "Tangara nigroviridis",
+      "family": "Thraupidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Tangara",
+      "taxonID_GBIF": "133148561",
+      "taxonID_iNaturalist": "9576"
+    },
+    {
+      "scientificName": "Tangara parzudakii",
+      "family": "Thraupidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Tangara",
+      "taxonID_GBIF": "116792960",
+      "taxonID_iNaturalist": "9573"
+    },
+    {
+      "scientificName": "Tapirus",
+      "family": "Tapiridae",
+      "order": "Perissodactyla",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "cubilan"
+      ],
+      "commonName": "Tapirus",
+      "taxonID_GBIF": "321141313",
+      "taxonID_iNaturalist": "43352"
+    },
+    {
+      "scientificName": "Tapirus pinchaque",
+      "family": "Tapiridae",
+      "order": "Perissodactyla",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "cubilan",
+        "culebrillas",
+        "bueran"
+      ],
+      "commonName": "Tapirus",
+      "taxonID_GBIF": "217127860",
+      "taxonID_iNaturalist": "43354"
+    },
+    {
+      "scientificName": "Tephrophilus wetmorei",
+      "family": "Thraupidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Tephrophilus",
+      "taxonID_GBIF": "238523773",
+      "taxonID_iNaturalist": "1289361"
+    },
+    {
+      "scientificName": "Theristicus",
+      "family": "Threskiornithidae",
+      "order": "Pelecaniformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Theristicus",
+      "taxonID_GBIF": "217142456",
+      "taxonID_iNaturalist": "3764"
+    },
+    {
+      "scientificName": "Thlypopsis",
+      "family": "Thraupidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "cubilan",
+        "culebrillas"
+      ],
+      "commonName": "Thlypopsis",
+      "taxonID_GBIF": "116792874",
+      "taxonID_iNaturalist": "9882"
+    },
+    {
+      "scientificName": "Thomasomys",
+      "family": "Cricetidae",
+      "order": "Rodentia",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "cubilan",
+        "bueran"
+      ],
+      "commonName": "Thomasomys",
+      "taxonID_GBIF": "315214503",
+      "taxonID_iNaturalist": "44844"
+    },
+    {
+      "scientificName": "Thomasomys aureus",
+      "family": "Cricetidae",
+      "order": "Rodentia",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Thomasomys",
+      "taxonID_GBIF": "217138419",
+      "taxonID_iNaturalist": "44853"
+    },
+    {
+      "scientificName": "Thomasomys baeops",
+      "family": "Cricetidae",
+      "order": "Rodentia",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "cubilan",
+        "bueran"
+      ],
+      "commonName": "Thomasomys",
+      "taxonID_GBIF": "177655730",
+      "taxonID_iNaturalist": "44868"
+    },
+    {
+      "scientificName": "Thomasomys burneoi",
+      "family": "Cricetidae",
+      "order": "Rodentia",
+      "class": "Mammalia",
+      "regions": [
+        "atillo",
+        "cubilan",
+        "bueran"
+      ],
+      "commonName": "Thomasomys",
+      "taxonID_GBIF": "195816199",
+      "taxonID_iNaturalist": "1431184"
+    },
+    {
+      "scientificName": "Thomasomys cinnameus",
+      "family": "Cricetidae",
+      "order": "Rodentia",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "cubilan",
+        "bueran"
+      ],
+      "commonName": "Thomasomys",
+      "taxonID_GBIF": "199467477",
+      "taxonID_iNaturalist": "75166"
+    },
+    {
+      "scientificName": "Thomasomys erro",
+      "family": "Cricetidae",
+      "order": "Rodentia",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Thomasomys",
+      "taxonID_GBIF": "177655723",
+      "taxonID_iNaturalist": "75167"
+    },
+    {
+      "scientificName": "Thomasomys fumeus",
+      "family": "Cricetidae",
+      "order": "Rodentia",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Thomasomys",
+      "taxonID_GBIF": "177655720",
+      "taxonID_iNaturalist": "1453963"
+    },
+    {
+      "scientificName": "Thomasomys hudsoni",
+      "family": "Cricetidae",
+      "order": "Rodentia",
+      "class": "Mammalia",
+      "regions": [
+        "atillo",
+        "cubilan",
+        "bueran"
+      ],
+      "commonName": "Thomasomys",
+      "taxonID_GBIF": "166396007",
+      "taxonID_iNaturalist": "75168"
+    },
+    {
+      "scientificName": "Thomasomys paramorum",
+      "family": "Cricetidae",
+      "order": "Rodentia",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "cubilan",
+        "bueran"
+      ],
+      "commonName": "Thomasomys",
+      "taxonID_GBIF": "217138433",
+      "taxonID_iNaturalist": "44865"
+    },
+    {
+      "scientificName": "Thomasomys salazari",
+      "family": "Cricetidae",
+      "order": "Rodentia",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "cubilan",
+        "bueran"
+      ],
+      "commonName": "Thomasomys",
+      "taxonID_GBIF": "177655694",
+      "taxonID_iNaturalist": "1080304"
+    },
+    {
+      "scientificName": "Thomasomys taczanowskii",
+      "family": "Cricetidae",
+      "order": "Rodentia",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "cubilan",
+        "bueran"
+      ],
+      "commonName": "Thomasomys",
+      "taxonID_GBIF": "217138424",
+      "taxonID_iNaturalist": "44849"
+    },
+    {
+      "scientificName": "Thraupis",
+      "family": "Thraupidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Thraupis",
+      "taxonID_GBIF": "321194080",
+      "taxonID_iNaturalist": "10292"
+    },
+    {
+      "scientificName": "Thripadectes flammulatus",
+      "family": "Furnariidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Thripadectes",
+      "taxonID_GBIF": "104128115",
+      "taxonID_iNaturalist": "10777"
+    },
+    {
+      "scientificName": "Tigrisoma",
+      "family": "Ardeidae",
+      "order": "Pelecaniformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Tigrisoma",
+      "taxonID_GBIF": "321215940",
+      "taxonID_iNaturalist": "1008364"
+    },
+    {
+      "scientificName": "Todirostrum",
+      "family": "Tyrannidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Todirostrum",
+      "taxonID_GBIF": "321194074",
+      "taxonID_iNaturalist": "17147"
+    },
+    {
+      "scientificName": "Tremarctos ornatus",
+      "family": "Ursidae",
+      "order": "Carnivora",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "cubilan",
+        "culebrillas",
+        "bueran"
+      ],
+      "commonName": "Tremarctos",
+      "taxonID_GBIF": "104060706",
+      "taxonID_iNaturalist": "41657"
+    },
+    {
+      "scientificName": "Trilepida anthracina",
+      "family": "LEPTOTYPHLOPIDAE",
+      "order": "Squamata",
+      "class": "Squamata",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Trilepida",
+      "taxonID_GBIF": "299407596",
+      "taxonID_iNaturalist": "146497"
+    },
+    {
+      "scientificName": "Troglodytes",
+      "family": "Troglodytidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Troglodytes",
+      "taxonID_GBIF": "321046792",
+      "taxonID_iNaturalist": "15964"
+    },
+    {
+      "scientificName": "Troglodytes solstitialis",
+      "family": "Troglodytidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Troglodytes",
+      "taxonID_GBIF": "100181262",
+      "taxonID_iNaturalist": "7543"
+    },
+    {
+      "scientificName": "Trogon",
+      "family": "Trogonidae",
+      "order": "Trogoniformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Trogon",
+      "taxonID_GBIF": "10107033",
+      "taxonID_iNaturalist": "20715"
+    },
+    {
+      "scientificName": "Turdus",
+      "family": "Turdidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "cubilan",
+        "culebrillas"
+      ],
+      "commonName": "Turdus",
+      "taxonID_GBIF": "293559511",
+      "taxonID_iNaturalist": "12705"
+    },
+    {
+      "scientificName": "Turdus fuscater",
+      "family": "Turdidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Turdus",
+      "taxonID_GBIF": "196147331",
+      "taxonID_iNaturalist": "12781"
+    },
+    {
+      "scientificName": "Tyrannus",
+      "family": "Tyrannidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "culebrillas"
+      ],
+      "commonName": "Tyrannus",
+      "taxonID_GBIF": "321138714",
+      "taxonID_iNaturalist": "16768"
+    },
+    {
+      "scientificName": "Urochroa",
+      "family": "Trochilidae",
+      "order": "Apodiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Urochroa",
+      "taxonID_GBIF": "119210417",
+      "taxonID_iNaturalist": "6467"
+    },
+    {
+      "scientificName": "Urochroa bougueri",
+      "family": "Trochilidae",
+      "order": "Apodiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Urochroa",
+      "taxonID_GBIF": "114074451",
+      "taxonID_iNaturalist": "827378"
+    },
+    {
+      "scientificName": "Uromyias agilis",
+      "family": "Tyrannidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "bueran"
+      ],
+      "commonName": "Uromyias",
+      "taxonID_GBIF": "100184220",
+      "taxonID_iNaturalist": "339663"
+    },
+    {
+      "scientificName": "Uropsalis lyra",
+      "family": "Caprimulgidae",
+      "order": "Caprimulgiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Uropsalis",
+      "taxonID_GBIF": "124559486",
+      "taxonID_iNaturalist": "19557"
+    },
+    {
+      "scientificName": "Urothraupis stolzmanni",
+      "family": "Thraupidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "atillo",
+        "bueran"
+      ],
+      "commonName": "Urothraupis",
+      "taxonID_GBIF": "100177984",
+      "taxonID_iNaturalist": "10532"
+    },
+    {
+      "scientificName": "Vampyressa melissa",
+      "family": "Phyllostomidae",
+      "order": "Chiroptera",
+      "class": "Mammalia",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Vampyressa",
+      "taxonID_GBIF": "2433190",
+      "taxonID_iNaturalist": "41025"
+    },
+    {
+      "scientificName": "Vanellus",
+      "family": "Charadriidae",
+      "order": "Charadriiformes",
+      "class": "Aves",
+      "regions": [
+        "culebrillas"
+      ],
+      "commonName": "Vanellus",
+      "taxonID_GBIF": "307208873",
+      "taxonID_iNaturalist": "4853"
+    },
+    {
+      "scientificName": "Veniliornis nigriceps",
+      "family": "Picidae",
+      "order": "Piciformes",
+      "class": "Aves",
+      "regions": [
+        "atillo",
+        "bueran"
+      ],
+      "commonName": "Veniliornis",
+      "taxonID_GBIF": "133167195",
+      "taxonID_iNaturalist": "18043"
+    },
+    {
+      "scientificName": "Vultur gryphus",
+      "family": "Cathartidae",
+      "order": "Accipitriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Vultur",
+      "taxonID_GBIF": "177659349",
+      "taxonID_iNaturalist": "4747"
+    },
+    {
+      "scientificName": "Xiphorhynchus",
+      "family": "Furnariidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Xiphorhynchus",
+      "taxonID_GBIF": "317321612",
+      "taxonID_iNaturalist": "11025"
+    },
+    {
+      "scientificName": "Zenaida",
+      "family": "Columbidae",
+      "order": "Columbiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "cubilan",
+        "culebrillas"
+      ],
+      "commonName": "Zenaida",
+      "taxonID_GBIF": "307209494",
+      "taxonID_iNaturalist": "3438"
+    },
+    {
+      "scientificName": "Zentrygon",
+      "family": "Columbidae",
+      "order": "Columbiformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates"
+      ],
+      "commonName": "Zentrygon",
+      "taxonID_GBIF": "321482003",
+      "taxonID_iNaturalist": "367484"
+    },
+    {
+      "scientificName": "Zonotrichia",
+      "family": "Passerellidae",
+      "order": "Passeriformes",
+      "class": "Aves",
+      "regions": [
+        "llanganates",
+        "cubilan",
+        "culebrillas"
+      ],
+      "commonName": "Zonotrichia",
+      "taxonID_GBIF": "119237780",
+      "taxonID_iNaturalist": "9175"
+    },
+    {
+      "scientificName": "Disparo vacío",
+      "commonName": "Empty trigger",
+      "class": "Event",
+      "order": "CameraTrap",
+      "family": "System",
+      "taxonID_GBIF": "custom:empty",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "No identificado",
+      "commonName": "Unidentified",
+      "class": "Unknown",
+      "order": "Unknown",
+      "family": "Unknown",
+      "taxonID_GBIF": "custom:unidentified",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "Homo sapiens",
+      "commonName": "Personas/Humano",
+      "class": "Mammalia",
+      "order": "Primates",
+      "family": "Hominidae",
+      "taxonID_GBIF": "2433217",
+      "taxonID_iNaturalist": "43584"
+    },
+    {
+      "scientificName": "Configuración/Setup",
+      "commonName": "Setup",
+      "class": "Equipment",
+      "order": "FieldOps",
+      "family": "Camera",
+      "taxonID_GBIF": "custom:setup",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "Animal desconocido",
+      "commonName": "Animal genérico",
+      "class": "Animalia",
+      "order": "Unknown",
+      "family": "Unknown",
+      "taxonID_GBIF": "custom:animal",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "Disparo vacío",
+      "commonName": "Empty trigger",
+      "class": "Event",
+      "order": "CameraTrap",
+      "family": "System",
+      "taxonID_GBIF": "custom:empty",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "No identificado",
+      "commonName": "Unidentified",
+      "class": "Unknown",
+      "order": "Unknown",
+      "family": "Unknown",
+      "taxonID_GBIF": "custom:unidentified",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "Homo sapiens",
+      "commonName": "Personas/Humano",
+      "class": "Mammalia",
+      "order": "Primates",
+      "family": "Hominidae",
+      "taxonID_GBIF": "2433217",
+      "taxonID_iNaturalist": "43584"
+    },
+    {
+      "scientificName": "Configuración/Setup",
+      "commonName": "Setup",
+      "class": "Equipment",
+      "order": "FieldOps",
+      "family": "Camera",
+      "taxonID_GBIF": "custom:setup",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "Animal desconocido",
+      "commonName": "Animal genérico",
+      "class": "Animalia",
+      "order": "Unknown",
+      "family": "Unknown",
+      "taxonID_GBIF": "custom:animal",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "Panthera onca",
+      "commonName": "",
+      "family": "Felidae",
+      "order": "Carnivora",
+      "class": "Mammalia",
+      "regions": [
+        "bueran"
+      ],
+      "taxonID_GBIF": "116892569",
+      "taxonID_iNaturalist": "41970"
+    },
+    {
+      "scientificName": "Eciton coecum",
+      "commonName": "",
+      "family": "Formicidae",
+      "order": "Hymenoptera",
+      "class": "Insecta",
+      "regions": [
+        "bueran"
+      ],
+      "taxonID_GBIF": "7913520",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "Apanteles felixcarmonai",
+      "commonName": "",
+      "family": "Braconidae",
+      "order": "Hymenoptera",
+      "class": "Insecta",
+      "regions": [
+        "bueran"
+      ],
+      "taxonID_GBIF": "152051337",
+      "taxonID_iNaturalist": ""
+    }
+  ]
+}

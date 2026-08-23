@@ -1,0 +1,108 @@
+{
+  "_metadata": {
+    "name": "Ecuador_Cubilan",
+    "version": "1.0",
+    "region": "Parque Nacional Cubilán",
+    "description": "Configuración científica para cámaras trampa en el Parque Nacional Cubilán. Hábitat crítico para el Pudú.",
+    "created": "2026-05-13",
+    "last_modified": "2026-05-13",
+    "is_scientific": true,
+    "country_id": "ecuador",
+    "linked_region_id": "cubilan"
+  },
+  "GUI_Tagger": {
+    "species_tags": [
+      "Pudu",
+      "Venado"
+    ],
+    "secondary_tags": [
+      "Amphibia",
+      "Reptilia",
+      "Otros",
+      "Personas",
+      "Setup",
+      "Vacio"
+    ],
+    "behavior_tags": [
+      "Vuela",
+      "Picotea",
+      "Canta",
+      "Posa",
+      "Corre",
+      "Salta",
+      "Come",
+      "Nada",
+      "Vocaliza"
+    ],
+    "other_tags_list": [
+      "Oso",
+      "Tapir",
+      "Zorro",
+      "Nutria",
+      "Tigrillo",
+      "Puma",
+      "Quincho",
+      "Guatusa",
+      "Zarigüeya",
+      "Conejo",
+      "Rana",
+      "Otro"
+    ]
+  },
+  "Taxon_Map": {
+    "Pudu": {
+      "scientificName": "Pudu mephistophiles"
+    },
+    "Venado": {
+      "scientificName": "Mazama"
+    },
+    "Oso": {
+      "scientificName": "Tremarctos ornatus"
+    },
+    "Tapir": {
+      "scientificName": "Tapirus pinchaque"
+    },
+    "Zorro": {
+      "scientificName": "Lycalopex culpaeus"
+    },
+    "Nutria": {
+      "scientificName": "Lontra"
+    },
+    "Tigrillo": {
+      "scientificName": "Leopardus tigrinus"
+    },
+    "Puma": {
+      "scientificName": "Puma concolor"
+    },
+    "Quincho": {
+      "scientificName": "Nasua"
+    },
+    "Guatusa": {
+      "scientificName": "Cavia patzelti"
+    },
+    "Zarigüeya": {
+      "scientificName": "Caenolestes fuliginosus"
+    },
+    "Conejo": {
+      "scientificName": "Sylvilagus"
+    },
+    "Rana": {
+      "scientificName": "Anura"
+    },
+    "Trochilidae": {
+      "scientificName": "Trochilidae"
+    },
+    "Passeriformes": {
+      "scientificName": "Passeriformes"
+    },
+    "Mammalia": {
+      "scientificName": "Mammalia"
+    },
+    "Amphibia": {
+      "scientificName": "Amphibia"
+    },
+    "Reptilia": {
+      "scientificName": "Reptilia"
+    }
+  }
+}

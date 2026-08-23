@@ -1,0 +1,144 @@
+{
+  "_metadata": {
+    "name": "Argentina_Huillin",
+    "version": "1.1",
+    "region": "Patagonia Norte - Nahuel Huapi",
+    "description": "Configuración científica para cámaras trampa en Patagonia Norte, Argentina. Especializada en detección de Huillín (Lontra provocax) y otras especies de agua dulce.",
+    "created": "2026-05-12",
+    "last_modified": "2026-05-12",
+    "is_scientific": true,
+    "country_id": "argentina",
+    "linked_region_id": "patagonia_norte"
+  },
+  "GUI_Tagger": {
+    "species_tags": [
+      "Huillin",
+      "Ave"
+    ],
+    "secondary_tags": [
+      "Otros",
+      "Personas",
+      "Setup",
+      "Zorro",
+      "Roedor",
+      "Vison",
+      "Perro",
+      "Vacio"
+    ],
+    "behavior_tags": [
+      "Duerme",
+      "Vocaliza",
+      "Acicala",
+      "Juega",
+      "Corre",
+      "Camina",
+      "Come",
+      "Mojado",
+      "Seco"
+    ],
+    "other_tags_list": [
+      "Ciervo",
+      "Gato",
+      "Murcielago",
+      "Monito",
+      "Jabali",
+      "Pudu",
+      "Oveja",
+      "Vaca",
+      "Caballo",
+      "Otro"
+    ]
+  },
+  "Taxon_Map": {
+    "Huillin": {
+      "scientificName": "Lontra provocax"
+    },
+    "Ave": {
+      "scientificName": "Aves"
+    },
+    "Zorro": {
+      "scientificName": "Lycalopex culpaeus"
+    },
+    "Roedor": {
+      "scientificName": "Rodentia"
+    },
+    "Vison": {
+      "scientificName": "Neogale vison"
+    },
+    "Perro": {
+      "scientificName": "Canis lupus familiaris"
+    },
+    "Ciervo": {
+      "scientificName": "Cervus elaphus"
+    },
+    "Gato": {
+      "scientificName": "Felis catus"
+    },
+    "Murcielago": {
+      "scientificName": "Chiroptera"
+    },
+    "Monito": {
+      "scientificName": "Dromiciops gliroides"
+    },
+    "Jabali": {
+      "scientificName": "Sus scrofa"
+    },
+    "Pudu": {
+      "scientificName": "Pudu puda"
+    },
+    "Oveja": {
+      "scientificName": "Ovis aries"
+    },
+    "Vaca": {
+      "scientificName": "Bos taurus"
+    },
+    "Caballo": {
+      "scientificName": "Equus caballus"
+    },
+    "Humano": {
+      "scientificName": "Homo sapiens"
+    },
+    "Puma": {
+      "scientificName": "Puma concolor"
+    },
+    "Guanaco": {
+      "scientificName": "Lama guanicoe"
+    },
+    "Huemul": {
+      "scientificName": "Hippocamelus bisulcus"
+    },
+    "Ñandú": {
+      "scientificName": "Rhea pennata"
+    },
+    "Coipo": {
+      "scientificName": "Myocastor coypus"
+    },
+    "Liebre": {
+      "scientificName": "Lepus europaeus"
+    },
+    "Chingue": {
+      "scientificName": "Conepatus chinga"
+    },
+    "Condor": {
+      "scientificName": "Vultur gryphus"
+    },
+    "Carpintero": {
+      "scientificName": "Campephilus magellanicus"
+    },
+    "Gamo": {
+      "scientificName": "Dama dama"
+    },
+    "Cabra": {
+      "scientificName": "Capra hircus"
+    },
+    "Anfibio": {
+      "scientificName": "Amphibia"
+    },
+    "Reptil": {
+      "scientificName": "Reptilia"
+    },
+    "Insecto": {
+      "scientificName": "Insecta"
+    }
+  }
+}

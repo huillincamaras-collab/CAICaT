@@ -1,0 +1,48 @@
+{
+  "_metadata": {
+    "name": "Ecuador_Bueran",
+    "version": "1.0",
+    "country_id": "ecuador",
+    "linked_region_id": "bueran",
+    "is_scientific": true,
+    "created": "2026-06-20",
+    "last_modified": "2026-06-20"
+  },
+  "GUI_Tagger": {
+    "species_tags": [
+      "Oso",
+      "Jaguar"
+    ],
+    "secondary_tags": [
+      "Jaguar",
+      "Reptilia",
+      "Otros",
+      "Personas",
+      "Setup",
+      "Vacio"
+    ],
+    "behavior_tags": [
+      "Vuela",
+      "Picotea",
+      "Canta",
+      "Posa",
+      "Corre",
+      "Salta",
+      "Come",
+      "Nada",
+      "Vocaliza"
+    ],
+    "other_tags_list": []
+  },
+  "Taxon_Map": {
+    "Oso": {
+      "scientificName": "Tremarctos ornatus"
+    },
+    "Jaguar": {
+      "scientificName": "Panthera onca"
+    },
+    "Reptilia": {
+      "scientificName": "Reptilia"
+    }
+  }
+}

@@ -1,0 +1,57 @@
+taxonID,scientificName,vernacularName,taxonRank,kingdom,family
+359,Mammalia,Mamíferos,class,Animalia,
+3,Aves,Aves,class,Animalia,
+310,Reptilia,Reptiles,class,Animalia,
+130,Amphibia,Anfibios,class,Animalia,
+752,Rodentia,Roedores,order,Animalia,
+693,Chiroptera,Murciélagos,order,Animalia,
+690,Lagomorpha,Lagomorfos,order,Animalia,
+918,Cingulata,Armadillos/Xenartros,order,Animalia,
+734,Carnivora,Carnívoros,order,Animalia,
+5219355,Muridae,Ratones y ratas,family,Animalia,Muridae
+5219356,Cricetidae,Roedores cricétidos,family,Animalia,Cricetidae
+5219369,Procyonidae,Mapasaches/Coatíes,family,Animalia,Procyonidae
+5219381,Mustelidae,Mustélidos,family,Animalia,Mustelidae
+5219386,Dasypodidae,Dasipódidos (Armadillos),family,Animalia,Dasypodidae
+5219445,Leporidae,Conejos y Liebres,family,Animalia,Leporidae
+5219302,Vespertilionidae,Murciélagos vesper,family,Animalia,Vespertilionidae
+5219305,Phyllostomidae,Murciélagos filóstomos,family,Animalia,Phyllostomidae
+5219560,Bufonidae,Sapos verdaderos,family,Animalia,Bufonidae
+5219570,Dendrobatidae,Ranas venenosas,family,Animalia,Dendrobatidae
+5219158,Felidae,Felinos,family,Animalia,Felidae
+5219157,Canidae,Cánidos,family,Animalia,Canidae
+5219156,Cervidae,Cérvidos,family,Animalia,Cervidae
+5219160,Tayassuidae,Pecaríes,family,Animalia,Tayassuidae
+5219159,Tapiridae,Tapiridae,family,Animalia,Tapiridae
+5219285,Didelphidae,Zarigüeyas/Chuchas,family,Animalia,Didelphidae
+2435099,Puma concolor,Puma,species,Animalia,Felidae
+5219419,Panthera onca,Jaguar,species,Animalia,Felidae
+3626791,Tapirus terrestris,Danta de tierra baja,species,Animalia,Tapiridae
+3626792,Tapirus pinchaque,Tapir de montaña,species,Animalia,Tapiridae
+5229141,Mazama americana,Venado colorado,species,Animalia,Cervidae
+4256837,Pecari tajacu,Pecarí de collar,species,Animalia,Tayassuidae
+4256843,Tayassu pecari,Pecarí de labio blanco,species,Animalia,Tayassuidae
+5219432,Leopardus pardalis,Ocelote,species,Animalia,Felidae
+5219436,Leopardus wiedii,Margay,species,Animalia,Felidae
+5219431,Leopardus tigrinus,Tigrillo,species,Animalia,Felidae
+5219414,Cerdocyon thous,Zorro cangrejero,species,Animalia,Canidae
+5219387,Dasypus novemcinctus,Armadillo de nueve bandas,species,Animalia,Dasypodidae
+5219370,Nasua nasua,Coatí,species,Animalia,Procyonidae
+5219382,Eira barbara,Tayra,species,Animalia,Mustelidae
+2439445,Cuniculus paca,Guatusa,species,Animalia,Cuniculidae
+2439452,Dasyprocta punctata,Guatín,species,Animalia,Dasyproctidae
+2436758,Didelphis marsupialis,Chucha común,species,Animalia,Didelphidae
+2439368,Bradypus variegatus,Perezoso de tres dedos,species,Animalia,Bradypodidae
+2441355,Myrmecophaga tridactyla,Oso hormiguero gigante,species,Animalia,Myrmecophagidae
+2473416,Penelope purpurascens,Pava crestada,species,Animalia,Cracidae
+2473451,Crax alector,Paujil de pico azul,species,Animalia,Cracidae
+2472558,Tinamus major,Perdiz grande,species,Animalia,Tinamidae
+2483466,Bothrops asper,Terciopelo,species,Animalia,Viperidae
+2483488,Crotalus durissus,Cascabel,species,Animalia,Viperidae
+5219426,Homo sapiens,Humano,species,Animalia,Hominidae
+5219416,Canis lupus familiaris,Perro doméstico,species,Animalia,Canidae
+5219412,Felis catus,Gato doméstico,species,Animalia,Felidae
+BLANK,,Disparo en blanco,blank,,
+UNKNOWN,,No identificado,unknown,,
+VEHICLE,,Vehículo,object,,
+WEATHER,,Clima/Entorno,event,,

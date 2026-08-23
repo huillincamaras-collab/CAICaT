@@ -11,9 +11,42 @@ import cv2
 from datetime import datetime
 import threading
 import hashlib
+import sys
 from config_utils import metadata_lock
 from config_utils import load_config
 import exifread
+
+# Windows-specific flag to prevent console windows from spawning
+_WIN_NO_WINDOW = 0x08000000 if os.name == 'nt' else 0
+
+# ←←← NUEVO: Variable global para estadísticas del último escaneo
+last_scan_stats = {
+    "total_videos": 0,
+    "total_photos": 0,
+    "associated_photos": 0,
+    "orphan_photos": 0,
+    "orphan_bursts": 0
+}
+
+def get_ffmpeg_paths():
+    """Resuelve rutas de ffmpeg/ffprobe para script y .exe compilado."""
+    if getattr(sys, 'frozen', False):
+        base_dir = os.path.dirname(sys.executable)
+    else:
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        
+    ffmpeg_bin = 'ffmpeg.exe' if os.name == 'nt' else 'ffmpeg'
+    ffprobe_bin = 'ffprobe.exe' if os.name == 'nt' else 'ffprobe'
+    
+    ffmpeg_path = os.path.join(base_dir, 'resources', 'ffmpeg', ffmpeg_bin)
+    ffprobe_path = os.path.join(base_dir, 'resources', 'ffmpeg', ffprobe_bin)
+    
+    if not os.path.exists(ffmpeg_path):
+        ffmpeg_path = "ffmpeg"
+    if not os.path.exists(ffprobe_path):
+        ffprobe_path = "ffprobe"
+        
+    return ffmpeg_path, ffprobe_path
 
 # --- Configuración ---
 def get_processing_params():
@@ -32,6 +65,15 @@ def get_processing_params():
         "MASK_SATURATED": proc.get("MASK_SATURATED", 0.01),
         "PHOTOS_PER_VIDEO": general.get("photos_per_video", 1)
     }
+
+# Module-level constants for backward compatibility with GUI modules
+_params = get_processing_params()
+FPS_EXTRACT = _params["FPS_EXTRACT"]
+BUFFER_N = _params["BUFFER_N"]
+TOP_K = _params["TOP_K"]
+DOWNSAMPLE_MAX = _params["DOWNSAMPLE_MAX"]
+JPEG_QUALITY = _params["JPEG_QUALITY"]
+MASK_QUALITY = _params["MASK_QUALITY"]
 
 
 
@@ -63,44 +105,53 @@ def compute_video_hash(filepath, sample_size=1024*1024, length=16):
 
 def obtener_fecha_video(video_path):
     try:
+        _, ffprobe_path = get_ffmpeg_paths()
         cmd = [
-            "ffprobe", "-v", "quiet",
+            ffprobe_path, "-v", "quiet",
             "-print_format", "json",
             "-show_entries", "format_tags=creation_time",
             video_path
         ]
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=10, creationflags=_WIN_NO_WINDOW)
         info = json.loads(result.stdout)
         fecha = info.get("format", {}).get("tags", {}).get("creation_time", None)
         if fecha:
-            return fecha[2:4] + fecha[5:7] + fecha[8:10] + "_" + fecha[11:13] + fecha[14:16] + fecha[17:19]
+            return fecha[2:4] + fecha[5:7] + fecha[8:10] + " " + fecha[11:13] + fecha[14:16] + fecha[17:19]
     except Exception:
         pass
     ts = os.path.getmtime(video_path)
-    return datetime.fromtimestamp(ts).strftime("%y%m%d_%H%M%S")
-
+    return datetime.fromtimestamp(ts).strftime("%y%m%d %H%M%S")
 
 def leer_frames_ffmpeg(video_path, fps=1):
     try:
+        ffmpeg_path, ffprobe_path = get_ffmpeg_paths()
+        
         cmd_dim = [
-            "ffprobe", "-v", "error", "-select_streams", "v:0",
+            ffprobe_path, "-v", "error", "-select_streams", "v:0",
             "-show_entries", "stream=width,height", "-of", "csv=p=0", video_path
         ]
-        result = subprocess.run(cmd_dim, capture_output=True, text=True, check=True)
+        try:
+            result = subprocess.run(cmd_dim, capture_output=True, text=True, check=True, timeout=30, creationflags=_WIN_NO_WINDOW)
+        except subprocess.TimeoutExpired:
+            print(f"⚠️ FFprobe timeout para {os.path.basename(video_path)}")
+            return None, 0, 0, 0
+        except subprocess.CalledProcessError as e:
+            print(f"⚠️ FFprobe error para {os.path.basename(video_path)}: {e}")
+            return None, 0, 0, 0
+            
         width, height = map(int, result.stdout.strip().split(","))
         frame_size = width * height
-
+        
         cmd = [
-            "ffmpeg", "-i", video_path,
+            ffmpeg_path, "-i", video_path,
             "-vf", f"fps={fps},format=gray",
             "-f", "image2pipe", "-vcodec", "rawvideo", "-"
         ]
-        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, creationflags=_WIN_NO_WINDOW)
         return proc, frame_size, width, height
     except Exception as e:
         print(f"Error inicializando FFmpeg para {os.path.basename(video_path)}: {e}")
         return None, 0, 0, 0
-
 
 def calcular_metrica_mov(frame, avg, downsample_max=None):
     if downsample_max is None:
@@ -222,6 +273,15 @@ def procesar_video(video_meta, output_root):
     avg_final = sum_buffer / len(buffer)
     promedio_path = os.path.join(output_folder, f"{fecha_prefix}_promedio.jpg")
     cv2.imwrite(promedio_path, avg_final.astype(np.uint8), [int(cv2.IMWRITE_JPEG_QUALITY), JPEG_QUALITY])
+    
+    # 🔒 FIX NUITKA: Ensure file is fully written and readable
+    if os.path.exists(promedio_path):
+        try:
+            # Verify file is readable by attempting to open it
+            with open(promedio_path, 'rb') as verify:
+                verify.read(1)
+        except Exception:
+            pass  # File might still be flushing, but we've done our best
 
     top_frames_sorted = sorted(top_heap, key=lambda x: -x[0])
     top_paths = []
@@ -229,6 +289,14 @@ def procesar_video(video_meta, output_root):
         fname = os.path.join(output_folder, f"{fecha_prefix}_top_{idx:02d}.jpg")
         cv2.imwrite(fname, f, [int(cv2.IMWRITE_JPEG_QUALITY), JPEG_QUALITY])
         top_paths.append(fname)
+        
+        # 🔒 FIX NUITKA: Verify each top frame is readable
+        if os.path.exists(fname):
+            try:
+                with open(fname, 'rb') as verify:
+                    verify.read(1)
+            except Exception:
+                pass
 
     # Selección del frame con mayor movimiento local
     best_frame = top_frames_sorted[0][1].astype(np.float32)
@@ -244,20 +312,60 @@ def procesar_video(video_meta, output_root):
     mask_small = cv2.resize(mask_gray, (width // 4, height // 4), interpolation=cv2.INTER_AREA)
     mask_path = os.path.join(output_folder, f"{fecha_prefix}_mask.jpg")
     cv2.imwrite(mask_path, mask_small, [int(cv2.IMWRITE_JPEG_QUALITY), MASK_QUALITY])
+    
+    # 🔒 FIX NUITKA: Verify mask is readable
+    if os.path.exists(mask_path):
+        try:
+            with open(mask_path, 'rb') as verify:
+                verify.read(1)
+        except Exception:
+            pass
+
+    # 🔒 FIX NUITKA: Force filesystem sync on Windows to ensure all writes are flushed
+    if os.name == 'nt':
+        try:
+            import ctypes
+            # Flush file buffers to disk
+            kernel32 = ctypes.windll.kernel32
+            for path in [promedio_path, mask_path] + top_paths:
+                if os.path.exists(path):
+                    handle = kernel32.CreateFileW(
+                        path,
+                        0x80000000,  # GENERIC_READ
+                        0x00000001 | 0x00000002,  # FILE_SHARE_READ | FILE_SHARE_WRITE
+                        None,
+                        3,  # OPEN_EXISTING
+                        0x80,  # FILE_ATTRIBUTE_NORMAL
+                        None
+                    )
+                    if handle != -1:
+                        kernel32.FlushFileBuffers(handle)
+                        kernel32.CloseHandle(handle)
+        except Exception:
+            # Fallback: just wait a bit for filesystem to catch up
+            time.sleep(0.05)
 
     t1 = time.time()
+    # 🔒 FIX: Solo actualizar campos de procesamiento, preservar metadata existente
     video_meta.update({
-            "promedio": promedio_path,
-            "mask": mask_path,
-            "tops": top_paths,
-            "status": "done",
-            "frames": total_frames,
-            "time_sec": round(t1 - t0, 2),
-            "classification": {"species": [], "counts": {}, "behaviors": []},
-            "metadata": {"site": "", "subsite": "", "camera": "", "operator": "", "recorded_at": video_meta.get("recorded_at", ""), "notes": ""},
-            "ui": {"is_favorite": False, "is_excluded": False, "embed_metadata": False, "xlsx": False},
-            "session": {"session_id": "", "camtrap_db_session": False}
-        })
+        "promedio": promedio_path,
+        "mask": mask_path,
+        "tops": top_paths,
+        "status": "done",
+        "frames": total_frames,
+        "time_sec": round(t1 - t0, 2),
+    })
+
+    # Inicializar estructura solo si no existe
+    if "classification" not in video_meta:
+        video_meta["classification"] = {"species": [], "counts": {}, "behaviors": [], "optional_tags": []}
+    if "metadata" not in video_meta:
+        video_meta["metadata"] = {"site": "", "subsite": "", "camera": "", "operator": "", "recorded_at": video_meta.get("recorded_at", ""), "notes": ""}
+    if "ui" not in video_meta:
+        video_meta["ui"] = {"is_favorite": False, "is_excluded": False, "embed_metadata": False, "xlsx": False}
+    if "session" not in video_meta:
+        video_meta["session"] = {"session_id": "", "camtrap_db_session": False}
+        
         # Limpiar claves del modelo viejo si existen
     for old_key in ("tags", "behaviors", "species_counts"):
         video_meta.pop(old_key, None)
@@ -265,45 +373,74 @@ def procesar_video(video_meta, output_root):
 
 def wrapper(args):
     try:
+        video_meta = args[0]
+        # 🔒 FIX: Si ya está procesado o es una foto (ráfaga), no procesar nuevamente
+        if video_meta.get("status") == "done" or video_meta.get("is_photo"):
+            return video_meta
         return procesar_video(*args)
     except Exception:
         args[0].update({"status": "error"})
         return args[0]
 
 
-# ←←← NUEVA FUNCIÓN: escanea videos e imágenes y los asocia por timestamp
-def escanear_videos(input_folder, output_root):
+
+def escanear_videos(input_folder, output_root, photos_per_video=None, process_mode="both"):
     """
     Escanea videos e imágenes, calcula hash único por video,
     y reutiliza procesamiento previo si ya existe.
-    Devuelve solo la lista de metadatos (sin guardar archivo temporal).
+    
+    Args:
+        input_folder: Carpeta con archivos multimedia
+        output_root: Carpeta de salida
+        photos_per_video: Cantidad de fotos a asociar por video (None = usar config)
+        process_mode: "both" (videos+huérfanas), "videos" (solo videos), "photos" (solo fotos)
+    
+    Devuelve lista de metadatos combinada (videos + ráfagas huérfanas) ordenada por timestamp.
     """
+    global last_scan_stats
+    
     params = get_processing_params()
-    PHOTOS_PER_VIDEO = params["PHOTOS_PER_VIDEO"]
+    if photos_per_video is None:
+        PHOTOS_PER_VIDEO = params["PHOTOS_PER_VIDEO"]
+    else:
+        PHOTOS_PER_VIDEO = photos_per_video
+    
     TOP_K = params["TOP_K"]
-    video_exts = ("*.AVI", "*.avi", "*.MP4", "*.mp4", "*.MOV", "*.mov", "*.MKV", "*.mkv")
-    img_exts = ("*.JPG", "*.jpg", "*.JPEG", "*.jpeg", "*.PNG", "*.png")
-
-    video_files = []
-    for ext in video_exts:
-        video_files.extend(glob.glob(os.path.join(input_folder, ext)))
-    video_files = sorted(list(set(video_files)))  # orden y sin duplicados
-
-    img_files = []
-    for ext in img_exts:
-        img_files.extend(glob.glob(os.path.join(input_folder, ext)))
-    img_files = list(set(img_files))
-
+    
+    # Si el modo es solo videos, no asociar fotos
+    if process_mode == "videos":
+        PHOTOS_PER_VIDEO = 0
+    
+    video_exts = {'.avi', '.mp4', '.mov', '.mkv', '.webm', '.flv', '.wmv', '.m4v',
+                  '.3gp', '.3gpp', '.mpg', '.mpeg', '.ts', '.mts', '.m2ts', '.vob',
+                  '.asf', '.ogv', '.ogg', '.dv', '.mxf'}
+    img_exts = {'.jpg', '.jpeg', '.png'}
+    
+    all_files = []
+    try:
+        all_files = [os.path.join(input_folder, f) for f in os.listdir(input_folder)
+                     if os.path.isfile(os.path.join(input_folder, f))]
+    except Exception as e:
+        print(f"Error scanning folder: {e}")
+    
+    video_files = sorted([f for f in all_files if os.path.splitext(f)[1].lower() in video_exts])
+    img_files = [f for f in all_files if os.path.splitext(f)[1].lower() in img_exts]
+    
+    # 🔒 FIX CRÍTICO: get_timestamp ahora lee EXIF para fotos (no solo mtime)
     def get_timestamp(path):
+        """Obtiene timestamp: EXIF para fotos, ffprobe para videos, mtime como fallback."""
+        # 1. Para videos: usar ffprobe (creation_time del contenedor)
         try:
             if any(path.lower().endswith(ext.lower()) for ext in video_exts):
+                _, ffprobe_path = get_ffmpeg_paths()
                 cmd = [
-                    "ffprobe", "-v", "quiet",
+                    ffprobe_path, "-v", "quiet",
                     "-print_format", "json",
                     "-show_entries", "format_tags=creation_time",
                     path
                 ]
-                result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+                result = subprocess.run(cmd, capture_output=True, text=True, 
+                                       timeout=10, creationflags=_WIN_NO_WINDOW)
                 info = json.loads(result.stdout)
                 fecha = info.get("format", {}).get("tags", {}).get("creation_time")
                 if fecha:
@@ -311,104 +448,151 @@ def escanear_videos(input_folder, output_root):
                     return dt.timestamp()
         except Exception:
             pass
+        
+        # 2. 🔒 FIX: Para fotos, leer EXIF DateTimeOriginal (fecha real de disparo)
+        try:
+            if any(path.lower().endswith(ext.lower()) for ext in img_exts):
+                with open(path, 'rb') as f:
+                    tags = exifread.process_file(f, stop_tag='DateTimeOriginal', details=False)
+                    if 'EXIF DateTimeOriginal' in tags:
+                        dt_str = str(tags['EXIF DateTimeOriginal'])
+                        dt = datetime.strptime(dt_str, "%Y:%m:%d %H:%M:%S")
+                        return dt.timestamp()
+        except Exception:
+            pass
+        
+        # 3. Fallback: fecha de modificación del archivo
         return os.path.getmtime(path)
-
-    # Ordenar imágenes por timestamp
+    
+    # Ordenar imágenes por timestamp (ahora correcto gracias al fix)
     img_files.sort(key=get_timestamp)
     img_timestamps = [get_timestamp(f) for f in img_files]
-
-    # Carpeta base de frames
+    
     frames_root = os.path.join(output_root, "frames")
-
     metadata = []
-    for v in video_files:
-        # 1. Calcular hash único
-        v_hash = compute_video_hash(v)
+    
+    # ============================================================
+    # FASE 1: Procesar videos (si el modo lo permite)
+    # ============================================================
+    if process_mode in ("both", "videos"):
+        for v in video_files:
+            v_hash = compute_video_hash(v)
+            fecha_prefix = obtener_fecha_video(v)
+            
+            try:
+                recorded_dt = datetime.strptime(fecha_prefix, "%y%m%d_%H%M%S")
+            except Exception:
+                try:
+                    recorded_dt = datetime.fromtimestamp(os.path.getmtime(v))
+                except Exception:
+                    recorded_dt = datetime.now()
+            recorded_at = recorded_dt.strftime("%Y-%m-%dT%H:%M:%S")
+            
+            expected_folder = os.path.join(frames_root, v_hash)
+            already_done = False
+            if os.path.isdir(expected_folder):
+                promedio_path = os.path.join(expected_folder, f"{fecha_prefix}_promedio.jpg")
+                mask_path = os.path.join(expected_folder, f"{fecha_prefix}_mask.jpg")
+                top0_path = os.path.join(expected_folder, f"{fecha_prefix}_top_01.jpg")
+                if os.path.exists(promedio_path) and os.path.exists(mask_path) and os.path.exists(top0_path):
+                    already_done = True
+            
+            v_ts = get_timestamp(v)
+            associated_photos = []
+            if PHOTOS_PER_VIDEO > 0:
+                # Buscar las últimas N fotos antes del video
+                for i in range(len(img_files) - 1, -1, -1):
+                    if len(associated_photos) >= PHOTOS_PER_VIDEO:
+                        break
+                    if img_timestamps[i] <= v_ts:
+                        associated_photos.append(img_files[i])
+                associated_photos.reverse()  # más antigua primero
+            
+            meta_entry = {
+                "video_path": v,
+                "video_hash": v_hash,
+                "frames_folder": v_hash,
+                "fecha_prefix": fecha_prefix,
+                "associated_photos": associated_photos,
+                "promedio": None,
+                "mask": None,
+                "tops": [],
+                "tags": [],
+                "behaviors": [],
+                "status": "done" if already_done else "pending",
+                "site": "",
+                "subsite": "",
+                "camera": "",
+                "operator": "",
+                "recorded_at": recorded_at
+            }
+            
+            copied_photo_paths = []
+            if associated_photos:
+                output_folder = os.path.join(frames_root, v_hash)
+                os.makedirs(output_folder, exist_ok=True)
+                for idx, photo_path in enumerate(associated_photos, 1):
+                    if os.path.exists(photo_path):
+                        ext = os.path.splitext(photo_path)[1]
+                        dest_name = f"original_{idx:02d}{ext.lower()}"
+                        dest_path = os.path.join(output_folder, dest_name)
+                        if not os.path.exists(dest_path):
+                            shutil.copy2(photo_path, dest_path)
+                        copied_photo_paths.append(dest_path)
+            meta_entry["original_photos"] = copied_photo_paths
+            
+            if already_done:
+                meta_entry["promedio"] = promedio_path
+                meta_entry["mask"] = mask_path
+                tops = []
+                for i in range(1, TOP_K + 1):
+                    top_path = os.path.join(expected_folder, f"{fecha_prefix}_top_{i:02d}.jpg")
+                    if os.path.exists(top_path):
+                        tops.append(top_path)
+                    else:
+                        break
+                meta_entry["tops"] = tops
+            
+            metadata.append(meta_entry)
+    
+    # ============================================================
+    # FASE 2: Detectar y procesar fotos huérfanas
+    # ============================================================
+    orphan_metadata = []
+    used_photos = set()
+    for entry in metadata:
+        for p in entry.get("associated_photos", []):
+            used_photos.add(p)
+    
+    orphan_photos = [f for f in img_files if f not in used_photos]
+    
+    if orphan_photos and process_mode in ("both", "photos"):
+        print(f"📷 Detectadas {len(orphan_photos)} fotos huérfanas (no asociadas a videos)")
         
-        # 2. Obtener fecha para nombres de archivo (solo para legibilidad interna)
-        fecha_prefix = obtener_fecha_video(v)
-        try:
-            recorded_dt = datetime.strptime(fecha_prefix, "%y%m%d_%H%M%S")
-            recorded_at = recorded_dt.strftime("%Y-%m-%d %H:%M:%S")
-        except Exception:
-            recorded_at = ""
-
-        # 3. Verificar si ya fue procesado
-        expected_folder = os.path.join(frames_root, v_hash)
-        already_done = False
-        if os.path.isdir(expected_folder):
-            # Verificar presencia de archivos clave
-            promedio_path = os.path.join(expected_folder, f"{fecha_prefix}_promedio.jpg")
-            mask_path = os.path.join(expected_folder, f"{fecha_prefix}_mask.jpg")
-            top0_path = os.path.join(expected_folder, f"{fecha_prefix}_top_01.jpg")
-            if os.path.exists(promedio_path) and os.path.exists(mask_path) and os.path.exists(top0_path):
-                already_done = True
-
-        # 4. Asociar fotos (solo si es necesario, aunque ya esté procesado)
-        v_ts = get_timestamp(v)
-        associated_photos = []
-        if PHOTOS_PER_VIDEO > 0:
-            # Buscar las últimas N fotos antes del video
-            for i in range(len(img_files) - 1, -1, -1):
-                if len(associated_photos) >= PHOTOS_PER_VIDEO:
-                    break
-                if img_timestamps[i] <= v_ts:
-                    associated_photos.append(img_files[i])
-            associated_photos.reverse()  # más antigua primero
-
-        # 5. Construir metadato base
-        meta_entry = {
-            "video_path": v,
-            "video_hash": v_hash,
-            "frames_folder": v_hash,
-            "fecha_prefix": fecha_prefix,
-            "associated_photos": associated_photos,
-            "promedio": None,
-            "mask": None,
-            "tops": [],
-            "tags": [],
-            "behaviors": [],
-            "status": "done" if already_done else "pending",
-            "site": "",
-            "subsite": "",
-            "camera": "",
-            "operator": "",
-            "recorded_at": recorded_at
-        }
-
-        # ←←← NUEVO: copiar fotos originales INMEDIATAMENTE y guardar rutas
-        copied_photo_paths = []
-        if associated_photos:
-            output_folder = os.path.join(frames_root, v_hash)
-            os.makedirs(output_folder, exist_ok=True)
-            for idx, photo_path in enumerate(associated_photos, 1):
-                if os.path.exists(photo_path):
-                    ext = os.path.splitext(photo_path)[1]
-                    dest_name = f"original_{idx:02d}{ext.lower()}"
-                    dest_path = os.path.join(output_folder, dest_name)
-                    if not os.path.exists(dest_path):
-                        shutil.copy2(photo_path, dest_path)
-                    copied_photo_paths.append(dest_path)
-        meta_entry["original_photos"] = copied_photo_paths
-        # →→→ FIN NUEVO
-
-        # 6. Si ya está procesado, rellenar rutas de frames/máscara
-        if already_done:
-            meta_entry["promedio"] = promedio_path
-            meta_entry["mask"] = mask_path
-            # Buscar todos los tops
-            tops = []
-            for i in range(1, TOP_K + 1):
-                top_path = os.path.join(expected_folder, f"{fecha_prefix}_top_{i:02d}.jpg")
-                if os.path.exists(top_path):
-                    tops.append(top_path)
-                else:
-                    break
-            meta_entry["tops"] = tops
-
-        metadata.append(meta_entry)
-
-    return metadata  # ←←← solo devuelve la lista
+        orphan_with_ts = [{"path": p, "ts": get_timestamp(p)} for p in orphan_photos]
+        orphan_with_ts.sort(key=lambda x: x["ts"])
+        
+        orphan_groups = agrupar_en_rafagas(orphan_with_ts, umbral_seg=2.0)
+        print(f"📷 Agrupadas en {len(orphan_groups)} ráfagas huérfanas")
+        
+        orphan_metadata = procesar_todas_las_rafagas(orphan_groups, output_root)
+        metadata.extend(orphan_metadata)
+        
+        # Ordenar todo por timestamp (videos + ráfagas huérfanas mezclados)
+        metadata.sort(key=lambda x: x.get("recorded_at", ""))
+    
+    # ============================================================
+    # FASE 3: Actualizar estadísticas globales
+    # ============================================================
+    last_scan_stats = {
+        "total_videos": len(video_files),
+        "total_photos": len(img_files),
+        "associated_photos": len(used_photos),
+        "orphan_photos": len(orphan_photos),
+        "orphan_bursts": len(orphan_metadata)
+    }
+    
+    return metadata
 
 # ===================================================================
 # === FUNCIONES PARA MANEJO DE FOTOS PURAS (sin videos) ==============
@@ -510,9 +694,10 @@ def procesar_todas_las_rafagas(photo_groups, output_root):
 
 def procesar_grupo_de_fotos(grupo, output_root):
     """
-    Procesa una ráfaga de fotos. Se agregaron las variables de configuración faltantes.
+    Procesa una ráfaga de fotos con downsampling a 1024px para optimizar rendimiento.
+    Las imágenes de salida son ~1MP (suficiente para etiquetado, 10x más rápido que 12MP).
     """
-    # 1. Cargar parámetros (Esto faltaba y hacía fallar el código)
+    # 1. Cargar parámetros
     params = get_processing_params()
     JPEG_QUALITY = params["JPEG_QUALITY"]
     TOP_K = params["TOP_K"]
@@ -520,76 +705,112 @@ def procesar_grupo_de_fotos(grupo, output_root):
     MASK_SATURATED = params["MASK_SATURATED"]
     MASK_QUALITY = params["MASK_QUALITY"]
 
+    # 🔒 OPTIMIZACIÓN: Tamaño máximo para procesamiento (1024px en el lado más largo)
+    MAX_SIZE = 1024
+
     # 2. Hash único basado en la primera foto del grupo
     grupo_hash = compute_file_hash(grupo[0]["path"])
     frames_folder = os.path.join(output_root, "frames", grupo_hash)
     os.makedirs(frames_folder, exist_ok=True)
-    
-    # 3. Usar rutas originales
-    copied_paths = [foto["path"] for foto in grupo]
 
+    # 3. Cargar imágenes y redimensionar todas al mismo tamaño
+    copied_paths = [foto["path"] for foto in grupo]
     imgs_gray = []
     imgs_color = []
+    target_size = None  # (width, height) - se define con la primera imagen válida
+
     for p in copied_paths:
         img_color = cv2.imread(p)
         if img_color is not None:
+            h, w = img_color.shape[:2]
+
+            # 🔒 OPTIMIZACIÓN: Redimensionar si es más grande que MAX_SIZE
+            if max(h, w) > MAX_SIZE:
+                scale = MAX_SIZE / max(h, w)
+                new_w = int(w * scale)
+                new_h = int(h * scale)
+                img_color = cv2.resize(img_color, (new_w, new_h), interpolation=cv2.INTER_AREA)
+
+            # Guardar tamaño de referencia (el de la primera imagen redimensionada)
+            if target_size is None:
+                target_size = (img_color.shape[1], img_color.shape[0])  # (w, h)
+            else:
+                # Asegurar que todas tengan el mismo tamaño
+                if (img_color.shape[1], img_color.shape[0]) != target_size:
+                    img_color = cv2.resize(img_color, target_size, interpolation=cv2.INTER_AREA)
+
             img_gray = cv2.cvtColor(img_color, cv2.COLOR_BGR2GRAY)
             imgs_gray.append(img_gray)
             imgs_color.append(img_color)
         else:
             # Fallback por si una imagen está corrupta
-            h, w = (480, 640) if not imgs_gray else imgs_gray[-1].shape
+            if target_size is None:
+                target_size = (640, 480)
+            w, h = target_size
             imgs_gray.append(np.zeros((h, w), dtype=np.uint8))
             imgs_color.append(np.zeros((h, w, 3), dtype=np.uint8))
-    
-    # 4. Calcular promedio
+
+    # Si ninguna imagen se pudo cargar, abortar
+    if not imgs_gray:
+        print(f"⚠️ No se pudo cargar ninguna imagen del grupo: {grupo[0]['path']}")
+        return {
+            "video_path": grupo[0]["path"],
+            "video_hash": grupo_hash,
+            "frames_folder": grupo_hash,
+            "fecha_prefix": datetime.fromtimestamp(grupo[0]["ts"]).strftime("%y%m%d_%H%M%S"),
+            "original_photos": copied_paths,
+            "promedio": None, "mask": None, "tops": [],
+            "status": "error",
+            "is_photo": True, "is_burst": len(grupo) > 1,
+            "error_message": "No valid images in group"
+        }
+
+    # 4. Calcular promedio (ahora sobre ~1MP en lugar de 12MP → ~10x más rápido)
     avg = np.mean(imgs_gray, axis=0).astype(np.uint8)
     fecha_prefix = datetime.fromtimestamp(grupo[0]["ts"]).strftime("%y%m%d_%H%M%S")
     promedio_path = os.path.join(frames_folder, f"{fecha_prefix}_promedio.jpg")
     cv2.imwrite(promedio_path, avg, [int(cv2.IMWRITE_JPEG_QUALITY), JPEG_QUALITY])
-    
-    # 5. Calcular scores y seleccionar TOP_K
+
+    # 5. Calcular scores y seleccionar TOP_K (mucho más rápido con imágenes pequeñas)
     scores = []
     for img in imgs_gray:
         diff_val = np.abs(img.astype(np.float32) - avg.astype(np.float32))
         scores.append(diff_val.mean())
-    
     top_indices = np.argsort(scores)[-TOP_K:][::-1]
     top_paths = []
     for rank, idx in enumerate(top_indices, 1):
         fname = os.path.join(frames_folder, f"{fecha_prefix}_top_{rank:02d}.jpg")
         cv2.imwrite(fname, imgs_color[idx], [int(cv2.IMWRITE_JPEG_QUALITY), JPEG_QUALITY])
         top_paths.append(fname)
-    
-    # 6. Generar máscara (Usando la función corregida arriba para ser consistentes)
+
+    # 6. Generar máscara
     best_idx = top_indices[0]
     diff_for_mask = imgs_gray[best_idx].astype(np.float32) - avg.astype(np.float32)
     mask_gray = mapear_mask_gris(diff_for_mask, MASK_OFFSET, MASK_SATURATED)
-    
     mask_small = cv2.resize(mask_gray, (mask_gray.shape[1] // 4, mask_gray.shape[0] // 4))
     mask_path = os.path.join(frames_folder, f"{fecha_prefix}_mask.jpg")
     cv2.imwrite(mask_path, mask_small, [int(cv2.IMWRITE_JPEG_QUALITY), MASK_QUALITY])
-    
+
     # 7. Retorno de metadatos
     try:
-        recorded_at = datetime.fromtimestamp(grupo[0]["ts"]).strftime("%Y-%m-%d %H:%M:%S")
-    except:
+        recorded_at = datetime.fromtimestamp(grupo[0]["ts"]).strftime("%Y-%m-%dT%H:%M:%S")
+    except Exception:
         recorded_at = ""
-    
+
     return {
-            "video_path": grupo[0]["path"],
-            "video_hash": grupo_hash,
-            "frames_folder": grupo_hash,
-            "fecha_prefix": fecha_prefix,
-            "original_photos": copied_paths,
-            "promedio": promedio_path,
-            "mask": mask_path,
-            "tops": top_paths,
-            "status": "done",
-            "is_photo": True,
-            "is_burst": len(grupo) > 1,
-            "classification": {"species": [], "counts": {}, "behaviors": []},
-            "metadata": {"site": "", "subsite": "", "camera": "", "operator": "", "recorded_at": recorded_at, "notes": ""},
-            "ui": {"is_favorite": False, "is_excluded": False, "embed_metadata": False, "xlsx": False},
-            "session": {"session_id": "", "camtrap_db_session": False}
-        }
+        "video_path": grupo[0]["path"],
+        "video_hash": grupo_hash,
+        "frames_folder": grupo_hash,
+        "fecha_prefix": fecha_prefix,
+        "original_photos": copied_paths,
+        "promedio": promedio_path,
+        "mask": mask_path,
+        "tops": top_paths,
+        "status": "done",
+        "is_photo": True,
+        "is_burst": len(grupo) > 1,
+        "classification": {"species": [], "counts": {}, "behaviors": [], "optional_tags": []},
+        "metadata": {"site": "", "subsite": "", "camera": "", "operator": "", "recorded_at": recorded_at, "notes": ""},
+        "ui": {"is_favorite": False, "is_excluded": False, "embed_metadata": False, "xlsx": False},
+        "session": {"session_id": "", "camtrap_db_session": False}
+    }

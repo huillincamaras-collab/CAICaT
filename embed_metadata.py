@@ -4,7 +4,7 @@ import os
 import json
 import subprocess
 from config_utils import load_config
-from filter_utils import (
+from export_utils import (
     filter_videos,
     get_unique_tags,
     get_unique_values
@@ -211,7 +211,7 @@ class EmbedMetadataGUI(tk.Tk):
             # 3. Obtener campos seleccionados
             selected_fields = [f for f, var in self.field_vars.items() if var.get()]
             if not selected_fields:
-                 messagebox.showerror("Error", "Seleccione al menos un campo para incrustar.")
+                messagebox.showerror("Error", "Seleccione al menos un campo para incrustar.")
                 return
 
             # 4. Procesar cada video
@@ -242,19 +242,35 @@ class EmbedMetadataGUI(tk.Tk):
         """Incrusta metadatos usando ffmpeg (método no destructivo: crea copia temporal)."""
         try:
             temp_path = video_path + ".tmp.mp4"
-            cmd = ["ffmpeg", "-i", video_path, "-c", "copy"]
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            
+            # 🔒 FIX BUG-004: Cross-platform binary name
+            ffmpeg_bin = 'ffmpeg.exe' if os.name == 'nt' else 'ffmpeg'
+            ffmpeg_path = os.path.join(base_dir, 'resources', 'ffmpeg', ffmpeg_bin)
+
+            if not os.path.exists(ffmpeg_path):
+                ffmpeg_path = "ffmpeg"
+
+            cmd = [ffmpeg_path, "-i", video_path, "-c", "copy"]            
             
             # Añadir metadatos
             for key, value in metadata_dict.items():
                 cmd += ["-metadata", f"{key}={value}"]
             
-            cmd.append(temp_path)
+            cmd.extend(["-y", temp_path])
             
-            # Ejecutar ffmpeg silenciosamente
-            result = subprocess.run(cmd, 
-                                   stdout=subprocess.DEVNULL, 
-                                   stderr=subprocess.DEVNULL, 
-                                   timeout=300)
+            # 🔒 FIX BUG-003: Proper timeout handling with graceful error recovery
+            try:
+                result = subprocess.run(cmd, 
+                                       stdout=subprocess.DEVNULL, 
+                                       stderr=subprocess.DEVNULL, 
+                                       timeout=300,
+                                       check=False)
+            except subprocess.TimeoutExpired:
+                print(f"⚠️ FFmpeg timeout (>5min) para {os.path.basename(video_path)}")
+                if os.path.exists(temp_path):
+                    os.remove(temp_path)
+                return False
             
             if result.returncode == 0 and os.path.exists(temp_path):
                 os.replace(temp_path, video_path)
@@ -264,7 +280,8 @@ class EmbedMetadataGUI(tk.Tk):
                     os.remove(temp_path)
                 return False
                 
-        except Exception:
+        except Exception as e:
+            print(f"⚠️ Error incrustando metadatos en {os.path.basename(video_path)}: {e}")
             if os.path.exists(video_path + ".tmp.mp4"):
                 os.remove(video_path + ".tmp.mp4")
             return False

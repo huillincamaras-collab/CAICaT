@@ -1,37 +1,39 @@
+"""
+gui_excel_export.py - GUI de exportación de metadata
+Permite seleccionar campos, orden de columnas, etiquetas personalizadas.
+Exporta a CSV personalizado o paquete Camtrap DP completo.
+"""
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 import os
 import json
-import pandas as pd
-from config_utils import load_config
 import string
 import subprocess
 import sys
-
-# ←←← NUEVO: importar módulo de filtrado
-from filter_utils import (
+from config_utils import load_config, get_excel_fields_default
+from export_utils import (
     filter_videos,
     get_unique_tags,
     get_unique_values,
-    get_unique_behaviors
+    get_unique_behaviors,
+    flatten_metadata
 )
-# →→→
-
+from export_camtrap import export_camtrap
+from export_inabio import export_inabio_gui
 
 class ExcelExportGUI(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title("Exportar metadata a Excel")
-        self.geometry("800x600")  # ← ligeramente más ancho para filtros
+        self.title("Exportar metadata")
+        self.geometry("850x650")
 
         self.config_data = load_config()
-
-        # ←←← NUEVO: cargar archivo consolidado
         self.consolidated_path = os.path.join(
             self.config_data["General"]["output_folder"],
             "consolidated",
             "all_sessions_metadata.json"
         )
+
         if not os.path.exists(self.consolidated_path):
             messagebox.showerror(
                 "Error",
@@ -43,12 +45,16 @@ class ExcelExportGUI(tk.Tk):
 
         with open(self.consolidated_path, "r", encoding="utf-8") as f:
             self.all_metadata = json.load(f)
-        # →→→
 
-        self.fields_vars = {}
-        self.column_dropdowns = {}
-        self.checkbuttons = {}
-        self.available_letters = list(string.ascii_uppercase)
+        # Estado de la UI
+        self.fields_vars = {}          # {field: BooleanVar}
+        self.column_dropdowns = {}     # {field: StringVar}
+        self.label_entries = {}        # {field: Entry}
+        self.checkbuttons = {}         # {field: Checkbutton}
+        self.field_letter_map = {}     # {field: letter} - PRESERVA asignación
+        self.used_letters = set()      # Letras ya asignadas
+        self.all_letters = list(string.ascii_uppercase)
+        self.advanced_filters = {}
 
         # -------------------------
         # Frame superior: opciones y filtros
@@ -56,9 +62,9 @@ class ExcelExportGUI(tk.Tk):
         top_frame = tk.Frame(self)
         top_frame.pack(fill="x", padx=10, pady=5)
 
-        # Opción: Predeterminados / Todos
         options_frame = tk.Frame(top_frame)
         options_frame.pack(side="left", padx=10)
+
         self.selection_option = tk.StringVar(value="predeterminados")
         tk.Radiobutton(options_frame, text="Predeterminados",
                        variable=self.selection_option, value="predeterminados",
@@ -67,27 +73,8 @@ class ExcelExportGUI(tk.Tk):
                        variable=self.selection_option, value="todos",
                        command=self.refresh_fields).pack(side="left", padx=10)
 
-        # ←←← NUEVO: Botón para filtros avanzados
-        tk.Button(top_frame, text="Filtros avanzados...", 
+        tk.Button(top_frame, text="Filtros avanzados...",
                   command=self.open_advanced_filters).pack(side="right", padx=10)
-        self.advanced_filters = {}  # almacenará los filtros seleccionados
-        # →→→
-
-        # -------------------------
-        # Opción Append / Nuevo archivo
-        # -------------------------
-        file_frame = tk.Frame(self)
-        file_frame.pack(pady=5, fill="x", padx=10)
-        tk.Label(file_frame, text="Si existe archivo Excel:").pack(anchor="w")
-        self.file_option = tk.StringVar(value="nuevo")
-        tk.Radiobutton(file_frame, text="Generar nuevo", variable=self.file_option, value="nuevo").pack(anchor="w")
-        tk.Radiobutton(file_frame, text="Agregar al existente", variable=self.file_option, value="append").pack(anchor="w")
-
-        # -------------------------
-        # Checkbox abrir archivo al finalizar
-        # -------------------------
-        self.open_after = tk.BooleanVar(value=False)
-        tk.Checkbutton(self, text="Abrir archivo al finalizar", variable=self.open_after).pack(pady=5)
 
         # -------------------------
         # Frame scrollable para campos
@@ -98,32 +85,59 @@ class ExcelExportGUI(tk.Tk):
         canvas = tk.Canvas(container)
         scrollbar = tk.Scrollbar(container, orient="vertical", command=canvas.yview)
         self.fields_frame = tk.Frame(canvas)
-
         self.fields_frame.bind(
             "<Configure>",
             lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
         )
-
         canvas.create_window((0, 0), window=self.fields_frame, anchor="nw")
         canvas.configure(yscrollcommand=scrollbar.set)
-
         canvas.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
 
         # -------------------------
-        # Botones
+        # Botones de exportación
         # -------------------------
         buttons_frame = tk.Frame(self)
         buttons_frame.pack(pady=10)
 
         tk.Button(buttons_frame, text="Cancelar", command=self.cancel).pack(side="left", padx=5)
-        tk.Button(buttons_frame, text="Exportar a Excel", command=self.export_excel).pack(side="left", padx=5)
+        tk.Button(buttons_frame, text="CAMTRAP", command=self.export_camtrap_package,
+                  bg="#00bcd4", fg="white", width=15, font=("Arial", 10, "bold")).pack(side="left", padx=5)
+        tk.Button(buttons_frame, text="INABIO", command=self.export_inabio_package,
+                  bg="#2e7d32", fg="white", width=15, font=("Arial", 10, "bold")).pack(side="left", padx=5)
+        tk.Button(buttons_frame, text="CSV", command=self.export_custom_csv,
+                  bg="#2196f3", fg="white", width=15, font=("Arial", 10, "bold")).pack(side="left", padx=5)
+
+        # Cerrar vuelve a main
+        self.protocol("WM_DELETE_WINDOW", self.cancel)
 
         # Inicializar campos
         self.refresh_fields()
 
     # -------------------------
-    # ←←← NUEVO: Ventana de filtros avanzados
+    # Asignación inteligente de columnas
+    # -------------------------
+    def _assign_letter(self, field):
+        """Asigna una letra libre al campo. Preserva si ya tenía."""
+        if field in self.field_letter_map:
+            return self.field_letter_map[field]
+        # Buscar primera letra libre
+        for letter in self.all_letters:
+            if letter not in self.used_letters:
+                self.field_letter_map[field] = letter
+                self.used_letters.add(letter)
+                return letter
+        return ""
+
+    def _release_letter(self, field):
+        """Libera la letra asignada al campo."""
+        if field in self.field_letter_map:
+            letter = self.field_letter_map[field]
+            self.used_letters.discard(letter)
+            del self.field_letter_map[field]
+
+    # -------------------------
+    # Ventana de filtros avanzados
     # -------------------------
     def open_advanced_filters(self):
         if hasattr(self, '_filter_window') and tk.Toplevel.winfo_exists(self._filter_window):
@@ -159,7 +173,7 @@ class ExcelExportGUI(tk.Tk):
             for i, tag in enumerate(tags):
                 var = tk.BooleanVar(value=tag in self.advanced_filters.get("tags", []))
                 cb = tk.Checkbutton(tag_frame, text=tag, variable=var)
-                cb.grid(row=i//3, column=i%3, sticky="w", padx=5)
+                cb.grid(row=i // 3, column=i % 3, sticky="w", padx=5)
                 self.tag_vars[tag] = var
 
         # Operadores
@@ -172,21 +186,19 @@ class ExcelExportGUI(tk.Tk):
             for i, op in enumerate(operators):
                 var = tk.BooleanVar(value=op in self.advanced_filters.get("operators", []))
                 cb = tk.Checkbutton(op_frame, text=op, variable=var)
-                cb.grid(row=i//3, column=i%3, sticky="w", padx=5)
+                cb.grid(row=i // 3, column=i % 3, sticky="w", padx=5)
                 self.op_vars[op] = var
 
         # Botones
         btn_frame = tk.Frame(win)
         btn_frame.pack(pady=10)
-        tk.Button(btn_frame, text="Aplicar", 
+        tk.Button(btn_frame, text="Aplicar",
                   command=lambda: [self._apply_filters(), win.destroy()]).pack(side="left", padx=5)
         tk.Button(btn_frame, text="Cancelar", command=win.destroy).pack(side="left", padx=5)
 
     def _apply_filters(self):
         """Guarda los filtros seleccionados en self.advanced_filters."""
         filters = {}
-
-        # Sesión
         session_opt = self.session_var.get()
         if session_opt == "last":
             filters["session_filter"] = "last"
@@ -196,141 +208,274 @@ class ExcelExportGUI(tk.Tk):
         else:
             filters["session_filter"] = "all"
 
-        # Tags
         if hasattr(self, 'tag_vars'):
             selected_tags = [t for t, var in self.tag_vars.items() if var.get()]
             if selected_tags:
                 filters["tags"] = selected_tags
 
-        # Operadores
         if hasattr(self, 'op_vars'):
             selected_ops = [o for o, var in self.op_vars.items() if var.get()]
             if selected_ops:
                 filters["operators"] = selected_ops
 
         self.advanced_filters = filters
-    # →→→ FIN NUEVO
 
     # -------------------------
     # Refrescar checkboxes y dropdowns
     # -------------------------
     def refresh_fields(self):
+        """Regenera la lista de campos según la opción seleccionada."""
+        # Limpiar UI
         for widget in self.fields_frame.winfo_children():
             widget.destroy()
+
+        # Limpiar estado (PERO preservar field_letter_map para mantener asignaciones)
         self.fields_vars.clear()
         self.column_dropdowns.clear()
+        self.label_entries.clear()
         self.checkbuttons.clear()
-        self.available_letters = list(string.ascii_uppercase)
+        self.used_letters = set(self.field_letter_map.values())
 
+        # Obtener lista de campos
         if self.selection_option.get() == "todos":
-            fields_list = list(self.config_data["MetadataSettings"]["model"].keys())
+            # Todos los campos del modelo (planos, desde flatten_metadata de ejemplo)
+            if self.all_metadata:
+                sample = flatten_metadata(self.all_metadata[0])
+                fields_list = list(sample.keys())
+            else:
+                fields_list = list(self.config_data["MetadataSettings"]["model"].keys())
         else:
-            fields_list = self.config_data["MetadataSettings"]["ExcelFieldsDefault"]
+            fields_list = get_excel_fields_default(self.config_data)
 
+        # Crear filas
         for field in fields_list:
             row = tk.Frame(self.fields_frame)
             row.pack(fill="x", pady=2)
 
+            # Checkbox (por defecto marcado)
             var = tk.BooleanVar(value=True)
-            cb = tk.Checkbutton(row, text=field, variable=var,
-                                command=lambda f=field, v=var: self.toggle_column_dropdown(f, v))
+            cb = tk.Checkbutton(row, text=field, variable=var, width=20, anchor="w",
+                                command=lambda f=field, v=var: self.toggle_column_controls(f, v))
             cb.pack(side="left", padx=5)
             self.fields_vars[field] = var
             self.checkbuttons[field] = cb
 
+            # Column dropdown
+            tk.Label(row, text="Col:").pack(side="left")
             col_var = tk.StringVar()
-            dropdown = ttk.Combobox(row, textvariable=col_var, width=5, state="readonly")
-            dropdown['values'] = list(string.ascii_uppercase)
-            dropdown.pack(side="left", padx=5)
+            dropdown = ttk.Combobox(row, textvariable=col_var, width=3, state="readonly")
+            dropdown['values'] = self.all_letters
+            dropdown.pack(side="left", padx=2)
 
-            if self.available_letters:
-                col_var.set(self.available_letters.pop(0))
+            # Asignar letra (preservando si ya tenía)
+            letter = self._assign_letter(field)
+            col_var.set(letter)
 
             self.column_dropdowns[field] = dropdown
 
-            if not var.get():
-                dropdown.pack_forget()
-                cb.config(fg="gray60")
+            # Label textbox
+            tk.Label(row, text="Label:").pack(side="left", padx=(10, 2))
+            label_entry = tk.Entry(row, width=20)
+            label_entry.insert(0, field)  # Default al nombre del campo
+            label_entry.pack(side="left", padx=2)
+            self.label_entries[field] = label_entry
 
-    def toggle_column_dropdown(self, field, var):
+    def toggle_column_controls(self, field, var):
+        """Muestra/oculta controles y libera/reserva letra."""
         dropdown = self.column_dropdowns[field]
+        label_entry = self.label_entries[field]
         cb = self.checkbuttons[field]
+
         if var.get():
-            dropdown.pack(side="left", padx=5)
+            # Mostrar controles y (re)asignar letra
+            dropdown.pack(side="left", padx=2)
+            label_entry.pack(side="left", padx=2)
             cb.config(fg="black")
+            if field not in self.field_letter_map:
+                letter = self._assign_letter(field)
+                self.column_dropdowns[field].set(letter)
         else:
+            # Ocultar controles y liberar letra
             dropdown.pack_forget()
+            label_entry.pack_forget()
             cb.config(fg="gray60")
+            self._release_letter(field)
 
     # -------------------------
-    # Exportar Excel (ACTUALIZADO)
+    # Export CAMTRAP Package
     # -------------------------
-    def export_excel(self):
+    def export_camtrap_package(self):
+        """Exporta paquete Camtrap DP 1.0 completo (6 CSV + datapackage.json)."""
         try:
-            # ←←← NUEVO: aplicar filtros antes de exportar
+            output_folder = self.config_data['General']['output_folder']
+            camtrap_dir = filedialog.askdirectory(
+                initialdir=output_folder,
+                title="Seleccionar carpeta para exportar Camtrap DP"
+            )
+            if not camtrap_dir:
+                return
+
+            result_dir = export_camtrap(
+                metadata_path=self.consolidated_path,
+                output_dir=camtrap_dir,
+                config=self.config_data
+            )
+
+            if result_dir:
+                messagebox.showinfo(
+                    "Éxito",
+                    f"Paquete Camtrap DP exportado:\n\n{result_dir}\n\n"
+                    "Archivos:\n"
+                    "- projects.csv\n"
+                    "- deployments.csv\n"
+                    "- locations.csv\n"
+                    "- taxa.csv\n"
+                    "- media.csv\n"
+                    "- observations.csv\n"
+                    "- datapackage.json"
+                )
+                self._open_file(result_dir)
+
+            self.cancel()
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            messagebox.showerror("Error", f"No se pudo exportar Camtrap DP:\n{e}")
+
+
+    def export_inabio_package(self):
+        """Exporta a formato INABIO (Darwin Core completo)."""
+        try:
+            result = export_inabio_gui(
+                parent=self,
+                metadata_path=self.consolidated_path,
+                config=self.config_data
+            )
+            if result:
+                self.cancel()  # Volver al menú principal
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            messagebox.showerror("Error", f"No se pudo exportar a INABIO:\n{e}")
+
+    # -------------------------
+    # Export CSV personalizado
+    # -------------------------
+    def export_custom_csv(self):
+        """Exporta CSV con campos, orden y etiquetas personalizadas."""
+        try:
+            # Aplicar filtros avanzados
             filtered_data = filter_videos(self.all_metadata, **self.advanced_filters)
             if not filtered_data:
                 messagebox.showwarning("Advertencia", "No hay videos que coincidan con los filtros.")
                 return
-            # →→→
 
-            selected_fields = [f for f, var in self.fields_vars.items() if var.get()]
+            # Recopilar campos seleccionados con sus posiciones y etiquetas
+            selected_fields = []
+            field_labels = {}
+            field_columns = {}
+
+            for field, var in self.fields_vars.items():
+                if var.get():
+                    selected_fields.append(field)
+                    custom_label = self.label_entries[field].get().strip()
+                    field_labels[field] = custom_label if custom_label else field
+                    col_letter = self.column_dropdowns[field].get()
+                    field_columns[field] = col_letter
+
+            if not selected_fields:
+                messagebox.showwarning("Advertencia", "Debe seleccionar al menos un campo.")
+                return
+
+            # Ordenar por letra de columna
+            sorted_fields = sorted(selected_fields, key=lambda f: field_columns.get(f, "Z"))
+
+            # Aplanar datos usando flatten_metadata (modelo nuevo)
             df_data = []
-            for entry in filtered_data:  # ← usa filtered_data, no all_metadata
-                flat_entry = {}
-                for f in selected_fields:
-                    value = entry.get(f, "")
-                    if isinstance(value, list):
-                        value = ", ".join(str(v) for v in value)
-                    flat_entry[f] = value
-                df_data.append(flat_entry)
+            for entry in filtered_data:
+                # Saltar excluidos
+                if entry.get("ui", {}).get("is_excluded", False):
+                    continue
+
+                flat = flatten_metadata(entry)
+                custom_entry = {}
+                for field in sorted_fields:
+                    custom_label = field_labels[field]
+                    if field in flat:
+                        custom_entry[custom_label] = flat[field]
+                    else:
+                        # Fallback para campos no aplanados
+                        value = entry.get(field, "")
+                        if isinstance(value, dict):
+                            value = str(value)
+                        elif isinstance(value, list):
+                            value = "|".join(str(v) for v in value)
+                        custom_entry[custom_label] = value
+                df_data.append(custom_entry)
 
             if not df_data:
-                df_data.append({f: "" for f in selected_fields})
+                messagebox.showwarning("Advertencia", "No hay datos para exportar.")
+                return
 
-            df_new = pd.DataFrame(df_data)
-
+            # Guardar CSV
             output_folder = self.config_data['General']['output_folder']
-            if self.file_option.get() == "nuevo":
-                excel_path = filedialog.asksaveasfilename(
-                    initialdir=output_folder,
-                    defaultextension=".xlsx",
-                    filetypes=[("Excel files", "*.xlsx")],
-                    title="Guardar Excel como"
-                )
-                if not excel_path:
-                    return
-                df_new.to_excel(excel_path, index=False)
-            else:
-                excel_path = os.path.join(output_folder, "datos_camadas_trampa.xlsx")
-                if os.path.exists(excel_path):
-                    df_existente = pd.read_excel(excel_path)
-                    df_combined = pd.concat([df_existente, df_new], ignore_index=True)
-                    df_combined.to_excel(excel_path, index=False)
-                else:
-                    df_new.to_excel(excel_path, index=False)
+            csv_path = filedialog.asksaveasfilename(
+                initialdir=output_folder,
+                defaultextension=".csv",
+                initialfile="export_custom.csv",
+                filetypes=[("CSV files", "*.csv"), ("All files", "*.*")],
+                title="Guardar CSV personalizado"
+            )
+            if not csv_path:
+                return
 
-            messagebox.showinfo("Éxito", f"Archivo Excel generado:\n{excel_path}")
+            # Escribir con pandas o csv nativo
+            try:
+                import pandas as pd
+                df_new = pd.DataFrame(df_data)
+                df_new.to_csv(csv_path, index=False, encoding='utf-8-sig')
+            except ImportError:
+                # Fallback a csv nativo
+                import csv
+                with open(csv_path, "w", newline="", encoding="utf-8-sig") as f:
+                    writer = csv.DictWriter(f, fieldnames=field_labels.values())
+                    writer.writeheader()
+                    writer.writerows(df_data)
 
-            if self.open_after.get():
-                if sys.platform.startswith('darwin'):
-                    subprocess.Popen(['open', excel_path])
-                elif os.name == 'nt':
-                    os.startfile(excel_path)
-                else:
-                    subprocess.Popen(['xdg-open', excel_path])
+            messagebox.showinfo("Éxito", f"CSV generado:\n{csv_path}\n\n{len(df_data)} registros.")
 
-            self.destroy()
-            from main import MainApp
-            MainApp().mainloop()
+            if hasattr(self, 'open_after') and self.open_after.get():
+                self._open_file(csv_path)
 
+            self.cancel()
         except Exception as e:
-            messagebox.showerror("Error", f"No se pudo exportar a Excel:\n{e}")
+            import traceback
+            traceback.print_exc()
+            messagebox.showerror("Error", f"No se pudo exportar CSV:\n{e}")
+
+    # -------------------------
+    # Helpers
+    # -------------------------
+    def _open_file(self, path):
+        """Abre archivo/carpeta con el visor del sistema."""
+        try:
+            if sys.platform.startswith('darwin'):
+                subprocess.Popen(['open', path])
+            elif os.name == 'nt':
+                os.startfile(path)
+            else:
+                subprocess.Popen(['xdg-open', path])
+        except Exception as e:
+            print(f"⚠️ No se pudo abrir: {e}")
 
     def cancel(self):
+        """Cierra y vuelve al menú principal."""
         self.destroy()
-        from main import MainApp
-        MainApp().mainloop()
+        try:
+            from main import MainApp
+            MainApp().mainloop()
+        except Exception as e:
+            print(f"⚠️ No se pudo abrir MainApp: {e}")
 
 
 if __name__ == "__main__":

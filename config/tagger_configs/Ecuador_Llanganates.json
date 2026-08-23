@@ -1,0 +1,108 @@
+{
+  "_metadata": {
+    "name": "Ecuador_Llanganates",
+    "version": "1.0",
+    "region": "Parque Nacional Llanganates",
+    "description": "Configuración científica para cámaras trampa en el Parque Nacional Llanganates. Enfocada en bosques nublados y páramo.",
+    "created": "2026-05-13",
+    "last_modified": "2026-05-13",
+    "is_scientific": true,
+    "country_id": "ecuador",
+    "linked_region_id": "llanganates"
+  },
+  "GUI_Tagger": {
+    "species_tags": [
+      "Oso",
+      "Venado"
+    ],
+    "secondary_tags": [
+      "Amphibia",
+      "Reptilia",
+      "Otros",
+      "Personas",
+      "Setup",
+      "Vacio"
+    ],
+    "behavior_tags": [
+      "Vuela",
+      "Picotea",
+      "Canta",
+      "Posa",
+      "Corre",
+      "Salta",
+      "Come",
+      "Nada",
+      "Vocaliza"
+    ],
+    "other_tags_list": [
+      "Tapir",
+      "Pudu",
+      "Zorro",
+      "Nutria",
+      "Tigrillo",
+      "Puma",
+      "Quincho",
+      "Guatusa",
+      "Zarigüeya",
+      "Conejo",
+      "Rana",
+      "Otro"
+    ]
+  },
+  "Taxon_Map": {
+    "Oso": {
+      "scientificName": "Tremarctos ornatus"
+    },
+    "Venado": {
+      "scientificName": "Mazama"
+    },
+    "Tapir": {
+      "scientificName": "Tapirus pinchaque"
+    },
+    "Pudu": {
+      "scientificName": "Pudu mephistophiles"
+    },
+    "Zorro": {
+      "scientificName": "Lycalopex culpaeus"
+    },
+    "Nutria": {
+      "scientificName": "Lontra"
+    },
+    "Tigrillo": {
+      "scientificName": "Leopardus tigrinus"
+    },
+    "Puma": {
+      "scientificName": "Puma concolor"
+    },
+    "Quincho": {
+      "scientificName": "Nasua"
+    },
+    "Guatusa": {
+      "scientificName": "Cuniculus taczanowskii"
+    },
+    "Zarigüeya": {
+      "scientificName": "Didelphis pernigra"
+    },
+    "Conejo": {
+      "scientificName": "Sylvilagus"
+    },
+    "Rana": {
+      "scientificName": "Anura"
+    },
+    "Trochilidae": {
+      "scientificName": "Trochilidae"
+    },
+    "Passeriformes": {
+      "scientificName": "Passeriformes"
+    },
+    "Mammalia": {
+      "scientificName": "Mammalia"
+    },
+    "Amphibia": {
+      "scientificName": "Amphibia"
+    },
+    "Reptilia": {
+      "scientificName": "Reptilia"
+    }
+  }
+}

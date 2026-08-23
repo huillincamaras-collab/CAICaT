@@ -1,0 +1,59 @@
+{
+  "_metadata": {
+    "name": "Ecuador_Cientifico",
+    "version": "1.0",
+    "region": "Ecuador",
+    "description": "Configuración científica para cámaras trampa en Ecuador. Incluye mapeo de TaxonID para exportación Camtrap DP.",
+    "created": "2024-05-20",
+    "last_modified": "",
+    "is_scientific": true,
+    "country_id": "ecuador",
+    "linked_region_id": "master"
+  },
+  "GUI_Tagger": {
+    "species_tags": [
+      "Jaguar",
+      "Puma"
+    ],
+    "secondary_tags": [
+      "Otros",
+      "Tapir",
+      "Pecarí",
+      "Ocelote",
+      "Venado",
+      "Danta"
+    ],
+    "behavior_tags": [
+      "Camina",
+      "Corre",
+      "Descansa",
+      "Come",
+      "Investigando",
+      "Vocaliza"
+    ],
+    "other_tags_list": [
+      "Humano",
+      "Perro",
+      "Gato Montés",
+      "Zorro",
+      "Armadillo",
+      "Ave",
+      "Otro"
+    ]
+  },
+  "Taxon_Map": {
+    "Jaguar": {},
+    "Puma": {},
+    "Tapir": {},
+    "Pecarí": {},
+    "Ocelote": {},
+    "Venado": {},
+    "Danta": {},
+    "Humano": {},
+    "Perro": {},
+    "Gato Montés": {},
+    "Zorro": {},
+    "Armadillo": {},
+    "Ave": {}
+  }
+}

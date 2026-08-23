@@ -1,0 +1,62 @@
+{
+  "_metadata": {
+    "name": "Patagonia_Norte_Huemul",
+    "version": "1.0",
+    "country_id": "argentina",
+    "linked_region_id": "patagonia_norte",
+    "is_scientific": true,
+    "created": "2026-06-20",
+    "last_modified": "2026-06-20"
+  },
+  "GUI_Tagger": {
+    "species_tags": [
+      "Huemul",
+      "Ave"
+    ],
+    "secondary_tags": [
+      "Otros",
+      "piche",
+      "Setup",
+      "Zorro",
+      "Roedor",
+      "Vison",
+      "Perro",
+      "Vacio"
+    ],
+    "behavior_tags": [
+      "Duerme",
+      "Vocaliza",
+      "Acicala",
+      "Juega",
+      "Corre",
+      "Camina",
+      "Come",
+      "Mojado",
+      "Seco"
+    ],
+    "other_tags_list": []
+  },
+  "Taxon_Map": {
+    "Huemul": {
+      "scientificName": ""
+    },
+    "Ave": {
+      "scientificName": ""
+    },
+    "piche": {
+      "scientificName": "Pudu puda"
+    },
+    "Zorro": {
+      "scientificName": "Lycalopex culpaeus"
+    },
+    "Roedor": {
+      "scientificName": ""
+    },
+    "Vison": {
+      "scientificName": "Neogale vison"
+    },
+    "Perro": {
+      "scientificName": "Canis lupus familiaris"
+    }
+  }
+}

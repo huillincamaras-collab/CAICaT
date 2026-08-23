@@ -1,0 +1,49 @@
+{
+  "_metadata": {
+    "name": "Base",
+    "version": "2.0",
+    "country_id": "argentina",
+    "linked_region_id": "base",
+    "is_scientific": false,
+    "created": "2026-08-20",
+    "last_modified": "2026-08-20"
+  },
+  "GUI_Tagger": {
+    "species_tags": [
+      "Felino",
+      "Cérvido"
+    ],
+    "secondary_tags": [
+      "Otro",
+      "Setup",
+      "Vacío",
+      "Mon d Monte"
+    ],
+    "behavior_tags": [
+      "Camina",
+      "Corre",
+      "Come",
+      "Descansa"
+    ],
+    "other_tags_list": [
+      "Otro",
+      "Zorro"
+    ],
+    "optional_tags": [
+      "Juvenil",
+      "Hembra",
+      "Macho",
+      "Herido",
+      "Seco",
+      "Mojado"
+    ]
+  },
+  "Taxon_Map": {
+    "Mon d Monte": {
+      "scientificName": "Dromiciops gliroides"
+    },
+    "Zorro": {
+      "scientificName": "Lycalopex culpaeus"
+    }
+  }
+}

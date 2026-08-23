@@ -1,13 +1,18 @@
+"""
+export_utils.py - Exportación CSV/Excel + Filtros de videos
+Consolida la lógica de export_utils + filter_utils.
+"""
 import os
 import json
 import csv
 from config_utils import load_config
 
-# ---------------------------
-# Helpers
-# ---------------------------
+
+# =============================================================================
+# HELPERS
+# =============================================================================
 def _safe_get(d, *keys, default=""):
-    """Acceso seguro a dicts anidados"""
+    """Acceso seguro a dicts anidados."""
     for k in keys:
         if not isinstance(d, dict):
             return default
@@ -16,20 +21,21 @@ def _safe_get(d, *keys, default=""):
 
 
 def _join_list(val):
+    """Convierte lista a string separado por comas."""
     if isinstance(val, list):
         return ", ".join(map(str, val))
     return val
 
 
-# ---------------------------
-# Flatten del modelo nuevo
-# ---------------------------
+# =============================================================================
+# FLATTEN DEL MODELO NUEVO
+# =============================================================================
 def flatten_metadata(entry):
     """
     Convierte el modelo unificado en un dict plano (1 fila).
+    Usa los nombres de campos del modelo nuevo (sin alias legacy).
     """
-
-    flat = {
+    return {
         # IDs
         "media_id": entry.get("media_id", ""),
         "event_id": entry.get("event_id", ""),
@@ -50,6 +56,8 @@ def flatten_metadata(entry):
         "species": _join_list(_safe_get(entry, "classification", "species", default=[])),
         "counts": json.dumps(_safe_get(entry, "classification", "counts", default={})),
         "behaviors": _join_list(_safe_get(entry, "classification", "behaviors", default=[])),
+        "optional_tags": _join_list(_safe_get(entry, "classification", "optional_tags", default=[])),
+        # Metadata ecológica
 
         # Metadata ecológica
         "site": _safe_get(entry, "metadata", "site"),
@@ -68,13 +76,103 @@ def flatten_metadata(entry):
         "camtrap_db_session": _safe_get(entry, "session", "camtrap_db_session"),
     }
 
-    return flat
+
+# =============================================================================
+# FILTROS DE VIDEOS (antes en filter_utils.py)
+# =============================================================================
+def filter_videos(
+    metadata_list,
+    session_filter="all",
+    tags=None,
+    operators=None,
+    cameras=None,
+    sites=None,
+    behaviors=None
+):
+    """
+    Filtra una lista de metadata según los criterios dados.
+    """
+    if not metadata_list:
+        return []
+    filtered = metadata_list[:]
+
+    # 1. Filtrar por sesión
+    if session_filter == "last":
+        valid = [v for v in filtered if v.get("session", {}).get("session_id")]
+        if not valid:
+            return []
+        last_id = max(v["session"]["session_id"] for v in valid)
+        filtered = [v for v in filtered if v.get("session", {}).get("session_id") == last_id]
+    elif session_filter.startswith("specific:"):
+        specific_id = session_filter.split(":", 1)[1].strip()
+        if specific_id:
+            filtered = [v for v in filtered if v.get("session", {}).get("session_id") == specific_id]
+
+    # 2. Filtrar por tags (especies)
+    if tags:
+        filtered = [
+            v for v in filtered
+            if any(tag in v.get("classification", {}).get("species", []) for tag in tags)
+        ]
+
+    # 3. Filtrar por operadores
+    if operators:
+        filtered = [
+            v for v in filtered
+            if v.get("metadata", {}).get("operator") in operators
+        ]
+
+    # 4. Filtrar por cámaras
+    if cameras:
+        filtered = [
+            v for v in filtered
+            if v.get("metadata", {}).get("camera") in cameras
+        ]
+
+    # 5. Filtrar por sitios
+    if sites:
+        filtered = [
+            v for v in filtered
+            if v.get("metadata", {}).get("site") in sites
+        ]
+
+    # 6. Filtrar por comportamientos
+    if behaviors:
+        filtered = [
+            v for v in filtered
+            if any(b in v.get("classification", {}).get("behaviors", []) for b in behaviors)
+        ]
+
+    return filtered
 
 
-# ---------------------------
-# Export CSV
-# ---------------------------
+def get_unique_values(metadata_list, key):
+    """Extrae valores únicos de metadata.<key>."""
+    values = {str(v.get("metadata", {}).get(key, "")).strip() for v in metadata_list}
+    return sorted([v for v in values if v])
+
+
+def get_unique_tags(metadata_list):
+    """Extrae tags únicos (especies) de la clasificación."""
+    tags = set()
+    for v in metadata_list:
+        tags.update(v.get("classification", {}).get("species", []))
+    return sorted(tags)
+
+
+def get_unique_behaviors(metadata_list):
+    """Extrae comportamientos únicos de la clasificación."""
+    behaviors = set()
+    for v in metadata_list:
+        behaviors.update(v.get("classification", {}).get("behaviors", []))
+    return sorted(behaviors)
+
+
+# =============================================================================
+# EXPORT CSV
+# =============================================================================
 def export_to_csv(metadata_path=None, output_path=None):
+    """Exporta metadata a CSV usando el modelo nuevo."""
     config = load_config()
 
     if metadata_path is None:
@@ -115,10 +213,11 @@ def export_to_csv(metadata_path=None, output_path=None):
     return output_path
 
 
-# ---------------------------
-# Export Excel (simple)
-# ---------------------------
+# =============================================================================
+# EXPORT EXCEL (simple)
+# =============================================================================
 def export_to_excel(metadata_path=None, output_path=None):
+    """Exporta metadata a Excel usando el modelo nuevo."""
     try:
         import pandas as pd
     except ImportError:
@@ -143,6 +242,7 @@ def export_to_excel(metadata_path=None, output_path=None):
 
     rows = [flatten_metadata(entry) for entry in data]
     rows = [r for r in rows if not r.get("is_excluded", False)]
+
     if not rows:
         print("⚠️ No hay datos")
         return None

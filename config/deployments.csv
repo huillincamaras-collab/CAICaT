@@ -1,0 +1,6 @@
+deploymentID,locationID,locationName,latitude,longitude,deploymentStart,deploymentEnd,setupBy,retrievedBy,cameraID,cameraHeight,cameraTilt,detectionDistance,timestampIssues,baitUse
+LIM06_Confluencia_CAM01_20260101_0800,LIM06,Confluencia,-41.1342,-71.4285,2026-01-01 08:00,2026-03-15 10:30,García M.,López R.,CAM01,0.5,-10,15,False,False
+LIM06_Confluencia_CAM02_20260101_0900,LIM06,Confluencia,-41.1398,-71.4301,2026-01-01 09:00,2026-03-15 11:00,García M.,López R.,CAM02,0.6,-10,12,False,False
+NAH03_Sendero Norte_CAM01_20260110_0730,NAH03,Sendero Norte,-40.8752,-71.5634,2026-01-10 07:30,2026-03-20 09:00,Pérez A.,García M.,CAM01,0.5,-15,18,False,False
+NAH03_Laguna Verde_CAM01_20260112_0800,NAH03,Laguna Verde,-40.9123,-71.5891,2026-01-12 08:00,2026-03-22 10:00,Pérez A.,Soto C.,CAM01,0.7,-10,20,True,False
+TRO11_Bosque Coihue_CAM01_20260115_0900,TRO11,Bosque Coihue,-41.3567,-71.6123,2026-01-15 09:00,2026-03-28 11:30,Soto C.,Pérez A.,CAM01,0.5,-10,15,False,False

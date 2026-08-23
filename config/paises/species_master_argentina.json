@@ -1,0 +1,491 @@
+{
+  "metadata": {
+    "type": "species_master",
+    "country_id": "argentina",
+    "country_name": "Argentina",
+    "region_id": "master",
+    "region_name": "Argentina - Patagonia Norte",
+    "region_code": "ARG",
+    "total_species": 39,
+    "total_regions": 4,
+    "regions": [
+      "Parque Nacional Nahuel Huapi",
+      "Parque Nacional Los Arrayanes",
+      "Reserva Forestal Lago Gutiérrez",
+      "Zona Periférica Bariloche"
+    ],
+    "generated_at": "2026-05-12 12:00:00"
+  },
+  "species": [
+    {
+      "scientificName": "Aves",
+      "commonName": "Ave",
+      "family": "",
+      "order": "",
+      "class": "Aves",
+      "regions": [
+        "Parque Nacional Nahuel Huapi",
+        "Parque Nacional Los Arrayanes",
+        "Reserva Forestal Lago Gutiérrez",
+        "Zona Periférica Bariloche"
+      ],
+      "taxonID_GBIF": "https://www.gbif.org/species/212",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "Mammalia",
+      "commonName": "Mamífero No Identificado",
+      "family": "",
+      "order": "",
+      "class": "Mammalia",
+      "regions": [
+        "Parque Nacional Nahuel Huapi",
+        "Parque Nacional Los Arrayanes",
+        "Reserva Forestal Lago Gutiérrez",
+        "Zona Periférica Bariloche"
+      ],
+      "taxonID_GBIF": "https://www.gbif.org/species/359",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "Rodentia",
+      "commonName": "Roedor",
+      "family": "",
+      "order": "Rodentia",
+      "class": "Mammalia",
+      "regions": [
+        "Parque Nacional Nahuel Huapi",
+        "Reserva Forestal Lago Gutiérrez"
+      ],
+      "taxonID_GBIF": "https://www.gbif.org/species/713",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "Amphibia",
+      "commonName": "Anfibio",
+      "family": "",
+      "order": "",
+      "class": "Amphibia",
+      "regions": [
+        "Parque Nacional Nahuel Huapi",
+        "Reserva Forestal Lago Gutiérrez"
+      ],
+      "taxonID_GBIF": "https://www.gbif.org/species/178",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "Reptilia",
+      "commonName": "Reptil",
+      "family": "",
+      "order": "",
+      "class": "Reptilia",
+      "regions": [
+        "Parque Nacional Nahuel Huapi",
+        "Zona Periférica Bariloche"
+      ],
+      "taxonID_GBIF": "https://www.gbif.org/species/360",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "Insecta",
+      "commonName": "Insecto",
+      "family": "",
+      "order": "",
+      "class": "Insecta",
+      "regions": [
+        "Parque Nacional Nahuel Huapi",
+        "Parque Nacional Los Arrayanes",
+        "Reserva Forestal Lago Gutiérrez",
+        "Zona Periférica Bariloche"
+      ],
+      "taxonID_GBIF": "https://www.gbif.org/species/216",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "Arachnida",
+      "commonName": "Arácnido",
+      "family": "",
+      "order": "",
+      "class": "Arachnida",
+      "regions": [
+        "Parque Nacional Nahuel Huapi",
+        "Parque Nacional Los Arrayanes",
+        "Reserva Forestal Lago Gutiérrez",
+        "Zona Periférica Bariloche"
+      ],
+      "taxonID_GBIF": "https://www.gbif.org/species/52",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "Lontra provocax",
+      "commonName": "Huillín",
+      "family": "Mustelidae",
+      "order": "Carnivora",
+      "class": "Mammalia",
+      "regions": [
+        "Parque Nacional Nahuel Huapi",
+        "Reserva Forestal Lago Gutiérrez"
+      ],
+      "taxonID_GBIF": "https://www.gbif.org/species/2433273",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "Neogale vison",
+      "commonName": "Visón Americano",
+      "family": "Mustelidae",
+      "order": "Carnivora",
+      "class": "Mammalia",
+      "regions": [
+        "Parque Nacional Nahuel Huapi",
+        "Reserva Forestal Lago Gutiérrez",
+        "Zona Periférica Bariloche"
+      ],
+      "taxonID_GBIF": "https://www.gbif.org/species/2433311",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "Lycalopex griseus",
+      "commonName": "Zorro Gris Chilla",
+      "family": "Canidae",
+      "order": "Carnivora",
+      "class": "Mammalia",
+      "regions": [
+        "Parque Nacional Nahuel Huapi",
+        "Zona Periférica Bariloche"
+      ],
+      "taxonID_GBIF": "https://www.gbif.org/species/5219426",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "Lycalopex culpaeus",
+      "commonName": "Zorro Colorado Culpeo",
+      "family": "Canidae",
+      "order": "Carnivora",
+      "class": "Mammalia",
+      "regions": [
+        "Parque Nacional Nahuel Huapi",
+        "Parque Nacional Los Arrayanes"
+      ],
+      "taxonID_GBIF": "https://www.gbif.org/species/5219425",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "Puma concolor",
+      "commonName": "Puma",
+      "family": "Felidae",
+      "order": "Carnivora",
+      "class": "Mammalia",
+      "regions": [
+        "Parque Nacional Nahuel Huapi",
+        "Parque Nacional Los Arrayanes"
+      ],
+      "taxonID_GBIF": "https://www.gbif.org/species/2433220",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "Leopardus guigna",
+      "commonName": "Gato Huiña",
+      "family": "Felidae",
+      "order": "Carnivora",
+      "class": "Mammalia",
+      "regions": [
+        "Parque Nacional Nahuel Huapi"
+      ],
+      "taxonID_GBIF": "https://www.gbif.org/species/2433229",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "Conepatus chinga",
+      "commonName": "Chingue",
+      "family": "Mephitidae",
+      "order": "Carnivora",
+      "class": "Mammalia",
+      "regions": [
+        "Parque Nacional Nahuel Huapi",
+        "Zona Periférica Bariloche"
+      ],
+      "taxonID_GBIF": "https://www.gbif.org/species/2433323",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "Galictis cuja",
+      "commonName": "Quiaca",
+      "family": "Mustelidae",
+      "order": "Carnivora",
+      "class": "Mammalia",
+      "regions": [
+        "Parque Nacional Nahuel Huapi"
+      ],
+      "taxonID_GBIF": "https://www.gbif.org/species/2433315",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "Sus scrofa",
+      "commonName": "Jabalí",
+      "family": "Suidae",
+      "order": "Artiodactyla",
+      "class": "Mammalia",
+      "regions": [
+        "Parque Nacional Nahuel Huapi",
+        "Parque Nacional Los Arrayanes"
+      ],
+      "taxonID_GBIF": "https://www.gbif.org/species/2433389",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "Cervus elaphus",
+      "commonName": "Ciervo Colorado",
+      "family": "Cervidae",
+      "order": "Artiodactyla",
+      "class": "Mammalia",
+      "regions": [
+        "Parque Nacional Nahuel Huapi",
+        "Parque Nacional Los Arrayanes"
+      ],
+      "taxonID_GBIF": "https://www.gbif.org/species/2433415",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "Dama dama",
+      "commonName": "Gamo",
+      "family": "Cervidae",
+      "order": "Artiodactyla",
+      "class": "Mammalia",
+      "regions": [
+        "Parque Nacional Nahuel Huapi"
+      ],
+      "taxonID_GBIF": "https://www.gbif.org/species/2433417",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "Hippocamelus bisulcus",
+      "commonName": "Huemul",
+      "family": "Cervidae",
+      "order": "Artiodactyla",
+      "class": "Mammalia",
+      "regions": [
+        "Parque Nacional Nahuel Huapi",
+        "Parque Nacional Los Arrayanes"
+      ],
+      "taxonID_GBIF": "https://www.gbif.org/species/2433426",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "Pudu puda",
+      "commonName": "Pudú",
+      "family": "Cervidae",
+      "order": "Artiodactyla",
+      "class": "Mammalia",
+      "regions": [
+        "Parque Nacional Nahuel Huapi"
+      ],
+      "taxonID_GBIF": "https://www.gbif.org/species/2433428",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "Lama guanicoe",
+      "commonName": "Guanaco",
+      "family": "Camelidae",
+      "order": "Artiodactyla",
+      "class": "Mammalia",
+      "regions": [
+        "Parque Nacional Nahuel Huapi",
+        "Zona Periférica Bariloche"
+      ],
+      "taxonID_GBIF": "https://www.gbif.org/species/2433430",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "Lepus europaeus",
+      "commonName": "Liebre Europea",
+      "family": "Leporidae",
+      "order": "Lagomorpha",
+      "class": "Mammalia",
+      "regions": [
+        "Parque Nacional Nahuel Huapi",
+        "Zona Periférica Bariloche"
+      ],
+      "taxonID_GBIF": "https://www.gbif.org/species/2433505",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "Dromiciops gliroides",
+      "commonName": "Monito del Monte",
+      "family": "Microbiotheriidae",
+      "order": "Microbiotheria",
+      "class": "Mammalia",
+      "regions": [
+        "Parque Nacional Nahuel Huapi",
+        "Reserva Forestal Lago Gutiérrez"
+      ],
+      "taxonID_GBIF": "https://www.gbif.org/species/2433105",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "Myocastor coypus",
+      "commonName": "Coipo",
+      "family": "Myocastoridae",
+      "order": "Rodentia",
+      "class": "Mammalia",
+      "regions": [
+        "Parque Nacional Nahuel Huapi",
+        "Reserva Forestal Lago Gutiérrez"
+      ],
+      "taxonID_GBIF": "https://www.gbif.org/species/2433355",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "Cavia aperea",
+      "commonName": "Cobayo Silvestre",
+      "family": "Caviidae",
+      "order": "Rodentia",
+      "class": "Mammalia",
+      "regions": [
+        "Parque Nacional Nahuel Huapi"
+      ],
+      "taxonID_GBIF": "https://www.gbif.org/species/2433357",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "Rhea pennata",
+      "commonName": "Ñandú Petiso",
+      "family": "Rheidae",
+      "order": "Rheiformes",
+      "class": "Aves",
+      "regions": [
+        "Parque Nacional Nahuel Huapi",
+        "Zona Periférica Bariloche"
+      ],
+      "taxonID_GBIF": "https://www.gbif.org/species/2433550",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "Nothoprocta perdicaria",
+      "commonName": "Martíneta",
+      "family": "Tinamidae",
+      "order": "Tinamiformes",
+      "class": "Aves",
+      "regions": [
+        "Parque Nacional Nahuel Huapi"
+      ],
+      "taxonID_GBIF": "https://www.gbif.org/species/2433552",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "Campephilus magellanicus",
+      "commonName": "Carpintero Gigante",
+      "family": "Picidae",
+      "order": "Piciformes",
+      "class": "Aves",
+      "regions": [
+        "Parque Nacional Nahuel Huapi",
+        "Parque Nacional Los Arrayanes"
+      ],
+      "taxonID_GBIF": "https://www.gbif.org/species/2433600",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "Vultur gryphus",
+      "commonName": "Cóndor Andino",
+      "family": "Cathartidae",
+      "order": "Accipitriformes",
+      "class": "Aves",
+      "regions": [
+        "Parque Nacional Nahuel Huapi"
+      ],
+      "taxonID_GBIF": "https://www.gbif.org/species/2433602",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "Canis lupus familiaris",
+      "commonName": "Perro",
+      "family": "Canidae",
+      "order": "Carnivora",
+      "class": "Mammalia",
+      "regions": [
+        "Parque Nacional Nahuel Huapi",
+        "Zona Periférica Bariloche"
+      ],
+      "taxonID_GBIF": "https://www.gbif.org/species/2433223",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "Felis catus",
+      "commonName": "Gato",
+      "family": "Felidae",
+      "order": "Carnivora",
+      "class": "Mammalia",
+      "regions": [
+        "Parque Nacional Nahuel Huapi",
+        "Zona Periférica Bariloche"
+      ],
+      "taxonID_GBIF": "https://www.gbif.org/species/2433225",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "Bos taurus",
+      "commonName": "Vaca",
+      "family": "Bovidae",
+      "order": "Artiodactyla",
+      "class": "Mammalia",
+      "regions": [
+        "Parque Nacional Nahuel Huapi",
+        "Zona Periférica Bariloche"
+      ],
+      "taxonID_GBIF": "https://www.gbif.org/species/2433395",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "Equus caballus",
+      "commonName": "Caballo",
+      "family": "Equidae",
+      "order": "Perissodactyla",
+      "class": "Mammalia",
+      "regions": [
+        "Parque Nacional Nahuel Huapi",
+        "Zona Periférica Bariloche"
+      ],
+      "taxonID_GBIF": "https://www.gbif.org/species/2433405",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "Ovis aries",
+      "commonName": "Oveja",
+      "family": "Bovidae",
+      "order": "Artiodactyla",
+      "class": "Mammalia",
+      "regions": [
+        "Parque Nacional Nahuel Huapi",
+        "Zona Periférica Bariloche"
+      ],
+      "taxonID_GBIF": "https://www.gbif.org/species/2433400",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "Capra hircus",
+      "commonName": "Cabra",
+      "family": "Bovidae",
+      "order": "Artiodactyla",
+      "class": "Mammalia",
+      "regions": [
+        "Parque Nacional Nahuel Huapi",
+        "Zona Periférica Bariloche"
+      ],
+      "taxonID_GBIF": "https://www.gbif.org/species/2433402",
+      "taxonID_iNaturalist": ""
+    },
+    {
+      "scientificName": "Homo sapiens",
+      "commonName": "Humano",
+      "family": "Hominidae",
+      "order": "Primates",
+      "class": "Mammalia",
+      "regions": [
+        "Parque Nacional Nahuel Huapi",
+        "Zona Periférica Bariloche"
+      ],
+      "taxonID_GBIF": "https://www.gbif.org/species/2433200",
+      "taxonID_iNaturalist": ""
+    }
+  ]
+}

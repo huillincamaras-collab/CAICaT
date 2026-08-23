@@ -1,0 +1,172 @@
+{
+  "metadata": {
+    "type": "global",
+    "version": "1.0",
+    "description": "Taxones universales: niveles superiores, Homo sapiens y tags operacionales",
+    "last_updated": "2026-07-02"
+  },
+  "higher_taxa": [
+    {
+      "scientificName": "Aves",
+      "taxonID": "212",
+      "rank": "class",
+      "category": "higher_taxon",
+      "commonName": "Aves",
+      "phylum": "Chordata"
+    },
+    {
+      "scientificName": "Mammalia",
+      "taxonID": "359",
+      "rank": "class",
+      "category": "higher_taxon",
+      "commonName": "Mamíferos",
+      "phylum": "Chordata"
+    },
+    {
+      "scientificName": "Reptilia",
+      "taxonID": "358",
+      "rank": "class",
+      "category": "higher_taxon",
+      "commonName": "Reptiles",
+      "phylum": "Chordata"
+    },
+    {
+      "scientificName": "Amphibia",
+      "taxonID": "1350",
+      "rank": "class",
+      "category": "higher_taxon",
+      "commonName": "Anfibios",
+      "phylum": "Chordata"
+    },
+    {
+      "scientificName": "Carnivora",
+      "taxonID": "732",
+      "rank": "order",
+      "category": "higher_taxon",
+      "commonName": "Carnívoros",
+      "class": "Mammalia"
+    },
+    {
+      "scientificName": "Primates",
+      "taxonID": "738",
+      "rank": "order",
+      "category": "higher_taxon",
+      "commonName": "Primates",
+      "class": "Mammalia"
+    },
+    {
+      "scientificName": "Rodentia",
+      "taxonID": "736",
+      "rank": "order",
+      "category": "higher_taxon",
+      "commonName": "Roedores",
+      "class": "Mammalia"
+    },
+    {
+      "scientificName": "Artiodactyla",
+      "taxonID": "729",
+      "rank": "order",
+      "category": "higher_taxon",
+      "commonName": "Artiodáctilos",
+      "class": "Mammalia"
+    },
+    {
+      "scientificName": "Lagomorpha",
+      "taxonID": "735",
+      "rank": "order",
+      "category": "higher_taxon",
+      "commonName": "Lagomorfos",
+      "class": "Mammalia"
+    },
+    {
+      "scientificName": "Marsupialia",
+      "taxonID": "358",
+      "rank": "class",
+      "category": "higher_taxon",
+      "commonName": "Marsupiales",
+      "phylum": "Chordata"
+    },
+    {
+      "scientificName": "Felidae",
+      "taxonID": "9703",
+      "rank": "family",
+      "category": "higher_taxon",
+      "commonName": "Félidos",
+      "order": "Carnivora"
+    },
+    {
+      "scientificName": "Canidae",
+      "taxonID": "5293",
+      "rank": "family",
+      "category": "higher_taxon",
+      "commonName": "Cánidos",
+      "order": "Carnivora"
+    },
+    {
+      "scientificName": "Mustelidae",
+      "taxonID": "9664",
+      "rank": "family",
+      "category": "higher_taxon",
+      "commonName": "Mustélidos",
+      "order": "Carnivora"
+    },
+    {
+      "scientificName": "Cervidae",
+      "taxonID": "9174",
+      "rank": "family",
+      "category": "higher_taxon",
+      "commonName": "Cérvidos",
+      "order": "Artiodactyla"
+    },
+    {
+      "scientificName": "Procyonidae",
+      "taxonID": "9656",
+      "rank": "family",
+      "category": "higher_taxon",
+      "commonName": "Prociónidos",
+      "order": "Carnivora"
+    }
+  ],
+  "humans": [
+    {
+      "scientificName": "Homo sapiens",
+      "taxonID": "314595",
+      "rank": "species",
+      "category": "species",
+      "commonName": "Persona",
+      "observationType": "human"
+    }
+  ],
+  "operational_tags": [
+    {
+      "tag": "No identificado",
+      "category": "operational",
+      "observationType": "unidentified",
+      "description": "Animal sin identificar"
+    },
+    {
+      "tag": "Desconocido",
+      "category": "operational",
+      "observationType": "unidentified",
+      "description": "Animal sin identificar"
+    },
+    {
+      "tag": "Disparo en falso",
+      "category": "event",
+      "observationType": "blank",
+      "description": "Trigger sin animal"
+    },
+    {
+      "tag": "Config cámara",
+      "category": "event",
+      "observationType": "blank",
+      "description": "Foto de configuración"
+    },
+    {
+      "tag": "Vehículo",
+      "category": "event",
+      "observationType": "vehicle",
+      "description": "Vehículo detectado"
+    }
+  ]
+}
