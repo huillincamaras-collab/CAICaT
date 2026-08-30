@@ -470,66 +470,9 @@ class MainApp(tk.Tk):
             return False
 
     def run_batch_mode(self):
-        """Inicia el modo batch: selecciona carpeta, procesa videos, asigna metadata."""
-        from tkinter import filedialog
-        
-        # 1. Seleccionar carpeta
-        folder = filedialog.askdirectory(parent=self, title="Seleccionar carpeta con videos (puede contener subcarpetas)")
-        if not folder:
-            return
-        
-        # 2. Preguntar modo legacy
-        use_legacy = messagebox.askyesno(
-            "Modo de procesamiento",
-            "¿Usar modo Legacy (PCs lentas)?\n\n"
-            "Modo Legacy: Procesamiento secuencial y reducido\n"
-            "Modo Normal: Procesamiento paralelo y completo",
-            parent=self
-        )
-        
-        # 3. Escanear estructura
-        try:
-            from procesamiento_batch import scan_batch_folder, create_batch_manifest, process_batch_videos
-            from config_utils import generate_session_id
-            
-            folder_structure = scan_batch_folder(folder, use_legacy)
-            
-            if not folder_structure:
-                messagebox.showerror(
-                    "Sin videos",
-                    "No se encontraron videos en la carpeta seleccionada.",
-                    parent=self
-                )
-                return
-            
-            # Mostrar confirmación
-            total_videos = sum(info["video_count"] for info in folder_structure.values())
-            folder_count = len(folder_structure)
-            
-            msg = (f"Se encontraron:\n"
-                   f"📁 {folder_count} carpetas con videos\n"
-                   f"🎥 {total_videos} videos en total\n\n"
-                   f"¿Iniciar procesamiento?")
-            
-            if not messagebox.askyesno("Confirmar procesamiento", msg, parent=self):
-                return
-            
-            # 4. Crear manifest
-            batch_id = generate_session_id(self.config_data)
-            output_folder = self.config_data["General"]["output_folder"]
-            manifest_path = create_batch_manifest(batch_id, folder_structure, output_folder)
-            
-            # 5. Mostrar diálogo de progreso y procesar
-            self._process_batch_with_progress(folder_structure, output_folder, use_legacy, manifest_path)
-            
-        except Exception as e:
-            import traceback
-            messagebox.showerror(
-                "Error",
-                f"Error al procesar el lote:\n{e}\n\n{traceback.format_exc()}",
-                parent=self
-            )
-    
+        from gui_batch import run_batch_interactive
+        run_batch_interactive(self)
+
     def _process_batch_with_progress(self, folder_structure, output_folder, use_legacy, manifest_path):
         """Procesa batch mostrando progreso."""
         import threading
@@ -582,28 +525,8 @@ class MainApp(tk.Tk):
         threading.Thread(target=process, daemon=True).start()
                 
     def continue_batch(self):
-        """Continúa con un lote pendiente según su estado."""
-        output_folder = self.config_data["General"]["output_folder"]
-        batch_folder = os.path.join(output_folder, "batch")
-        manifest_path = os.path.join(batch_folder, "batch_manifest.json")
-        if not os.path.exists(manifest_path):
-            messagebox.showerror("Error", "No se encontró el lote pendiente.")
-            return
-        try:
-            with open(manifest_path, "r", encoding="utf-8") as f:
-                manifest = json.load(f)
-            status = manifest.get("status", "")
-            # Según el estado, abrir la GUI apropiada
-            if status in ("pending_metadata_assignment", "ready_for_tagging"):
-                # Ya procesado, abrir GUI de asignación de metadata
-                self._open_batch_metadata_gui(manifest_path)
-            elif status in ("pending_processing", "processing", "completed_with_errors"):
-                # Necesita reanudar procesamiento
-                self._resume_batch_processing(manifest_path, manifest)
-            else:
-                messagebox.showinfo("Info", f"Estado del lote: {status}")
-        except Exception as e:
-            messagebox.showerror("Error", f"No se pudo leer el manifest:\n{e}")
+        from gui_batch import continue_batch_interactive
+        continue_batch_interactive(self)
 
     def _resume_batch_processing(self, manifest_path, manifest):
         """Reanuda el procesamiento de un batch interrumpido."""

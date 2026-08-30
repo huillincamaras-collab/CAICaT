@@ -1174,117 +1174,109 @@ class DynamicTagger(tk.Tk):
             entry.setdefault("camtrap_db_session", False)
 
     def sync_all_videos_with_disk(self):
-        """🔒 FIX BUG-003: Sincroniza frames con disco, verificando entries pending Y done"""
+        """🔒 FIX: Versión ligera y no-bloqueante para el auto-refresh."""
         if not self.video_dirs:
             return
         
-        for entry in self.video_dirs:
-            status = entry.get("status")
-            
-            # 🔒 FIX: Verificar también entries "done" si los archivos no son legibles
-            if status not in ("pending", "done"):
+        # 🔹 OPTIMIZACIÓN: Solo verificar el video actual y los inmediatamente adyacentes
+        # para evitar hacer os.listdir() en cientos de carpetas cada 3 segundos.
+        check_indices = set()
+        check_indices.add(self.current_video_index)
+        if self.current_video_index > 0: check_indices.add(self.current_video_index - 1)
+        if self.current_video_index < len(self.video_dirs) - 1: check_indices.add(self.current_video_index + 1)
+
+        for idx in check_indices:
+            entry = self.video_dirs[idx]
+            if entry.get("status") not in ("pending", "done"):
                 continue
-            
+                
             frames_folder = os.path.join(self.output_folder, "frames", entry.get("frames_folder", ""))
             if not os.path.exists(frames_folder):
                 continue
-            
-            # 🔒 FIX: Para entries "done", verificar que los archivos sean legibles
-            if status == "done":
-                # Verificar que al menos un archivo de tops sea legible
+
+            # Si está done, verificar rápidamente
+            if entry.get("status") == "done":
                 tops = entry.get("tops", [])
                 if tops and all(self._verify_image_file(t) for t in tops if t):
-                    continue  # Todo OK, no necesita sync
-                # Si falla, caer al flujo de retry abajo
-            
-            # 🔒 FIX NUITKA: Retry con delays para manejar lag del filesystem
-            max_retries = 3
-            for retry in range(max_retries):
-                try:
-                    files_in_folder = os.listdir(frames_folder)
+                    continue
+
+            try:
+                files_in_folder = os.listdir(frames_folder)
+                is_photo = entry.get("is_photo", False)
+                top_files = sorted([f for f in files_in_folder if "top_" in f.lower()])
+
+                if is_photo and top_files:
+                    top_path = os.path.join(frames_folder, top_files[0])
+                    if self._verify_image_file(top_path):
+                        entry["status"] = "done"
+                        if not entry.get("tops"): 
+                            entry["tops"] = [os.path.join(frames_folder, f) for f in top_files]
+                elif not is_photo:
                     promedio_files = [f for f in files_in_folder if "promedio" in f.lower()]
-                    top_files = sorted([f for f in files_in_folder if "top_" in f.lower()])
-                    
-                    # Verificar que los archivos sean realmente legibles
                     if promedio_files and top_files:
                         promedio_path = os.path.join(frames_folder, promedio_files[0])
                         top_path = os.path.join(frames_folder, top_files[0])
-                        
-                        try:
-                            with open(promedio_path, 'rb') as f:
-                                f.read(1)
-                            with open(top_path, 'rb') as f:
-                                f.read(1)
-                            
-                            # Archivos legibles, actualizar metadata
+                        if self._verify_image_file(promedio_path) and self._verify_image_file(top_path):
                             entry["status"] = "done"
-                            if not entry.get("promedio"): 
-                                entry["promedio"] = promedio_path
-                            if not entry.get("tops"): 
-                                entry["tops"] = [os.path.join(frames_folder, f) for f in top_files]
+                            if not entry.get("promedio"): entry["promedio"] = promedio_path
+                            if not entry.get("tops"): entry["tops"] = [os.path.join(frames_folder, f) for f in top_files]
                             if entry.get("promedio"):
-                                promedio_filename = os.path.basename(promedio_path)
-                                mask_filename = promedio_filename.replace("_promedio", "_mask")
+                                mask_filename = os.path.basename(promedio_path).replace("_promedio", "_mask")
                                 entry["mask"] = os.path.join(frames_folder, mask_filename)
-                            if not entry.get("fecha_prefix") and promedio_files[0]:
-                                name = os.path.splitext(promedio_files[0])[0]
-                                if "_promedio" in name: 
-                                    entry["fecha_prefix"] = name.replace("_promedio", "")
-                            break  # Éxito, salir del loop de retry
-                        except Exception:
-                            if retry < max_retries - 1:
-                                time.sleep(0.1 * (retry + 1))
-                            continue
-                except Exception:
-                    if retry < max_retries - 1:
-                        time.sleep(0.1 * (retry + 1))
-                    continue
+            except Exception:
+                pass # Ignorar errores de I/O temporales, el próximo ciclo lo intentará
+            
 
     def reload_current_video_from_disk(self):
-        """🔒 FIX BUG-003: Recarga el video actual verificando que los archivos sean legibles"""
+        """🔒 FIX: Versión no-bloqueante. Si el archivo no está listo, devuelve False 
+        inmediatamente y deja que _auto_refresh_pending lo reintente en 3s."""
         try:
             if not (0 <= self.current_video_index < len(self.video_dirs)):
                 return False
             entry = self.video_dirs[self.current_video_index]
-            status = entry.get("status")
             
-            # 🔒 FIX: Para entries "done", verificar que los archivos sean legibles
-            if status == "done":
+            # Si ya está done y los tops son legibles, salir rápido
+            if entry.get("status") == "done":
                 tops = entry.get("tops", [])
                 if tops and all(self._verify_image_file(t) for t in tops if t):
-                    return True  # Ya está cargado y legible
-                # Si falla la verificación, caer al flujo de retry abajo
-            
-            if status != "pending":
-                return False  # No es pending ni done con problemas, no se puede cargar
-            
+                    return True
+
+            if entry.get("status") != "pending":
+                return False
+
             frames_folder = os.path.join(self.output_folder, "frames", entry.get("frames_folder", ""))
             if not os.path.exists(frames_folder):
                 return False
-            
-            # 🔒 FIX NUITKA: Retry con delays y verificación de imágenes
-            max_retries = 5
-            for retry in range(max_retries):
-                try:
-                    files_in_folder = os.listdir(frames_folder)
+
+            try:
+                files_in_folder = os.listdir(frames_folder)
+                is_photo = entry.get("is_photo", False)
+                top_files = sorted([f for f in files_in_folder if "top_" in f.lower()])
+
+                # 🔹 RAMA FOTOS: Solo necesita tops
+                if is_photo:
+                    if top_files:
+                        top_paths = [os.path.join(frames_folder, f) for f in top_files]
+                        if all(self._verify_image_file(path) for path in top_paths):
+                            entry["status"] = "done"
+                            entry["tops"] = top_paths
+                            if not entry.get("fecha_prefix") and top_files[0]:
+                                name = os.path.splitext(top_files[0])[0]
+                                if "_top_" in name:
+                                    entry["fecha_prefix"] = name.split("_top_")[0]
+                            self.save_metadata()
+                            return True
+                # 🔹 RAMA VIDEOS: Necesita promedio, mask y tops
+                else:
                     promedio_files = [f for f in files_in_folder if "promedio" in f.lower()]
                     mask_files = [f for f in files_in_folder if "mask" in f.lower()]
-                    top_files = sorted([f for f in files_in_folder if "top_" in f.lower()])
                     
                     if promedio_files and top_files and mask_files:
                         promedio_path = os.path.join(frames_folder, promedio_files[0])
                         mask_path = os.path.join(frames_folder, mask_files[0])
                         top_paths = [os.path.join(frames_folder, f) for f in top_files]
                         
-                        # 🔒 FIX: Verificar que TODOS los archivos sean legibles
-                        all_valid = True
-                        for path in [promedio_path, mask_path] + top_paths:
-                            if not self._verify_image_file(path):
-                                all_valid = False
-                                break
-                        
-                        if all_valid:
-                            # Todos los archivos verificados, actualizar metadata
+                        if all(self._verify_image_file(path) for path in [promedio_path, mask_path] + top_paths):
                             entry["status"] = "done"
                             entry["promedio"] = promedio_path
                             entry["mask"] = mask_path
@@ -1294,26 +1286,14 @@ class DynamicTagger(tk.Tk):
                                 if "_promedio" in name:
                                     entry["fecha_prefix"] = name.replace("_promedio", "")
                             self.save_metadata()
-                            print(f"✓ Frames loaded for video {self.current_video_index + 1}")
                             return True
-                        else:
-                            # Archivos incompletos, reintentar
-                            if retry < max_retries - 1:
-                                wait_time = 0.3 * (retry + 1)
-                                print(f"⏳ Waiting for complete frames (attempt {retry + 1}/{max_retries})...")
-                                time.sleep(wait_time)
-                            continue
-                except Exception as e:
-                    if retry < max_retries - 1:
-                        wait_time = 0.3 * (retry + 1)
-                        time.sleep(wait_time)
-                    continue
+            except Exception:
+                pass # Si falla la lectura, devolver False y reintentar en el próximo auto-refresh
             
-            print(f"⚠️ Could not load frames after {max_retries} attempts")
             return False
         except Exception:
-            return False
-
+            return False    
+        
     def get_current_frames(self):
         """🔒 FIX BUG-004: Evita duplicar frames en ráfagas de fotos"""
         if not (0 <= self.current_video_index < len(self.video_dirs)):

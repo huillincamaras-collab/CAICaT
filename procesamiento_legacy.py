@@ -21,7 +21,8 @@ from procesamiento import (
     compute_video_hash,
     obtener_fecha_video,
     mapear_mask_gris,
-    compute_file_hash
+    compute_file_hash,
+    procesar_grupo_de_fotos
 )
 
 # Windows-specific flag to prevent console windows from spawning
@@ -652,38 +653,30 @@ def procesar_lote_legacy(metadata_list, output_root, progress_callback=None):
 
 def procesar_grupo_de_fotos_legacy(grupo, output_root, progress_callback=None):
     """
-    Procesa una ráfaga de fotos en modo legacy (optimizado para PCs lentas).
-    
-    Diferencias con procesar_grupo_de_fotos() normal:
-    - MAX_SIZE = 512 (vs 1024) → imágenes más pequeñas, más rápido
-    - TOP_K = len(grupo) → cada foto de la ráfaga es un top
-    - JPEG_QUALITY = 65 (vs 85) → compresión más agresiva
-    - MASK_QUALITY = 65 (vs 70)
-    - Sin multiprocessing
-    
-    Args:
-        grupo: Lista de dicts [{"path": "...", "ts": ...}, ...]
-        output_root: Carpeta de salida
-        progress_callback: Función opcional (current, total) para reportar progreso
-    
-    Returns:
-        Dict con metadata del grupo procesado (estructura idéntica a procesamiento.py)
+    Procesa una ráfaga de fotos en modo legacy.
+    🔒 OPTIMIZACIÓN: Si son ≤ 3 fotos, delega en el procesamiento ligero de procesamiento.py
+    (más rápido, sin cálculo de promedio/máscara). Si son > 3, usa el procesamiento legacy completo.
     """
-    # Parámetros legacy hardcoded
-    MAX_SIZE = 512
+    # 🔹 RAMA DE PROCESAMIENTO LIGERO (≤ 3 fotos)
+    if len(grupo) <= 3:
+        # Delegamos en la función optimizada de procesamiento.py
+        return procesar_grupo_de_fotos(grupo, output_root)
+
+    # ========================================================================
+    # 🔹 RAMA DE PROCESAMIENTO LEGACY COMPLETO (> 3 fotos)
+    # ========================================================================
+    MAX_SIZE = 512  # Legacy usa resolución más baja
     JPEG_QUALITY = 65
     MASK_QUALITY = 65
     MASK_OFFSET = 50
     MASK_SATURATED = 0.01
-    TOP_K = len(grupo)  # 🔒 Cada foto de la ráfaga es un top
-    
+    TOP_K = len(grupo)  # En legacy, cada foto de la ráfaga es un top
+
     try:
-        # 1. Hash único basado en la primera foto del grupo
         grupo_hash = compute_file_hash(grupo[0]["path"])
         frames_folder = os.path.join(output_root, "frames", grupo_hash)
         os.makedirs(frames_folder, exist_ok=True)
         
-        # 2. Cargar imágenes y redimensionar todas al mismo tamaño
         copied_paths = [foto["path"] for foto in grupo]
         imgs_gray = []
         imgs_color = []
@@ -693,18 +686,15 @@ def procesar_grupo_de_fotos_legacy(grupo, output_root, progress_callback=None):
             img_color = cv2.imread(p)
             if img_color is not None:
                 h, w = img_color.shape[:2]
-                # 🔒 OPTIMIZACIÓN LEGACY: Redimensionar a 512px
                 if max(h, w) > MAX_SIZE:
                     scale = MAX_SIZE / max(h, w)
                     new_w = int(w * scale)
                     new_h = int(h * scale)
                     img_color = cv2.resize(img_color, (new_w, new_h), interpolation=cv2.INTER_AREA)
                 
-                # Guardar tamaño de referencia
                 if target_size is None:
                     target_size = (img_color.shape[1], img_color.shape[0])
                 else:
-                    # Asegurar que todas tengan el mismo tamaño
                     if (img_color.shape[1], img_color.shape[0]) != target_size:
                         img_color = cv2.resize(img_color, target_size, interpolation=cv2.INTER_AREA)
                 
@@ -712,14 +702,12 @@ def procesar_grupo_de_fotos_legacy(grupo, output_root, progress_callback=None):
                 imgs_gray.append(img_gray)
                 imgs_color.append(img_color)
             else:
-                # Fallback por si una imagen está corrupta
                 if target_size is None:
                     target_size = (640, 480)
                 w, h = target_size
                 imgs_gray.append(np.zeros((h, w), dtype=np.uint8))
                 imgs_color.append(np.zeros((h, w, 3), dtype=np.uint8))
-        
-        # Si ninguna imagen se pudo cargar, abortar
+
         if not imgs_gray:
             print(f"⚠️ [Legacy] No se pudo cargar ninguna imagen del grupo: {grupo[0]['path']}")
             return {
@@ -733,14 +721,12 @@ def procesar_grupo_de_fotos_legacy(grupo, output_root, progress_callback=None):
                 "is_photo": True, "is_burst": len(grupo) > 1,
                 "error_message": "No valid images in group"
             }
-        
-        # 3. Calcular promedio
+
         avg = np.mean(imgs_gray, axis=0).astype(np.uint8)
         fecha_prefix = datetime.fromtimestamp(grupo[0]["ts"]).strftime("%y%m%d_%H%M%S")
         promedio_path = os.path.join(frames_folder, f"{fecha_prefix}_promedio.jpg")
         cv2.imwrite(promedio_path, avg, [int(cv2.IMWRITE_JPEG_QUALITY), JPEG_QUALITY])
-        
-        # 4. Calcular scores y seleccionar TOP_K (en legacy = len(grupo))
+
         scores = []
         for img in imgs_gray:
             diff_val = np.abs(img.astype(np.float32) - avg.astype(np.float32))
@@ -752,21 +738,19 @@ def procesar_grupo_de_fotos_legacy(grupo, output_root, progress_callback=None):
             fname = os.path.join(frames_folder, f"{fecha_prefix}_top_{rank:02d}.jpg")
             cv2.imwrite(fname, imgs_color[idx], [int(cv2.IMWRITE_JPEG_QUALITY), JPEG_QUALITY])
             top_paths.append(fname)
-        
-        # 5. Generar máscara
+
         best_idx = top_indices[0]
         diff_for_mask = imgs_gray[best_idx].astype(np.float32) - avg.astype(np.float32)
         mask_gray = mapear_mask_gris(diff_for_mask, MASK_OFFSET, MASK_SATURATED)
         mask_small = cv2.resize(mask_gray, (mask_gray.shape[1] // 4, mask_gray.shape[0] // 4))
         mask_path = os.path.join(frames_folder, f"{fecha_prefix}_mask.jpg")
         cv2.imwrite(mask_path, mask_small, [int(cv2.IMWRITE_JPEG_QUALITY), MASK_QUALITY])
-        
-        # 6. Retorno de metadatos
+
         try:
             recorded_at = datetime.fromtimestamp(grupo[0]["ts"]).strftime("%Y-%m-%dT%H:%M:%S")
         except Exception:
             recorded_at = ""
-        
+
         return {
             "video_path": grupo[0]["path"],
             "video_hash": grupo_hash,
@@ -784,7 +768,6 @@ def procesar_grupo_de_fotos_legacy(grupo, output_root, progress_callback=None):
             "ui": {"is_favorite": False, "is_excluded": False, "embed_metadata": False, "xlsx": False},
             "session": {"session_id": "", "camtrap_db_session": False}
         }
-    
     except Exception as e:
         print(f"❌ [Legacy] Error procesando grupo de fotos: {e}")
         import traceback

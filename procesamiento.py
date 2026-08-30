@@ -682,8 +682,9 @@ def procesar_todas_las_rafagas(photo_groups, output_root):
 
 def procesar_grupo_de_fotos(grupo, output_root):
     """
-    Procesa una ráfaga de fotos con downsampling a 1024px para optimizar rendimiento.
-    Las imágenes de salida son ~1MP (suficiente para etiquetado, 10x más rápido que 12MP).
+    Procesa una ráfaga de fotos.
+    🔒 OPTIMIZACIÓN: Si son ≤ 3 fotos, usa "procesamiento ligero" (solo copia/redimensiona como tops).
+    Si son > 3 fotos, usa el procesamiento completo (promedio + tops + mask).
     """
     # 1. Cargar parámetros
     params = get_processing_params()
@@ -692,60 +693,115 @@ def procesar_grupo_de_fotos(grupo, output_root):
     MASK_OFFSET = params["MASK_OFFSET"]
     MASK_SATURATED = params["MASK_SATURATED"]
     MASK_QUALITY = params["MASK_QUALITY"]
-
-    # 🔒 OPTIMIZACIÓN: Tamaño máximo para procesamiento (1024px en el lado más largo)
-    MAX_SIZE = 1024
+    MAX_SIZE = 1024  # 🔒 Tamaño máximo para redimensionar si es necesario
 
     # 2. Hash único basado en la primera foto del grupo
     grupo_hash = compute_file_hash(grupo[0]["path"])
     frames_folder = os.path.join(output_root, "frames", grupo_hash)
     os.makedirs(frames_folder, exist_ok=True)
-
-    # 3. Cargar imágenes y redimensionar todas al mismo tamaño
+    
     copied_paths = [foto["path"] for foto in grupo]
+    fecha_prefix = datetime.fromtimestamp(grupo[0]["ts"]).strftime("%y%m%d_%H%M%S")
+    
+    try:
+        recorded_at = datetime.fromtimestamp(grupo[0]["ts"]).strftime("%Y-%m-%dT%H:%M:%S")
+    except Exception:
+        recorded_at = ""
+
+    # ========================================================================
+    # 🔹 RAMA DE PROCESAMIENTO LIGERO (≤ 3 fotos)
+    # ========================================================================
+    if len(grupo) <= 3:
+        top_paths = []
+        for rank, p in enumerate(copied_paths, 1):
+            img_color = cv2.imread(p)
+            if img_color is not None:
+                h, w = img_color.shape[:2]
+                # Redimensionar solo si supera el tamaño máximo
+                if max(h, w) > MAX_SIZE:
+                    scale = MAX_SIZE / max(h, w)
+                    new_w = int(w * scale)
+                    new_h = int(h * scale)
+                    img_color = cv2.resize(img_color, (new_w, new_h), interpolation=cv2.INTER_AREA)
+                
+                # Guardar como top_XX.jpg
+                fname = os.path.join(frames_folder, f"{fecha_prefix}_top_{rank:02d}.jpg")
+                cv2.imwrite(fname, img_color, [int(cv2.IMWRITE_JPEG_QUALITY), JPEG_QUALITY])
+                top_paths.append(fname)
+            else:
+                print(f"⚠️ No se pudo leer la imagen: {p}")
+
+        if not top_paths:
+            return {
+                "video_path": grupo[0]["path"],
+                "video_hash": grupo_hash,
+                "frames_folder": grupo_hash,
+                "fecha_prefix": fecha_prefix,
+                "original_photos": copied_paths,
+                "promedio": None, "mask": None, "tops": [],
+                "status": "error",
+                "is_photo": True, "is_burst": len(grupo) > 1, "is_lightweight": True,
+                "error_message": "No valid images could be read"
+            }
+
+        return {
+            "video_path": grupo[0]["path"],
+            "video_hash": grupo_hash,
+            "frames_folder": grupo_hash,
+            "fecha_prefix": fecha_prefix,
+            "original_photos": copied_paths,
+            "promedio": None,       # 🔒 No se genera en modo ligero
+            "mask": None,           # 🔒 No se genera en modo ligero
+            "tops": top_paths,
+            "status": "done",
+            "is_photo": True,
+            "is_burst": len(grupo) > 1,
+            "is_lightweight": True, # 🔒 Flag para identificar procesamiento ligero
+            "classification": {"species": [], "counts": {}, "behaviors": [], "optional_tags": []},
+            "metadata": {"site": "", "subsite": "", "camera": "", "operator": "", "recorded_at": recorded_at, "notes": ""},
+            "ui": {"is_favorite": False, "is_excluded": False, "embed_metadata": False, "xlsx": False},
+            "session": {"session_id": "", "camtrap_db_session": False}
+        }
+
+    # ========================================================================
+    # 🔹 RAMA DE PROCESAMIENTO COMPLETO (> 3 fotos)
+    # ========================================================================
     imgs_gray = []
     imgs_color = []
-    target_size = None  # (width, height) - se define con la primera imagen válida
+    target_size = None
 
     for p in copied_paths:
         img_color = cv2.imread(p)
         if img_color is not None:
             h, w = img_color.shape[:2]
-
-            # 🔒 OPTIMIZACIÓN: Redimensionar si es más grande que MAX_SIZE
             if max(h, w) > MAX_SIZE:
                 scale = MAX_SIZE / max(h, w)
                 new_w = int(w * scale)
                 new_h = int(h * scale)
                 img_color = cv2.resize(img_color, (new_w, new_h), interpolation=cv2.INTER_AREA)
-
-            # Guardar tamaño de referencia (el de la primera imagen redimensionada)
+            
             if target_size is None:
-                target_size = (img_color.shape[1], img_color.shape[0])  # (w, h)
+                target_size = (img_color.shape[1], img_color.shape[0])
             else:
-                # Asegurar que todas tengan el mismo tamaño
                 if (img_color.shape[1], img_color.shape[0]) != target_size:
                     img_color = cv2.resize(img_color, target_size, interpolation=cv2.INTER_AREA)
-
+            
             img_gray = cv2.cvtColor(img_color, cv2.COLOR_BGR2GRAY)
             imgs_gray.append(img_gray)
             imgs_color.append(img_color)
         else:
-            # Fallback por si una imagen está corrupta
             if target_size is None:
                 target_size = (640, 480)
             w, h = target_size
             imgs_gray.append(np.zeros((h, w), dtype=np.uint8))
             imgs_color.append(np.zeros((h, w, 3), dtype=np.uint8))
 
-    # Si ninguna imagen se pudo cargar, abortar
     if not imgs_gray:
-        print(f"⚠️ No se pudo cargar ninguna imagen del grupo: {grupo[0]['path']}")
         return {
             "video_path": grupo[0]["path"],
             "video_hash": grupo_hash,
             "frames_folder": grupo_hash,
-            "fecha_prefix": datetime.fromtimestamp(grupo[0]["ts"]).strftime("%y%m%d_%H%M%S"),
+            "fecha_prefix": fecha_prefix,
             "original_photos": copied_paths,
             "promedio": None, "mask": None, "tops": [],
             "status": "error",
@@ -753,17 +809,17 @@ def procesar_grupo_de_fotos(grupo, output_root):
             "error_message": "No valid images in group"
         }
 
-    # 4. Calcular promedio (ahora sobre ~1MP en lugar de 12MP → ~10x más rápido)
+    # Calcular promedio
     avg = np.mean(imgs_gray, axis=0).astype(np.uint8)
-    fecha_prefix = datetime.fromtimestamp(grupo[0]["ts"]).strftime("%y%m%d_%H%M%S")
     promedio_path = os.path.join(frames_folder, f"{fecha_prefix}_promedio.jpg")
     cv2.imwrite(promedio_path, avg, [int(cv2.IMWRITE_JPEG_QUALITY), JPEG_QUALITY])
 
-    # 5. Calcular scores y seleccionar TOP_K (mucho más rápido con imágenes pequeñas)
+    # Calcular scores y seleccionar TOP_K
     scores = []
     for img in imgs_gray:
         diff_val = np.abs(img.astype(np.float32) - avg.astype(np.float32))
         scores.append(diff_val.mean())
+    
     top_indices = np.argsort(scores)[-TOP_K:][::-1]
     top_paths = []
     for rank, idx in enumerate(top_indices, 1):
@@ -771,19 +827,13 @@ def procesar_grupo_de_fotos(grupo, output_root):
         cv2.imwrite(fname, imgs_color[idx], [int(cv2.IMWRITE_JPEG_QUALITY), JPEG_QUALITY])
         top_paths.append(fname)
 
-    # 6. Generar máscara
+    # Generar máscara
     best_idx = top_indices[0]
     diff_for_mask = imgs_gray[best_idx].astype(np.float32) - avg.astype(np.float32)
     mask_gray = mapear_mask_gris(diff_for_mask, MASK_OFFSET, MASK_SATURATED)
     mask_small = cv2.resize(mask_gray, (mask_gray.shape[1] // 4, mask_gray.shape[0] // 4))
     mask_path = os.path.join(frames_folder, f"{fecha_prefix}_mask.jpg")
     cv2.imwrite(mask_path, mask_small, [int(cv2.IMWRITE_JPEG_QUALITY), MASK_QUALITY])
-
-    # 7. Retorno de metadatos
-    try:
-        recorded_at = datetime.fromtimestamp(grupo[0]["ts"]).strftime("%Y-%m-%dT%H:%M:%S")
-    except Exception:
-        recorded_at = ""
 
     return {
         "video_path": grupo[0]["path"],
@@ -797,6 +847,7 @@ def procesar_grupo_de_fotos(grupo, output_root):
         "status": "done",
         "is_photo": True,
         "is_burst": len(grupo) > 1,
+        "is_lightweight": False,
         "classification": {"species": [], "counts": {}, "behaviors": [], "optional_tags": []},
         "metadata": {"site": "", "subsite": "", "camera": "", "operator": "", "recorded_at": recorded_at, "notes": ""},
         "ui": {"is_favorite": False, "is_excluded": False, "embed_metadata": False, "xlsx": False},
