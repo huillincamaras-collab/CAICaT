@@ -388,48 +388,38 @@ def escanear_videos(input_folder, output_root, photos_per_video=None, process_mo
     """
     Escanea videos e imágenes, calcula hash único por video,
     y reutiliza procesamiento previo si ya existe.
-    
     Args:
         input_folder: Carpeta con archivos multimedia
         output_root: Carpeta de salida
         photos_per_video: Cantidad de fotos a asociar por video (None = usar config)
         process_mode: "both" (videos+huérfanas), "videos" (solo videos), "photos" (solo fotos)
-    
     Devuelve lista de metadatos combinada (videos + ráfagas huérfanas) ordenada por timestamp.
     """
     global last_scan_stats
-    
     params = get_processing_params()
     if photos_per_video is None:
         PHOTOS_PER_VIDEO = params["PHOTOS_PER_VIDEO"]
     else:
         PHOTOS_PER_VIDEO = photos_per_video
-    
     TOP_K = params["TOP_K"]
-    
-    # Si el modo es solo videos, no asociar fotos
-    if process_mode == "videos":
-        PHOTOS_PER_VIDEO = 0
-    
+
     video_exts = {'.avi', '.mp4', '.mov', '.mkv', '.webm', '.flv', '.wmv', '.m4v',
                   '.3gp', '.3gpp', '.mpg', '.mpeg', '.ts', '.mts', '.m2ts', '.vob',
                   '.asf', '.ogv', '.ogg', '.dv', '.mxf'}
     img_exts = {'.jpg', '.jpeg', '.png'}
-    
+
     all_files = []
     try:
         all_files = [os.path.join(input_folder, f) for f in os.listdir(input_folder)
                      if os.path.isfile(os.path.join(input_folder, f))]
     except Exception as e:
         print(f"Error scanning folder: {e}")
-    
+
     video_files = sorted([f for f in all_files if os.path.splitext(f)[1].lower() in video_exts])
     img_files = [f for f in all_files if os.path.splitext(f)[1].lower() in img_exts]
-    
-    # 🔒 FIX CRÍTICO: get_timestamp ahora lee EXIF para fotos (no solo mtime)
+
+    # 🔒 FIX: get_timestamp lee EXIF para fotos, ffprobe para videos, mtime como fallback
     def get_timestamp(path):
-        """Obtiene timestamp: EXIF para fotos, ffprobe para videos, mtime como fallback."""
-        # 1. Para videos: usar ffprobe (creation_time del contenedor)
         try:
             if any(path.lower().endswith(ext.lower()) for ext in video_exts):
                 _, ffprobe_path = get_ffmpeg_paths()
@@ -439,8 +429,8 @@ def escanear_videos(input_folder, output_root, photos_per_video=None, process_mo
                     "-show_entries", "format_tags=creation_time",
                     path
                 ]
-                result = subprocess.run(cmd, capture_output=True, text=True, 
-                                       timeout=10, creationflags=_WIN_NO_WINDOW)
+                result = subprocess.run(cmd, capture_output=True, text=True,
+                                        timeout=10, creationflags=_WIN_NO_WINDOW)
                 info = json.loads(result.stdout)
                 fecha = info.get("format", {}).get("tags", {}).get("creation_time")
                 if fecha:
@@ -448,8 +438,6 @@ def escanear_videos(input_folder, output_root, photos_per_video=None, process_mo
                     return dt.timestamp()
         except Exception:
             pass
-        
-        # 2. 🔒 FIX: Para fotos, leer EXIF DateTimeOriginal (fecha real de disparo)
         try:
             if any(path.lower().endswith(ext.lower()) for ext in img_exts):
                 with open(path, 'rb') as f:
@@ -460,25 +448,25 @@ def escanear_videos(input_folder, output_root, photos_per_video=None, process_mo
                         return dt.timestamp()
         except Exception:
             pass
-        
-        # 3. Fallback: fecha de modificación del archivo
         return os.path.getmtime(path)
-    
-    # Ordenar imágenes por timestamp (ahora correcto gracias al fix)
+
     img_files.sort(key=get_timestamp)
     img_timestamps = [get_timestamp(f) for f in img_files]
-    
     frames_root = os.path.join(output_root, "frames")
     metadata = []
-    
+
     # ============================================================
-    # FASE 1: Procesar videos (si el modo lo permite)
+    # FASE 1: Procesar videos (SOLO si el modo lo permite)
     # ============================================================
+    # 🔒 FIX: respetar process_mode == "photos" → NO procesar videos
     if process_mode in ("both", "videos"):
+        # Si el modo es solo videos, no asociar fotos
+        if process_mode == "videos":
+            PHOTOS_PER_VIDEO = 0
+
         for v in video_files:
             v_hash = compute_video_hash(v)
             fecha_prefix = obtener_fecha_video(v)
-            
             try:
                 recorded_dt = datetime.strptime(fecha_prefix, "%y%m%d_%H%M%S")
             except Exception:
@@ -487,7 +475,7 @@ def escanear_videos(input_folder, output_root, photos_per_video=None, process_mo
                 except Exception:
                     recorded_dt = datetime.now()
             recorded_at = recorded_dt.strftime("%Y-%m-%dT%H:%M:%S")
-            
+
             expected_folder = os.path.join(frames_root, v_hash)
             already_done = False
             if os.path.isdir(expected_folder):
@@ -496,18 +484,17 @@ def escanear_videos(input_folder, output_root, photos_per_video=None, process_mo
                 top0_path = os.path.join(expected_folder, f"{fecha_prefix}_top_01.jpg")
                 if os.path.exists(promedio_path) and os.path.exists(mask_path) and os.path.exists(top0_path):
                     already_done = True
-            
+
             v_ts = get_timestamp(v)
             associated_photos = []
             if PHOTOS_PER_VIDEO > 0:
-                # Buscar las últimas N fotos antes del video
                 for i in range(len(img_files) - 1, -1, -1):
                     if len(associated_photos) >= PHOTOS_PER_VIDEO:
                         break
                     if img_timestamps[i] <= v_ts:
                         associated_photos.append(img_files[i])
-                associated_photos.reverse()  # más antigua primero
-            
+                associated_photos.reverse()
+
             meta_entry = {
                 "video_path": v,
                 "video_hash": v_hash,
@@ -526,7 +513,7 @@ def escanear_videos(input_folder, output_root, photos_per_video=None, process_mo
                 "operator": "",
                 "recorded_at": recorded_at
             }
-            
+
             copied_photo_paths = []
             if associated_photos:
                 output_folder = os.path.join(frames_root, v_hash)
@@ -540,7 +527,7 @@ def escanear_videos(input_folder, output_root, photos_per_video=None, process_mo
                             shutil.copy2(photo_path, dest_path)
                         copied_photo_paths.append(dest_path)
             meta_entry["original_photos"] = copied_photo_paths
-            
+
             if already_done:
                 meta_entry["promedio"] = promedio_path
                 meta_entry["mask"] = mask_path
@@ -552,47 +539,48 @@ def escanear_videos(input_folder, output_root, photos_per_video=None, process_mo
                     else:
                         break
                 meta_entry["tops"] = tops
-            
+
             metadata.append(meta_entry)
-    
+
     # ============================================================
-    # FASE 2: Detectar y procesar fotos huérfanas
+    # FASE 2: Detectar fotos huérfanas (SOLO si el modo lo permite)
+    # 🔒 FIX: NO procesar fotos automáticamente. Devolver info para que la GUI
+    #         muestre el diálogo interactivo de configuración de ráfagas.
     # ============================================================
-    orphan_metadata = []
     used_photos = set()
     for entry in metadata:
         for p in entry.get("associated_photos", []):
             used_photos.add(p)
-    
+
     orphan_photos = [f for f in img_files if f not in used_photos]
-    
+
+    # 🔒 FIX: en modo "photos" TODAS las fotos son candidatas (no hay videos que las usen)
+    if process_mode == "photos":
+        orphan_photos = list(img_files)
+
+    orphan_with_ts = []
     if orphan_photos and process_mode in ("both", "photos"):
-        print(f"📷 Detectadas {len(orphan_photos)} fotos huérfanas (no asociadas a videos)")
-        
         orphan_with_ts = [{"path": p, "ts": get_timestamp(p)} for p in orphan_photos]
         orphan_with_ts.sort(key=lambda x: x["ts"])
-        
-        orphan_groups = agrupar_en_rafagas(orphan_with_ts, umbral_seg=2.0)
-        print(f"📷 Agrupadas en {len(orphan_groups)} ráfagas huérfanas")
-        
-        orphan_metadata = procesar_todas_las_rafagas(orphan_groups, output_root)
-        metadata.extend(orphan_metadata)
-        
-        # Ordenar todo por timestamp (videos + ráfagas huérfanas mezclados)
-        metadata.sort(key=lambda x: x.get("recorded_at", ""))
-    
+
     # ============================================================
     # FASE 3: Actualizar estadísticas globales
+    # 🔒 FIX: distinguir videos encontrados vs. procesados, y devolver
+    #         la lista de fotos huérfanas con timestamp para que la GUI
+    #         pueda estimar ráfagas ANTES de procesar.
     # ============================================================
     last_scan_stats = {
-        "total_videos": len(video_files),
+        "total_videos_found": len(video_files),
+        "total_videos_processed": len(metadata),  # solo los que entraron en FASE 1
         "total_photos": len(img_files),
         "associated_photos": len(used_photos),
         "orphan_photos": len(orphan_photos),
-        "orphan_bursts": len(orphan_metadata)
+        "orphan_photos_with_ts": orphan_with_ts,  # 🔒 NUEVO: para el diálogo de ráfagas
+        "process_mode": process_mode
     }
-    
+
     return metadata
+
 
 # ===================================================================
 # === FUNCIONES PARA MANEJO DE FOTOS PURAS (sin videos) ==============

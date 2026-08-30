@@ -353,15 +353,19 @@ class DynamicTagger(tk.Tk):
         tk.Frame(self.col3, height=2, bd=1, relief="groove", bg="#fff3e0").pack(fill="x", padx=5, pady=5)
         tk.Label(self.col3, text="Secundarios", font=("Arial", 9, "bold"), bg="#fff3e0").pack(pady=(2, 2))
         self.left_buttons = []
-        for i, tag in enumerate(self.secondary_tags):
+        # 🔒 FIX: Todos los secundarios se comportan igual (sin "primero especial")
+        for tag in self.secondary_tags:
             b = tk.Button(self.col3, text=tag, width=12, bg=self.tag_inactive_bg)
             b.pack(fill="x", pady=2, padx=5)
-            if i == 0:
-                b.bind("<Button-1>", self.show_secondary_dropdown)
-            else:
-                b.bind("<Button-1>", lambda e, t=tag: self.species_click(t, left=True, event=e))
-                b.bind("<Button-3>", lambda e, t=tag: self.species_click(t, left=False, event=e))
-                self.species_buttons[tag] = b
+            b.bind("<Button-1>", lambda e, t=tag: self.species_click(t, left=True, event=e))
+            b.bind("<Button-3>", lambda e, t=tag: self.species_click(t, left=False, event=e))
+            self.species_buttons[tag] = b
+            self.left_buttons.append(b)
+        # 🔒 NUEVO: Botón "Otros ▼" al final de los secundarios
+        if self.other_tags_list:
+            b = tk.Button(self.col3, text="Otros ▼", width=12, bg=self.tag_inactive_bg)
+            b.pack(fill="x", pady=2, padx=5)
+            b.bind("<Button-1>", self.show_secondary_dropdown)
             self.left_buttons.append(b)
         # ================= COLUMNA 4: ETIQUETAS (Arriba 50%) + NOTAS (Abajo 50%) =================
         col4 = tk.Frame(main_frame, bd=1, relief="sunken", width=180, bg="#e8eaf6")
@@ -376,12 +380,10 @@ class DynamicTagger(tk.Tk):
         tk.Frame(col4, height=1, bg="#b0b0b0").pack(fill="x", padx=5, pady=3)
         self.col4_bottom = tk.Frame(col4, bg="#e8eaf6")
         self.col4_bottom.pack(side="top", fill="both", expand=True, padx=2)
-        
         # 🔒 NUEVO: Categorías Opcionales (dinámico, 0 a 6 botones según config)
         self.optional_tags_label = tk.Label(self.col4_bottom, text="Categorías Opcionales", 
                                             font=("Arial", 10, "bold"), bg="#e8eaf6")
         self.optional_tags_frame = tk.Frame(self.col4_bottom, bg="#e8eaf6")
-        
         # Solo mostrar si hay optional_tags configurados
         if self.optional_tags:
             self.optional_tags_label.pack(anchor="w", padx=5, pady=(5, 2))
@@ -395,7 +397,6 @@ class DynamicTagger(tk.Tk):
                 self.optional_buttons.append(btn)
         else:
             self.optional_buttons = []
-        
         # ================= NOTES SECTION (NEW POSITION: BOTTOM OF COL1) =================
         # Create notes frame at bottom-left
         notes_frame_col1 = tk.Frame(col1)
@@ -408,7 +409,7 @@ class DynamicTagger(tk.Tk):
         self.open_notes_btn = tk.Button(notes_frame_col1, text="Editar Notas", font=("Arial", 9, "bold"),
                                         command=self.open_note_editor, bg="#d0d0d0")
         self.open_notes_btn.pack(fill="x", padx=5, pady=(2, 5))
-            
+
     def _search_local_csv(self, query):
         """Busca taxones en config/species_list.csv"""
         import csv
@@ -702,23 +703,26 @@ class DynamicTagger(tk.Tk):
             except: pass
             self.dropdown_window = None
             return
-            
         tags_extra = self.other_tags_list
         menu = tk.Toplevel(self)
         menu.wm_overrideredirect(True)
         menu.configure(bg="white", bd=1, relief="solid")
         widget = event.widget
         x = widget.winfo_rootx()
-        y = widget.winfo_rooty() + widget.winfo_height()
+        # 🔹 CAMBIO: Desplegar HACIA ARRIBA en lugar de hacia abajo
+        # Altura estimada por ítem: ~28px (pady=3 + padding interno + borde)
+        menu_height = len(tags_extra) * 28 + 4
+        y = widget.winfo_rooty() - menu_height
+        # 🔹 FIX: Si no hay espacio arriba, caer hacia abajo
+        if y < 0:
+            y = widget.winfo_rooty() + widget.winfo_height()
         menu.geometry(f"+{x}+{y}")
         active_bg, normal_bg = "#cce6ff", "white"
-        
         for tag in tags_extra:
             lbl = tk.Label(menu, text=tag, bg=normal_bg, width=18, anchor="w", padx=6, pady=3)
             lbl.pack(fill="x")
             lbl.bind("<Enter>", lambda e, w=lbl: w.config(bg=active_bg))
             lbl.bind("<Leave>", lambda e, w=lbl: w.config(bg=normal_bg))
-            
             # 🔹 INTERCEPTAR "OTRO" / "OTROS" PARA DIÁLOGO PERSONALIZADO
             if tag.strip().lower() in ["otro", "otros"]:
                 lbl.bind("<Button-1>", lambda e: self._open_custom_tag_dialog(left=True))
@@ -726,7 +730,6 @@ class DynamicTagger(tk.Tk):
             else:
                 lbl.bind("<Button-1>", lambda e, t=tag: self._select_extra_tag(t, left=True))
                 lbl.bind("<Button-3>", lambda e, t=tag: self._select_extra_tag(t, left=False))
-                
         self._dropdown_close_timer = None
         def schedule_close():
             self._dropdown_close_timer = self.after(300, lambda: self._close_dropdown(menu))

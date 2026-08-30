@@ -1,0 +1,26 @@
+# ============================================================================
+# CAICAT - .gitignore (Evita subir archivos pesados a GitHub)
+# ============================================================================
+
+# 🔹 CARPETAS DE COMPILACIÓN NUIKTA (¡Muy pesadas, >500MB!)
+caicat.v.*/
+*.dist/
+caicat.build/
+*.spec
+
+# 🔹 BINARIOS EXTERNOS (El usuario los descarga o ya están en su PC)
+resources/ffmpeg/
+
+# 🔹 DOCUMENTOS PESADOS (Se empaquetan en el .exe, no van en Git)
+manual.pdf
+*.docx
+*.xlsx
+
+# 🔹 ARCHIVOS DE SISTEMA Y PYTHON
+__pycache__/
+*.py[cod]
+*$py.class
+.DS_Store
+Thumbs.db
+desktop.ini
+lista_archivos.txt
