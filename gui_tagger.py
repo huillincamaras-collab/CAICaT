@@ -1177,6 +1177,9 @@ class DynamicTagger(tk.Tk):
         """🔒 FIX: Versión ligera y no-bloqueante para el auto-refresh."""
         if not self.video_dirs:
             return
+        # 🔒 FIX: Puede llamarse desde load_metadata antes de que se inicialice current_video_index
+        if not hasattr(self, 'current_video_index'):
+            return
         
         # 🔹 OPTIMIZACIÓN: Solo verificar el video actual y los inmediatamente adyacentes
         # para evitar hacer os.listdir() en cientos de carpetas cada 3 segundos.

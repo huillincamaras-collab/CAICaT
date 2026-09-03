@@ -526,21 +526,6 @@ class GUIInicial(tk.Tk):
                 pass
             return
         
-        # 5. Si no hay fotos huérfanas, mostrar stats finales (solo en este caso)
-        try:
-            import procesamiento
-            stats = procesamiento.last_scan_stats
-            msg = self._build_scan_message(stats, process_mode)
-            if msg:
-                try:
-                    if self.winfo_exists():
-                        self.after(0, lambda: messagebox.showinfo(
-                            "Escaneo completado", msg, parent=self
-                        ))
-                except Exception:
-                    print(msg)
-        except Exception as e:
-            print(f"⚠️ Error leyendo estadísticas de escaneo: {e}")
         
         # 6. Informar al usuario que debe presionar Iniciar (solo videos pendientes)
         pending = sum(1 for m in self.metadata_list if m.get("status") == "pending")
