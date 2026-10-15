@@ -7,9 +7,9 @@ REM ============================================================================
 REM ============================================================================
 REM 🔹 CONFIGURACIÓN DE VERSIÓN (EDITAR SOLO AQUÍ PARA CAMBIAR VERSIÓN)
 REM ============================================================================
-set VERSION=2.26
-set VERSION_RC=2.26.0.0
-set PRODUCT_VERSION=2.26.0
+set VERSION=2.27
+set VERSION_RC=2.27.0.0
+set PRODUCT_VERSION=2.27.0
 set OUTPUT_DIR=caicat.v.%VERSION%
 set OUTPUT_EXE=caicat.%VERSION%.exe
 REM ============================================================================

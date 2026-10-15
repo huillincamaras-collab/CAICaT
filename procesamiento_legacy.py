@@ -762,6 +762,7 @@ def procesar_grupo_de_fotos_legacy(grupo, output_root, progress_callback=None):
             "tops": top_paths,
             "status": "done",
             "is_photo": True,
+            "recorded_at": recorded_at,
             "is_burst": len(grupo) > 1,
             "classification": {"species": [], "counts": {}, "behaviors": [], "optional_tags": []},
             "metadata": {"site": "", "subsite": "", "camera": "", "operator": "", "recorded_at": recorded_at, "notes": ""},

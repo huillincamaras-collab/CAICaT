@@ -9,7 +9,7 @@ import zipfile
 from pathlib import Path
 from datetime import datetime
 
-VERSION = "2.23"
+VERSION = "2.27"
 APP_NAME = "caicat"
 DIST_FOLDER = f"{APP_NAME}.v.{VERSION}"
 ZIP_NAME = f"CAICAT_v{VERSION}.zip"

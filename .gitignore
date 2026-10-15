@@ -2,6 +2,12 @@
 # CAICAT - .gitignore (Evita subir archivos pesados a GitHub)
 # ============================================================================
 
+#Carpeta de salida
+output/
+
+#Archivos comprimidos
+*.zip
+
 # 🔹 CARPETAS DE COMPILACIÓN NUIKTA (¡Muy pesadas, >500MB!)
 caicat.v.*/
 *.dist/

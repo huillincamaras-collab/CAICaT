@@ -755,6 +755,7 @@ def procesar_grupo_de_fotos(grupo, output_root):
             "tops": top_paths,
             "status": "done",
             "is_photo": True,
+            "recorded_at": recorded_at,
             "is_burst": len(grupo) > 1,
             "is_lightweight": True, # 🔒 Flag para identificar procesamiento ligero
             "classification": {"species": [], "counts": {}, "behaviors": [], "optional_tags": []},
@@ -846,6 +847,7 @@ def procesar_grupo_de_fotos(grupo, output_root):
         "tops": top_paths,
         "status": "done",
         "is_photo": True,
+        "recorded_at": recorded_at,
         "is_burst": len(grupo) > 1,
         "is_lightweight": False,
         "classification": {"species": [], "counts": {}, "behaviors": [], "optional_tags": []},
