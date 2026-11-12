@@ -1108,12 +1108,67 @@ def rebuild_consolidated_metadata(config=None):
 
     unique_videos.reverse()
 
+    # Escritura atómica: se escribe en un temporal y se reemplaza, para que un cierre
+    # abrupto nunca deje un consolidado truncado con fecha de modificación reciente.
     with metadata_lock:
-        with open(consolidated_path, "w", encoding="utf-8") as f:
+        temp_path = consolidated_path + ".tmp"
+        with open(temp_path, "w", encoding="utf-8") as f:
             json.dump(unique_videos, f, indent=4, ensure_ascii=False)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(temp_path, consolidated_path)
 
     print(f"[rebuild_consolidated_metadata] Archivo consolidado reconstruido: {consolidated_path} ({len(unique_videos)} videos únicos)")
     return unique_videos
+
+
+def consolidated_needs_rebuild(config=None):
+    """
+    True si el consolidado falta, no se puede leer como JSON, o es más antiguo
+    que el metadata.json de alguna sesión. False si está al día o no hay sesiones.
+    """
+    if config is None:
+        config = load_config()
+
+    output_folder = config["General"]["output_folder"]
+    sessions_dir = os.path.join(output_folder, "sessions")
+    consolidated_path = os.path.join(output_folder, "consolidated", "all_sessions_metadata.json")
+
+    if not os.path.isdir(sessions_dir):
+        return False
+
+    latest_session_mtime = 0
+    for session_id in os.listdir(sessions_dir):
+        metadata_path = os.path.join(sessions_dir, session_id, "metadata.json")
+        if os.path.isfile(metadata_path):
+            latest_session_mtime = max(latest_session_mtime, os.path.getmtime(metadata_path))
+
+    if latest_session_mtime == 0:
+        return False
+
+    if not os.path.isfile(consolidated_path):
+        return True
+
+    try:
+        with metadata_lock:
+            with open(consolidated_path, "r", encoding="utf-8") as f:
+                json.load(f)
+    except Exception:
+        return True
+
+    return latest_session_mtime > os.path.getmtime(consolidated_path)
+
+
+def rebuild_consolidated_if_needed(config=None):
+    """Reconstruye el consolidado solo si hace falta. Devuelve True si lo reconstruyó."""
+    if config is None:
+        config = load_config()
+
+    if consolidated_needs_rebuild(config):
+        print("[rebuild_consolidated_if_needed] Consolidado ausente, ilegible o desactualizado: reconstruyendo...")
+        rebuild_consolidated_metadata(config)
+        return True
+    return False
 
 # =============================================================================
 # RESOLUCIÓN CENTRALIZADA DE TAXONIDs (Multi-sistema: GBIF + iNaturalist/INABIO)

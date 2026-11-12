@@ -6,7 +6,7 @@ import json
 import datetime
 import subprocess
 
-from config_utils import load_config, update_summaries_from_metadata
+from config_utils import load_config, update_summaries_from_metadata, rebuild_consolidated_if_needed
 from sort_rename import run_sort_rename_advanced
 from gui_excel_export import ExcelExportGUI
 from gui_analysis import AnalysisGUI
@@ -187,6 +187,12 @@ class MainApp(tk.Tk):
         self.title(self.config_data.get("GUI_Main", {}).get("title", "Caicat2.0 - Main"))
         self.geometry(self.config_data.get("GUI_Main", {}).get("geometry", "1000x700"))
         self.configure(bg="#e0e0e0")
+
+        # Reconstruir consolidado si falta, está corrupto o está desactualizado
+        try:
+            rebuild_consolidated_if_needed()
+        except Exception as e:
+            messagebox.showwarning("Advertencia", f"No se pudo verificar/reconstruir la metadata consolidada:\n{e}")
 
         # Actualizar resúmenes
         try:

@@ -468,7 +468,7 @@ def escanear_videos(input_folder, output_root, photos_per_video=None, process_mo
             v_hash = compute_video_hash(v)
             fecha_prefix = obtener_fecha_video(v)
             try:
-                recorded_dt = datetime.strptime(fecha_prefix, "%y%m%d_%H%M%S")
+                recorded_dt = datetime.strptime(fecha_prefix.replace(" ", "_"), "%y%m%d_%H%M%S")
             except Exception:
                 try:
                     recorded_dt = datetime.fromtimestamp(os.path.getmtime(v))

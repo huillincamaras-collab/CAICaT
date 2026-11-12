@@ -3,11 +3,22 @@ from tkinter import ttk, messagebox
 import os
 import json
 import subprocess
+from datetime import datetime
 from config_utils import load_config
 from export_utils import (
     filter_videos,
     get_unique_tags,
-    get_unique_values
+    get_unique_values,
+    _WIN_NO_WINDOW,
+    _campos_config,
+    _destino_unico,
+    _fila,
+    _norm,
+    _ruta_ffmpeg,
+    _ruta_principal,
+    _texto,
+    clave_carpeta,
+    get_recorded_at,
 )
 
 class EmbedMetadataGUI(tk.Tk):
@@ -172,38 +183,17 @@ class EmbedMetadataGUI(tk.Tk):
         self.selected_filters = filters
 
     # -------------------------
-    # Helper: Extraer valor del modelo unificado
-    # -------------------------
-    def _extract_field_value(self, entry, field):
-        """Navega la estructura anidada y retorna el valor como string."""
-        mapping = {
-            "session_id": entry.get("session", {}).get("session_id", entry.get("session_id", "")),
-            "site": entry.get("metadata", {}).get("site", ""),
-            "subsite": entry.get("metadata", {}).get("subsite", ""),
-            "camera": entry.get("metadata", {}).get("camera", ""),
-            "operator": entry.get("metadata", {}).get("operator", ""),
-            "recorded_at": entry.get("metadata", {}).get("recorded_at", ""),
-            "notes": entry.get("metadata", {}).get("notes", ""),
-            "species": ", ".join(entry.get("classification", {}).get("species", [])),
-            "behaviors": ", ".join(entry.get("classification", {}).get("behaviors", [])),
-            "status": entry.get("processing", {}).get("status", ""),
-            "time_sec": entry.get("processing", {}).get("time_sec", ""),
-        }
-        return str(mapping.get(field, entry.get(field, "")))
-
-    # -------------------------
-    # Incrustar metadatos
+    # Incrustar metadatos (genera COPIAS; los originales nunca se modifican)
     # -------------------------
     def embed_metadata(self):
         try:
             # 1. Filtrar videos
             filtered_data = filter_videos(self.all_metadata, **self.selected_filters)
-            
+
             # 2. Aplicar filtro adicional: solo si "embed_metadata" está marcado en UI
             if self.only_embed_marked.get():
-                # 🔹 CORREGIDO para modelo nuevo
                 filtered_data = [v for v in filtered_data if v.get("ui", {}).get("embed_metadata", False)]
-            
+
             if not filtered_data:
                 messagebox.showwarning("Advertencia", "No hay videos que coincidan con los filtros.")
                 return
@@ -214,77 +204,113 @@ class EmbedMetadataGUI(tk.Tk):
                 messagebox.showerror("Error", "Seleccione al menos un campo para incrustar.")
                 return
 
-            # 4. Procesar cada video
-            success_count = 0
-            for video_meta in filtered_data:
-                video_path = video_meta.get("file", {}).get("video_path") or video_meta.get("video_path")
-                if not video_path or not os.path.exists(video_path):
-                    continue
+            # 4. Mismo procedimiento que al finalizar una sesión en el tagger (copias en
+            #    output/embedded/<id>/<carpeta>/), pero con los campos elegidos aquí
+            id_lote = "manual_" + datetime.now().strftime("%y%m%d_%H%M%S")
+            res = embeber_copias(
+                filtered_data, self.config,
+                self.config["General"]["output_folder"], id_lote,
+                campos=selected_fields)
 
-                # Construir diccionario de metadatos
-                metadata_dict = {}
-                for field in selected_fields:
-                    value = self._extract_field_value(video_meta, field)
-                    if value and value != "":
-                        metadata_dict[field] = value
-
-                if metadata_dict:
-                    if self._embed_with_ffmpeg(video_path, metadata_dict):
-                        success_count += 1
-
-            messagebox.showinfo("Éxito", f"Metadatos incrustados en {success_count} videos.")
+            msg = f"Copias con metadata incrustada: {res['copiadas']} video(s)\n{res['destino']}"
+            if res["fotos_omitidas"]:
+                msg += f"\n({res['fotos_omitidas']} foto(s) omitidas: el embed es solo para videos)"
+            msg += "\n\nLos archivos originales no fueron modificados."
+            if res["errores"]:
+                msg += f"\n\nNo se pudieron procesar {len(res['errores'])}:\n" + "\n".join(res["errores"][:10])
+                if len(res["errores"]) > 10:
+                    msg += f"\n... y {len(res['errores']) - 10} más"
+                messagebox.showwarning("Incrustación finalizada", msg)
+            else:
+                messagebox.showinfo("Éxito", msg)
             self.destroy()
 
         except Exception as e:
             messagebox.showerror("Error", f"No se pudo incrustar metadatos:\n{str(e)}")
 
-    def _embed_with_ffmpeg(self, video_path, metadata_dict):
-        """Incrusta metadatos usando ffmpeg (método no destructivo: crea copia temporal)."""
+
+# =============================================================================
+# EMBED POR SESIÓN: copias con metadata incrustada (se invoca al finalizar el tagging)
+# Los archivos originales NUNCA se modifican.
+# =============================================================================
+
+CAMPOS_EMBED_DEFECTO = [
+    "session_id", "site", "subsite", "camera", "operator",
+    "species", "behaviors", "status", "frames", "time_sec",
+    "recorded_at", "notes",
+]
+_EXT_MOV = {".mp4", ".m4v", ".mov", ".3gp", ".3g2"}
+
+
+def _copiar_video_con_metadata(origen, destino, meta, creation_iso=None):
+    """
+    Copia el video con las etiquetas incrustadas (-c copy, sin recodificar).
+    - MP4/MOV: etiquetas personalizadas con -movflags use_metadata_tags.
+    - MKV: etiquetas personalizadas directas.
+    - AVI: solo admite campos estándar; todo queda resumido en 'comment'.
+    En todos los casos se agrega 'comment' con un resumen clave=valor legible.
+    """
+    ext = os.path.splitext(origen)[1].lower()
+    cmd = [_ruta_ffmpeg(), "-i", origen, "-c", "copy"]
+    if ext in _EXT_MOV:
+        cmd += ["-movflags", "use_metadata_tags"]
+    for k, v in meta.items():
+        cmd += ["-metadata", f"{k}={v}"]
+    if "comment" not in meta and meta:
+        resumen = "; ".join(f"{k}={v}" for k, v in meta.items())
+        cmd += ["-metadata", f"comment={resumen}"]
+    if creation_iso:
+        cmd += ["-metadata", f"creation_time={creation_iso}.000000Z"]
+    cmd += ["-y", destino]
+    r = subprocess.run(cmd, capture_output=True, timeout=600, creationflags=_WIN_NO_WINDOW)
+    if r.returncode != 0 or not os.path.exists(destino):
+        if os.path.exists(destino):
+            os.remove(destino)
+        raise RuntimeError("ffmpeg no pudo generar la copia")
+
+
+def embeber_copias(entries, config, output_folder, session_id, progreso=None, campos=None):
+    """
+    Genera copias de los videos con las etiquetas incrustadas.
+    Devuelve {"copiadas", "errores", "fotos_omitidas", "destino", "embebidos"}.
+    'embebidos' = rutas de origen (normalizadas) ya copiadas, para no duplicar copias.
+    'campos': lista de campos a incrustar; si es None se usan los de la configuración
+    (fields_to_embed) o los predeterminados. Es el mismo procedimiento para el tagger y la herramienta manual.
+    """
+    if not campos:
+        campos = _campos_config(config, "fields_to_embed", CAMPOS_EMBED_DEFECTO)
+    destino_raiz = os.path.join(output_folder, "embedded", str(session_id))
+    res = {"copiadas": 0, "errores": [], "fotos_omitidas": 0,
+           "destino": destino_raiz, "embebidos": set()}
+
+    for k, e in enumerate(entries, 1):
+        if e.get("is_photo"):
+            res["fotos_omitidas"] += 1
+            continue
+        origen = _ruta_principal(e)
+        nombre = os.path.basename(origen.replace("\\", "/")) or "(sin nombre)"
+        if not origen or not os.path.exists(origen):
+            res["errores"].append(f"{nombre}: archivo original no encontrado")
+            continue
         try:
-            temp_path = video_path + ".tmp.mp4"
-            base_dir = os.path.dirname(os.path.abspath(__file__))
-            
-            # 🔒 FIX BUG-004: Cross-platform binary name
-            ffmpeg_bin = 'ffmpeg.exe' if os.name == 'nt' else 'ffmpeg'
-            ffmpeg_path = os.path.join(base_dir, 'resources', 'ffmpeg', ffmpeg_bin)
-
-            if not os.path.exists(ffmpeg_path):
-                ffmpeg_path = "ffmpeg"
-
-            cmd = [ffmpeg_path, "-i", video_path, "-c", "copy"]            
-            
-            # Añadir metadatos
-            for key, value in metadata_dict.items():
-                cmd += ["-metadata", f"{key}={value}"]
-            
-            cmd.extend(["-y", temp_path])
-            
-            # 🔒 FIX BUG-003: Proper timeout handling with graceful error recovery
+            flat = _fila(e, session_id)
+            meta = {c: _texto(flat.get(c)) for c in campos if _texto(flat.get(c)) != ""}
+            creation = get_recorded_at(e) if isinstance(e.get("time_correction"), dict) else None
+            carpeta = os.path.join(destino_raiz, os.path.basename(clave_carpeta(e)) or "sin_carpeta")
+            os.makedirs(carpeta, exist_ok=True)
+            destino = _destino_unico(carpeta, nombre)
+            _copiar_video_con_metadata(origen, destino, meta, creation)
+            res["copiadas"] += 1
+            res["embebidos"].add(_norm(origen))
+        except Exception as ex:
+            res["errores"].append(f"{nombre}: {ex}")
+        if progreso:
             try:
-                result = subprocess.run(cmd, 
-                                       stdout=subprocess.DEVNULL, 
-                                       stderr=subprocess.DEVNULL, 
-                                       timeout=300,
-                                       check=False)
-            except subprocess.TimeoutExpired:
-                print(f"⚠️ FFmpeg timeout (>5min) para {os.path.basename(video_path)}")
-                if os.path.exists(temp_path):
-                    os.remove(temp_path)
-                return False
-            
-            if result.returncode == 0 and os.path.exists(temp_path):
-                os.replace(temp_path, video_path)
-                return True
-            else:
-                if os.path.exists(temp_path):
-                    os.remove(temp_path)
-                return False
-                
-        except Exception as e:
-            print(f"⚠️ Error incrustando metadatos en {os.path.basename(video_path)}: {e}")
-            if os.path.exists(video_path + ".tmp.mp4"):
-                os.remove(video_path + ".tmp.mp4")
-            return False
+                progreso(k, len(entries))
+            except Exception:
+                pass
+    return res
+
 
 if __name__ == "__main__":
     app = EmbedMetadataGUI()

@@ -44,6 +44,7 @@ class GUIInicial(tk.Tk):
         self.input_folder = ""
         self.metadata_path = ""
         self.metadata_list = []
+        self._start_blocked = False  # 🔒 "Iniciar" bloqueado mientras se escanea/carga
         self.camtrap_mode_var = tk.BooleanVar(value=False)
         self.legacy_mode_var = tk.BooleanVar(value=False)
         self.deployments_csv_path = ""
@@ -200,6 +201,7 @@ class GUIInicial(tk.Tk):
             e.grid(row=row, column=1, padx=5, pady=3, sticky="w")
             self.basic_entries[key] = e
 
+        self._start_btn_text = self.buttons_cfg.get("start", "Iniciar")
         self.start_btn = tk.Button(f, text=self.buttons_cfg.get("start", "Iniciar"), command=self.start,
                   bg=self.btn_bg, fg=self.btn_fg, font=self.font_default, width=20, height=2)
         self.start_btn.pack(pady=12)
@@ -374,11 +376,13 @@ class GUIInicial(tk.Tk):
         elif video_count > 0 and photo_count == 0:
             self.process_mode = "videos"
 
+        # 🔒 FIX: bloquear "Iniciar" hasta que el escaneo y los primeros archivos estén cargados
+        self._block_start()
         use_legacy = self.legacy_mode_var.get()
         if use_legacy:
-            threading.Thread(target=self._scan_only_legacy, daemon=True).start()
+            threading.Thread(target=self._run_scan_safe, args=(self._scan_only_legacy,), daemon=True).start()
         else:
-            threading.Thread(target=self._start_processing, daemon=True).start()
+            threading.Thread(target=self._run_scan_safe, args=(self._start_processing,), daemon=True).start()
 
     def _browse_deployments_csv(self):
         path = filedialog.askopenfilename(
@@ -524,6 +528,7 @@ class GUIInicial(tk.Tk):
                     ))
             except Exception:
                 pass
+            self._block_start("Seleccione otra carpeta")
             return
         
         
@@ -542,6 +547,8 @@ class GUIInicial(tk.Tk):
                 self.after(0, lambda: messagebox.showinfo("Escaneo completado", msg, parent=self))
         except Exception:
             print(msg)
+        # 🔒 En legacy el procesamiento ocurre al presionar Iniciar: ya se puede habilitar
+        self._mark_start_ready()
 
 
     def _start_processing(self):
@@ -589,6 +596,7 @@ class GUIInicial(tk.Tk):
                     ))
             except Exception:
                 pass
+            self._block_start("Seleccione otra carpeta")
             return
         
         # 5. Si no hay fotos huérfanas, mostrar stats finales (solo en este caso)
@@ -653,10 +661,14 @@ class GUIInicial(tk.Tk):
         """Procesa los videos en metadata_list (los primeros 3 sincrónicos, el resto en pool)."""
         def process_first_videos():
             first_n = min(3, len(self.metadata_list))
-            for i in range(first_n):
-                res = wrapper((self.metadata_list[i], output_folder))
-                self.metadata_list[i] = res
-                self._save_metadata_temporal()
+            try:
+                for i in range(first_n):
+                    res = wrapper((self.metadata_list[i], output_folder))
+                    self.metadata_list[i] = res
+                    self._save_metadata_temporal()
+            finally:
+                # 🔒 FIX: habilitar "Iniciar" cuando ya están cargados los primeros videos
+                self._mark_start_ready()
 
             def process_rest():
                 from multiprocessing import Pool, cpu_count
@@ -714,7 +726,8 @@ class GUIInicial(tk.Tk):
 
             self.after(0, lambda: self._mostrar_dialogo_rafagas(orphan_with_ts, avg_estimado, output_folder))
         except Exception as e:
-            self.after(0, lambda: messagebox.showerror("Error", f"No se pudieron analizar las fotos:\n{e}"))
+            err = str(e)
+            self.after(0, lambda: messagebox.showerror("Error", f"No se pudieron analizar las fotos:\n{err}"))
 
     def _mostrar_dialogo_rafagas(self, fotos_con_ts, avg_estimado, output_folder):
         """Diálogo interactivo para configurar el tamaño de ráfaga de fotos."""
@@ -858,6 +871,8 @@ class GUIInicial(tk.Tk):
                 args=(fotos_con_ts, result["burst_size"], output_folder),
                 daemon=True
             ).start()
+        else:
+            self._block_start("Vuelva a seleccionar la carpeta")
 
     def _procesar_fotos_con_parametro(self, fotos_con_ts, burst_size, output_folder):
         """Agrupa fotos por burst_size fijo y las procesa como ráfagas.
@@ -900,9 +915,14 @@ class GUIInicial(tk.Tk):
                     if has_pending_videos:
                         # En modo normal, procesar videos en background
                         self.after(0, lambda: self._procesar_videos_en_background(output_folder))
+                    else:
+                        self._mark_start_ready()
+                else:
+                    self._mark_start_ready()
         
         except Exception as e:
-            self.after(0, lambda: messagebox.showerror("Error", f"Fallo al procesar fotos:\n{e}"))
+            err = str(e)
+            self.after(0, lambda: messagebox.showerror("Error", f"Fallo al procesar fotos:\n{err}"))
 
     def _show_photo_progress_and_process_legacy(self, photo_groups, output_folder):
         """Ventana de progreso NO MODAL para procesamiento de fotos en modo legacy."""
@@ -989,6 +1009,8 @@ class GUIInicial(tk.Tk):
                 
                 self._save_metadata_temporal()
                 
+                self._mark_start_ready()
+                
                 # Cerrar ventana de progreso después de 2 segundos
                 self.after(2000, progress_window.destroy)
                 
@@ -1029,9 +1051,68 @@ class GUIInicial(tk.Tk):
         self.metadata_list = metadata_list
         self._save_metadata_temporal()
 
+    def _block_start(self, text="Analizando carpeta…"):
+        """Bloquea 'Iniciar' (botón y tecla Enter). Puede llamarse desde hilos secundarios."""
+        self._start_blocked = True
+        def _apply():
+            try:
+                self.start_btn.config(state="disabled", text=text)
+            except Exception:
+                pass
+        try:
+            self.after(0, _apply)
+        except Exception:
+            pass
+
+    def _mark_start_ready(self):
+        """Habilita 'Iniciar'. Puede llamarse desde hilos secundarios."""
+        self._start_blocked = False
+        def _apply():
+            try:
+                self.start_btn.config(state="normal", text=self._start_btn_text)
+            except Exception:
+                pass
+        try:
+            self.after(0, _apply)
+        except Exception:
+            pass
+
+    def _run_scan_safe(self, target):
+        """Ejecuta el escaneo; si falla, avisa y deja 'Iniciar' bloqueado."""
+        try:
+            target()
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            err = str(e)
+            try:
+                self.after(0, lambda: messagebox.showerror(
+                    "Error de escaneo", f"No se pudo escanear la carpeta:\n{err}", parent=self))
+            except Exception:
+                pass
+            self._block_start("Seleccione la carpeta nuevamente")
+
     def start(self):
         if not self.input_folder:
             messagebox.showerror("Error", "Debe seleccionar la carpeta de videos.")
+            return
+
+        # 🔒 FIX: no abrir el tagger hasta que haya datos cargados (también cubre la tecla Enter).
+        # Antes, si se presionaba Iniciar durante el escaneo, metadata_list estaba vacía y el
+        # tagger se abría sin videos (cuadro negro, contadores en 0).
+        if getattr(self, "_start_blocked", False):
+            messagebox.showinfo(
+                "Espere",
+                "La carpeta todavía se está analizando.\n"
+                "Iniciar se habilitará cuando estén cargados los primeros archivos."
+            )
+            return
+        if not self.metadata_list:
+            messagebox.showwarning(
+                "Sin datos",
+                "Todavía no hay archivos cargados.\n"
+                "Vuelva a seleccionar la carpeta de entrada."
+            )
             return
 
         basic_fields = {

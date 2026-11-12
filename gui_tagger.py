@@ -123,6 +123,7 @@ class DynamicTagger(tk.Tk):
         self.count_var = tk.IntVar(value=1)
         self.embed_metadata_var = tk.BooleanVar(value=False)
         self.xlsx_var = tk.BooleanVar(value=False)
+        self.export_corrected_var = tk.BooleanVar(value=False)  # copias con fecha/hora corregida al finalizar
         self.metadata_vars = {
             "Temp": tk.StringVar(), "Fase Lunar": tk.StringVar(), "Clima": tk.StringVar(),
             "Corrección Horaria": tk.StringVar(), "Deployment": tk.StringVar(), "Altura": tk.StringVar()
@@ -195,8 +196,10 @@ class DynamicTagger(tk.Tk):
         col1.pack_propagate(False)
         tk.Checkbutton(col1, text="Embed metadata", variable=self.embed_metadata_var,
                     command=self.update_checkbox).pack(pady=2, padx=5, anchor="w")
-        tk.Checkbutton(col1, text=".xlsx", variable=self.xlsx_var,
+        tk.Checkbutton(col1, text="CSV acumulado", variable=self.xlsx_var,
                     command=self.update_checkbox).pack(pady=2, padx=5, anchor="w")
+        tk.Checkbutton(col1, text="Copias fecha corr.", variable=self.export_corrected_var
+                    ).pack(pady=2, padx=5, anchor="w")
         tk.Frame(col1, height=10).pack()
         # 🔧 CONFIG MANAGER
         self.config_btn = tk.Button(col1, text="⚙️ Config", command=self.open_config_manager,
@@ -255,8 +258,12 @@ class DynamicTagger(tk.Tk):
                                     state="disabled", bd=1, relief="sunken",
                                     bg="#e8e8e8", font=("Arial", 9))
         self.meta_preview.pack(fill="x", padx=5, pady=2)
-        self.meta_btn = tk.Button(col1, text="Metadatos", command=self.open_metadata_editor)
-        self.meta_btn.pack(fill="x", pady=2, padx=5)
+        meta_row = tk.Frame(col1)
+        meta_row.pack(fill="x", pady=2, padx=5)
+        self.meta_btn = tk.Button(meta_row, text="Metadatos", command=self.open_metadata_editor)
+        self.meta_btn.pack(side="left", fill="x", expand=True)
+        self.time_fix_btn = tk.Button(meta_row, text="Fecha/hora", command=self.open_time_correction)
+        self.time_fix_btn.pack(side="left", fill="x", expand=True, padx=(2, 0))
         # ================= COLUMNA 2: CANVAS + CONTROLES =================
         col2 = tk.Frame(main_frame)
         col2.pack(side="left", fill="both", expand=True, padx=5)
@@ -643,6 +650,14 @@ class DynamicTagger(tk.Tk):
         win.protocol("WM_DELETE_WINDOW", save_and_close)
         self._meta_editor = win
 
+    def open_time_correction(self):
+        """Abre la ventana de corrección de fecha/hora (lógica en export_utils.py)."""
+        try:
+            from export_utils import abrir_correccion_horaria
+            abrir_correccion_horaria(self)
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo abrir la corrección de fecha/hora:\n{e}")
+
     def open_note_editor(self):
         if not self.video_dirs or not (0 <= self.current_video_index < len(self.video_dirs)):
             return
@@ -691,10 +706,11 @@ class DynamicTagger(tk.Tk):
 
     def update_checkbox(self):
         if self.video_dirs:
-            video_meta = self.video_dirs[self.current_video_index]
-            video_meta.setdefault("ui", {})
-            video_meta["ui"]["embed_metadata"] = self.embed_metadata_var.get()
-            video_meta["ui"]["xlsx"] = self.xlsx_var.get()
+            # 🔒 Las casillas valen para TODA la sesión (se aplican al finalizar): se marcan en todos los videos
+            for video_meta in self.video_dirs:
+                video_meta.setdefault("ui", {})
+                video_meta["ui"]["embed_metadata"] = self.embed_metadata_var.get()
+                video_meta["ui"]["xlsx"] = self.xlsx_var.get()
             self.save_metadata()
 
     def show_secondary_dropdown(self, event):
@@ -1049,37 +1065,15 @@ class DynamicTagger(tk.Tk):
             # 🔹 NUEVA: Guardar metadata final antes de procesos automáticos
             self.save_metadata()
             
-            # 🔹 NUEVA: Procesos automáticos según checkboxes
+            # 🔹 Procesos automáticos al finalizar la sesión (casillas de sesión completa):
+            #    embed metadata (copias), CSV acumulado y copias con fecha corregida
             try:
-                # Variables para rastrear si hay trabajo pendiente
-                videos_to_embed = []
-                videos_to_export = []
-                
-                # 1. Identificar videos para embed y export (excluyendo excluidos)
-                for video_meta in self.video_dirs:
-                    is_excluded = video_meta.get("ui", {}).get("is_excluded", False)
-                    if not is_excluded:
-                        if video_meta.get("ui", {}).get("embed_metadata", False):
-                            videos_to_embed.append(video_meta)
-                        if video_meta.get("ui", {}).get("xlsx", False):
-                            videos_to_export.append(video_meta)
-                
-                # 2. Ejecutar embed_metadata si hay videos marcados
-                if videos_to_embed:
-                    try:
-                        self._auto_embed_metadata(videos_to_embed)
-                    except Exception as e:
-                        print(f"⚠️ Error en embed automático: {e}")
-                
-                # 3. Ejecutar export Excel si hay videos marcados
-                if videos_to_export:
-                    try:
-                        self._auto_export_excel()
-                    except Exception as e:
-                        print(f"⚠️ Error en export automático: {e}")
-                
+                from export_utils import ejecutar_al_finalizar
+                ejecutar_al_finalizar(self)
             except Exception as e:
-                print(f"⚠️ Error en procesos automáticos: {e}")
+                import traceback
+                traceback.print_exc()
+                messagebox.showerror("Error", f"Falló el proceso automático al finalizar la sesión:\n{e}")
             
             # 4. Proceder con el cierre normal
             dialog.destroy()
@@ -1122,13 +1116,6 @@ class DynamicTagger(tk.Tk):
                     json.dump(self.video_dirs, f, indent=4, ensure_ascii=False)
             except Exception as e:
                 print(f"❌ Error crítico al guardar {self.metadata_path}: {e}")
-        
-        # 🔒 FIX BUG-008: Rebuild consolidated after session save so analysis sees updated data
-        try:
-            from config_utils import rebuild_consolidated_metadata
-            rebuild_consolidated_metadata(self.config_data)
-        except Exception as e:
-            print(f"⚠️ Error rebuilding consolidated: {e}")
 
     def update_consolidated_metadata(self, video_meta):
         try:
